@@ -15,7 +15,7 @@ import { IHostService } from "src/platform/host/common/hostService";
 import { INlsConfiguration } from "src/platform/window/common/window";
 import { IProductService } from "src/platform/product/common/productService";
 
-export const II18nService = createService<II18nService>("i18n-new-service");
+export const II18nService = createService<II18nService>("i18n-service");
 
 /**
  * This data structure is constructed during compiled time.

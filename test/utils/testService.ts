@@ -143,6 +143,8 @@ export class NullLifecycleService extends AbstractLifecycleService<number, numbe
         this._onBeforeQuit.fire({ reason: QuitReason.Quit, veto: () => {} });
         this._onWillQuit.fire({ reason: 1, join: () => { } });
     }
+
+    public async kill() {}
 }
 export class NullMainLifecycleService extends AbstractLifecycleService<number, number> implements IMainLifecycleService {
 

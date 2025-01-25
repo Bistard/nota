@@ -41,7 +41,7 @@ import { IContextMenuService, ContextMenuService } from "src/workbench/services/
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
 import { IKeyboardService, KeyboardService } from "src/workbench/services/keyboard/keyboardService";
 import { ILayoutService, LayoutService } from "src/workbench/services/layout/layoutService";
-import { INotificationService, NotificationService } from "src/workbench/services/notification/notificationService";
+import { NotificationService } from "src/workbench/services/notification/notificationService";
 import { IShortcutService, ShortcutService } from "src/workbench/services/shortcut/shortcutService";
 import { IThemeService, ThemeService } from "src/workbench/services/theme/themeService";
 import { rendererTitleBarFileCommandRegister, rendererWorkbenchCommandRegister } from "src/workbench/services/workbench/command.register";
@@ -67,6 +67,8 @@ import { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
 import { I18nService, II18nService } from "src/platform/i18n/browser/i18nService";
 import { IRecentOpenService, RecentOpenService } from "src/platform/app/browser/recentOpenService";
 import { EditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
+import { INotificationService } from "src/workbench/services/notification/notification";
+import { INotificationService } from "src/workbench/services/notification/notification";
 
 /**
  * @class This is the main entry of the renderer process.
