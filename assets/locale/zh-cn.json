@@ -15,7 +15,9 @@
             "openDirectory": "打开文件夹"
         },
         "editor/model/documentNode/node/mathBlock": {
-            "emptyMathBlock": "空数学公式"
+            "empty": "空数学公式",
+            "rendering": "渲染中...",
+            "error": "错误公式"
         }
     }
 }

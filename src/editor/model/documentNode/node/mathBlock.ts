@@ -1,5 +1,7 @@
 import katex from "katex";
 import { TokenizerAndRendererExtension } from "marked";
+import { DomUtility } from "src/base/browser/basic/dom";
+import { defer } from "src/base/common/utilities/async";
 import { SmartRegExp } from "src/base/common/utilities/regExp";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
@@ -59,22 +61,7 @@ export class MathBlock extends DocumentNode<EditorTokens.MathBlock> {
                 const text = node.attrs['text'] as string;
                 const dom = document.createElement('div');
                 dom.classList.add('math-block');
-
-                // special case: empty math block
-                if (text.trim().length === 0) {
-                    dom.classList.add('empty');
-                    const contentText = this.i18nService.localize('emptyMathBlock', 'Empty Math Block');
-                    dom.textContent = `< ${contentText} >`;
-                } 
-                // normal case: use KaTeX for rendering math equations
-                else {
-                    katex.render(text, dom, {
-                        displayMode: true,
-                        output: 'htmlAndMathml',
-                        throwOnError: false,
-                    });
-                }
-
+                this.__renderMath(text, dom);
                 return dom;
             }
         };
@@ -94,4 +81,57 @@ export class MathBlock extends DocumentNode<EditorTokens.MathBlock> {
         const { text } = node.attrs;
         state.write(`$$${text}$$`);
     };
+
+    // [private helper methods]
+
+    private __renderMath(text: string, dom: HTMLElement): void {
+        
+        // special case: empty math block
+        if (text.trim().length === 0) {
+            dom.classList.add('empty');
+            const contentText = this.i18nService.localize('empty', 'Empty Math Block');
+            dom.textContent = `< ${contentText} >`;
+            return;
+        }
+        
+        const guessIfTooLarge = text.length > 500;
+
+        // render synchronously (blocking)
+        if (!guessIfTooLarge) {
+            this.__doRender(text, dom);
+            return;
+        }
+        
+        // render asynchronously (non-blocking)
+        dom.classList.add('rendering');
+        const contentText = this.i18nService.localize('rendering', 'Rendering...');
+        dom.textContent = `< ${contentText} >`;
+        defer(() => {
+            if (dom && !DomUtility.Elements.ifInDomTree(dom)) {
+                return;
+            }
+            
+            dom.classList.remove('rendering');
+            dom.textContent = '';
+
+            this.__doRender(text, dom);
+        });
+    }
+
+    private __doRender(text: string, dom: HTMLElement): void {
+        // try rendering
+        try {
+            katex.render(text, dom, {
+                displayMode: true,
+                output: 'htmlAndMathml',
+                throwOnError: true,
+            });
+        } 
+        // error rendering
+        catch (error) {
+            dom.classList.add('render-error');
+            const contentText = this.i18nService.localize('error', 'Error Equations');
+            dom.textContent = contentText; 
+        }
+    }
 }

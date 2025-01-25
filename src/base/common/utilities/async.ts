@@ -66,6 +66,10 @@ export async function delayFor(time: Time, callback?: ITask<void>): Promise<void
 	);
 }
 
+export async function defer(callback?: ITask<void>): Promise<void> {
+	return delayFor(Time.INSTANT, callback);
+}
+
 /**
  * @class Ensures that only one promise task is executed at a time.
  */
