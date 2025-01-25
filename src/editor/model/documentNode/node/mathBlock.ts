@@ -41,7 +41,9 @@ export function createMathBlockTokenizer(): TokenizerAndRendererExtension {
 
 export class MathBlock extends DocumentNode<EditorTokens.MathBlock> {
 
-    constructor() {
+    constructor(
+        @II18nService private readonly i18nService: II18nService,
+    ) {
         super(TokenEnum.MathBlock);
     }
 
@@ -57,13 +59,22 @@ export class MathBlock extends DocumentNode<EditorTokens.MathBlock> {
             toDOM: (node) => { 
                 const text = node.attrs['text'] as string;
                 const dom = document.createElement('div');
+                dom.classList.add('math-block');
 
-
-                katex.render(text, dom, {
-                    displayMode: true,
-                    output: 'htmlAndMathml',
-                    throwOnError: false,
-                });
+                // special case: empty math block
+                if (text.trim().length === 0) {
+                    dom.classList.add('empty');
+                    const contentText = this.i18nService.localize('emptyMathBlock', 'Empty Math Block');
+                    dom.textContent = `< ${contentText} >`;
+                } 
+                // normal case: use KaTeX for rendering math equations
+                else {
+                    katex.render(text, dom, {
+                        displayMode: true,
+                        output: 'htmlAndMathml',
+                        throwOnError: false,
+                    });
+                }
 
                 return dom;
             }

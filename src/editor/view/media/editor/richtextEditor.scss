@@ -79,7 +79,7 @@
         font-family: 'Consolas', monospace;
         padding: 2px 4px;
         // consolas looks bigger than normal text, we reduce for 1 px to maintain balance.
-        font-size: 15px;
+        font-size: 90%;
     }
 
     & .cm-editor {
@@ -91,7 +91,7 @@
         & .cm-line {
             font-family: 'Consolas', monospace;
             // Consolas looks bigger than normal text, we reduce for 1 px to maintain balance.
-            font-size: 15px;
+            font-size: 90%;
         }
     }
 
@@ -112,5 +112,28 @@
         height: 2px;
         background: #ddd;
         margin: 22px 0;
+    }
+
+    & .math-block {
+
+        // animation: background color
+        background-color: transparent;
+        transition: background-color 0.3s ease;
+        &:hover {
+            background-color: #f0f0f0;
+            cursor: pointer;
+        }
+
+        &.empty {
+            display: flex;
+            justify-content: center; // horizontal align
+            align-items: center; // vertical align
+
+            min-height: 50px;
+            
+            font-family: 'sans-serif';
+            font-style: italic;
+            font-size: 18px;
+        }
     }
 }

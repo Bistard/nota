@@ -13,6 +13,9 @@
         "platform/i18n/common/i18n": {
             "missingTranslation": "未知翻译",
             "openDirectory": "打开文件夹"
+        },
+        "editor/model/documentNode/node/mathBlock": {
+            "emptyMathBlock": "空数学公式"
         }
     }
 }
