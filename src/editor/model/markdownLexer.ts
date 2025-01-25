@@ -58,7 +58,13 @@ export class MarkdownLexer implements IMarkdownLexer {
 
     constructor(options?: IMarkdownLexerOptions) {
         this._marked = new Marked({
+            async: false,
             silent: false,
+            pedantic: true, // TODO: suggest to set to false.
+            
+            gfm: true,
+            breaks: false,
+
             extensions: [
                 createMathInlineTokenizer({ nonStandard: true }),
                 createMathBlockTokenizer(),
