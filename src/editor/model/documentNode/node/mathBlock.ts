@@ -10,11 +10,11 @@ import { IMarkdownSerializerState } from "src/editor/model/serializer";
 import { II18nService } from "src/platform/i18n/browser/i18nService";
 
 export const mathBlockRule = 
-    new SmartRegExp(/^(dollars)\s*\n(content)(?:dollars)\s*(?:optionalEnd)/)
+    new SmartRegExp(/^dollarLine\n(contentLine)dollarLine/)
+    .replace('dollarLine', /(?:dollars)\s*/)
+    .replace('contentLine', /(?:singleLine\n)*/) // multiple line: allow to be empty
+    .replace('singleLine', /(?!dollars)[^\n]*/) // single line: not allow occurrence of `$$`
     .replace('dollars', /\${2}/)
-    .replace('content', /(?:singleLine\n)*/) // multiple line: allow to be empty
-    .replace('singleLine', /(?!\$\$)[^\n]*/) // single line: not allow occurrence of `$$`
-    .replace('optionalEnd', /\n|$/)
     .get();
 
 export function createMathBlockTokenizer(): TokenizerAndRendererExtension {
@@ -28,11 +28,11 @@ export function createMathBlockTokenizer(): TokenizerAndRendererExtension {
         tokenizer: (src: string, tokens: any) => {
             const match = src.match(mathBlockRule);
             if (match) {
+                console.log(match);
                 return {
                     type: 'mathBlock',
                     raw: match[0],
-                    text: match[2]!.trim(),
-                    displayMode: match[1]!.length === 2,
+                    text: match[1]!.trim(),
                 };
             }
         },
