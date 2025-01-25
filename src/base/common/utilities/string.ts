@@ -613,11 +613,12 @@ export function printNaryTreeLike<TNode>(
     getContent: (node: TNode) => string,
     hasChildren: (node: TNode) => boolean,
     getChildren: (node: TNode) => TNode[],
+    output: (...content: string[]) => void = console.log,
 ): void {
     
     // in-order
     const __print = (node: TNode, prefix: string, isParentTheLast: boolean): void => {
-        console.log(prefix + getContent(node));
+        output(prefix + getContent(node));
         
         if (!hasChildren(node)) {
             return;
