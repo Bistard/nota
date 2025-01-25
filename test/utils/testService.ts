@@ -342,33 +342,3 @@ export class NullHostService implements IHostService {
     public async getAllApplicationStatus(): Promise<Dictionary<string, any>> { panic("Method not implemented."); }
     public async showItemInFolder(path: string): Promise<void> { panic("Method not implemented."); }
 }
-
-export function createNullHostService(): IHostService {
-    const logService = new NullLogger();
-    const fileService = new FileService(logService);
-    fileService.registerProvider(Schemas.FILE, new InMemoryFileSystemProvider());
-    const envService = new NullMainEnvironmentService();
-    const lifecycleService = new NullMainLifecycleService();
-    const statusService = new MainStatusService(fileService, logService, envService, lifecycleService);
-    return new NullHostService(statusService);
-}
-
-export async function createTestConfigurationService(): Promise<IConfigurationService> {
-    const instantiationService = new InstantiationService();
-    const logService = new ConsoleLogger();
-    const fileService = new FileService(logService);
-    fileService.registerProvider(Schemas.FILE, new InMemoryFileSystemProvider());
-    const registrantService = new RegistrantService(logService);
-    registrantService.registerRegistrant(new ConfigurationRegistrant());
-    
-    instantiationService.store(IInstantiationService, instantiationService);
-    instantiationService.store(ILogService, logService);
-    instantiationService.store(IFileService, fileService);
-    instantiationService.store(IRegistrantService, registrantService);
-    
-    registrantService.init(instantiationService);
-    
-    const service = instantiationService.createInstance(BrowserConfigurationService, { appConfiguration: { path: URI.join(URI.parse('file:///temp'), APP_CONFIG_NAME) } });
-    await service.init().unwrap();
-    return service;
-}
