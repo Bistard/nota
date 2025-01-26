@@ -41,7 +41,6 @@ export function createMathInlineTokenizer(options: { nonStandard: boolean }): To
                     type: 'mathInline',
                     raw: match[0],
                     text: match[2]!.trim(),
-                    displayMode: match[1]!.length === 2,
                 };
             }
         }

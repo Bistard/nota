@@ -24,7 +24,7 @@ export function createMathBlockTokenizer(): TokenizerAndRendererExtension {
         name: 'mathBlock',
         level: 'block',
         start: (src: string) => {
-            return src.match(/^\${2}/)?.index;
+            return src.match(/^\${2}/m)?.index;
         },
         tokenizer: (src: string, tokens: any) => {
             const match = src.match(mathBlockRule);

@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import { Arrays } from 'src/base/common/utilities/array';
 import { printNaryTreeLike } from 'src/base/common/utilities/string';
 import { isDefined } from 'src/base/common/utilities/type';
+import { EditorToken } from 'src/editor/common/model';
 import { MarkdownLexer } from 'src/editor/model/markdownLexer';
 import { isEqualTreeLike, printEditorTokens } from 'test/utils/helpers';
 
@@ -11,6 +12,12 @@ suite('MarkdownTokenizer-test', async () => {
     function expectSame(raw: string, structure: TokenStructure[]): void {
         const tokens = lexer.lex(raw);
 
+        // not same length, assert fail
+        if (tokens.length !== structure.length) {
+            __assertFail(tokens, structure);
+        }
+
+        // try assert each (dfs)
         Arrays.parallelEach([tokens, structure], (token, structure) => {
             const isEqual = isEqualTreeLike(
                 token,
@@ -41,8 +48,27 @@ suite('MarkdownTokenizer-test', async () => {
                 (...contents) => contents.forEach(each => expectTree += `${each}\n`)
             );
 
-            assert.ok(isEqual, `Structure difference:\n[Actual]\n${tokensTree}\n[Expect]\n${expectTree}\n`);
+            if (!isEqual) {
+                __assertFail([token], [structure]);
+            }
         });
+
+        function __assertFail(tokens: EditorToken[], structure: TokenStructure[]): never {
+            let tokensTree = '';
+            let expectTree = '';
+            printEditorTokens(tokens, false, (...contents) => contents.forEach(each => tokensTree += `${each}\n`));
+            for (const each of structure) {
+                printNaryTreeLike(
+                    each, 
+                    structure => structure.type,
+                    structure => (structure.children ?? []).length > 0,
+                    structure => structure.children ?? [],
+                    (...contents) => contents.forEach(each => expectTree += `${each}\n`)
+                );
+            }
+
+            assert.fail(`Structure difference:\n[Actual]\n${tokensTree}\n[Expect]\n${expectTree}\n`);
+        }
     }
 
     class TokenStructure {
@@ -243,6 +269,15 @@ suite('MarkdownTokenizer-test', async () => {
                 '$$\n<div>HTML in math</div>\n$$', 
                 [
                     new TokenStructure('mathBlock', '$$\n<div>HTML in math</div>\n$$')
+                ]
+            );
+        });
+        
+        test('math block with inner $$', () => {
+            expectSame(
+                '$$\nfoo $$ bar\n$$', 
+                [
+                    new TokenStructure('mathBlock', '$$\nfoo $$ bar\n$$')
                 ]
             );
         });
