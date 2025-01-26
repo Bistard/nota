@@ -18,11 +18,6 @@
             "empty": "空数学公式",
             "rendering": "渲染中...",
             "error": "错误公式"
-        },
-        "editor/model/documentNode/node/mathBlock": {
-            "empty": "",
-            "rendering": "",
-            "error": ""
         }
     }
 }
