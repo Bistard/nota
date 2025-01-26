@@ -249,6 +249,7 @@ class localizationGenerator {
         }
     
         localeData.contents ??= {};
+        localeData.version = enData.version;
     
         let missingFound = false;
         for (const [filePath, enKeys] of Object.entries(enContents)) {
