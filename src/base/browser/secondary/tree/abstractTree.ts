@@ -472,6 +472,11 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      */
     readonly viewportHeight: number;
 
+    /**
+     * The viewport top of the tree in pixels.
+     */
+    readonly scrollTop: number;
+
     /** 
      * The actual content size of the tree in pixels. 
      */
@@ -1129,6 +1134,10 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     get viewportHeight(): number {
         return this._view.getViewportSize();
+    }
+
+    get scrollTop(): number {
+        return this._view.getScrollPosition();
     }
 
     get contentHeight(): number {

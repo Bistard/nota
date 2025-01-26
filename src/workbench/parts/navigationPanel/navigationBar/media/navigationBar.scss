@@ -8,7 +8,7 @@
     height: 100%;
 
     .split-view {
-        // FIX: weird number, need documentation.
+        // a bit less width makes the sash next to the bar more easy be hovered
         width: 98.5% !important;
         -webkit-app-region: drag; /* draggable */
     }
