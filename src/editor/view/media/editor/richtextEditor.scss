@@ -114,9 +114,8 @@
         margin: 22px 0;
     }
 
-    & .math-block {
-        padding: 4px;
-
+    // hover effect for both inline/block
+    & .math-inline, & .math-block {
         // animation: background color
         background-color: transparent;
         transition: background-color 0.3s ease;
@@ -124,6 +123,10 @@
             background-color: #f0f0f0;
             cursor: pointer;
         }
+    }
+
+    & .math-block {
+        padding: 4px;
 
         &.empty, &.rendering, &.render-error {
             display: flex;
