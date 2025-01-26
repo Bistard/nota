@@ -1,11 +1,12 @@
-import katex from "katex";
 import { TokenizerAndRendererExtension } from "marked";
 import { TokenEnum } from "src/editor/common/markdown";
+import { renderMath } from "src/editor/common/math";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
+import { II18nService } from "src/platform/i18n/browser/i18nService";
 
 const inlineRule = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n$]))\1(?=[\s?!.,:？！。，：]|$)/;
 const inlineRuleNonStandard = /^(\${1,2})(?!\$)((?:\\.|[^\\\n])*?(?:\\.|[^\\\n$]))\1/; // Non-standard, even if there are no spaces before and after $ or $$, try to parse
@@ -49,7 +50,9 @@ export function createMathInlineTokenizer(options: { nonStandard: boolean }): To
 
 export class MathInline extends DocumentNode<EditorTokens.MathInline> {
 
-    constructor() {
+    constructor(
+        @II18nService private readonly i18nService: II18nService,
+    ) {
         super(TokenEnum.MathInline);
     }
 
@@ -64,13 +67,7 @@ export class MathInline extends DocumentNode<EditorTokens.MathInline> {
             toDOM: (node) => { 
                 const text = node.attrs['text'] as string;
                 const dom = document.createElement('span');
-                dom.classList.add('math-inline');
-                
-                katex.render(text, dom, {
-                    displayMode: false,
-                    output: 'htmlAndMathml',
-                    throwOnError: false,
-                });
+                renderMath(this.i18nService, text, dom, 'inline');
 
                 return dom; 
             }

@@ -18,6 +18,11 @@
         "platform/i18n/common/i18n": {
             "openDirectory": "Open a Folder",
             "missingTranslation": "MISSING_TRANSLATION"
+        },
+        "editor/common/math": {
+            "empty": "Empty Math Block",
+            "rendering": "Rendering...",
+            "error": "Error Equations"
         }
     }
 }
