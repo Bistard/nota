@@ -127,8 +127,13 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
             })
         );
 
+        // base renderer configuraition
+        const baseRendererConfiguration = Object.assign(
+            {},
+            baseConfiguration
+        );
         // compiles SCSS files to CSS files
-        baseConfiguration.module.rules.push({
+        baseRendererConfiguration.module.rules.push({
             test: /\.(css|scss|sass)$/,
             use: [
                 MiniCssExtractPlugin.loader,
@@ -138,6 +143,12 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                     options: {
                         sassOptions: {
                             includePaths: [path.resolve(this.#cwd, 'src/')],
+                            
+                            /**
+                             * @see https://github.com/sass/dart-sass/issues/2352
+                             * @see https://github.com/nolimits4web/swiper/issues/7771
+                             */
+                            silenceDeprecations: ['legacy-js-api', 'import'],
                         },
                     },
                 },
@@ -145,8 +156,8 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
         });
 
         return [
-            this.#constructInspectorProcess(Object.assign({}, baseConfiguration)),
-            this.#constructRendererProcess(Object.assign({}, baseConfiguration)),
+            this.#constructInspectorProcess(Object.assign({}, baseRendererConfiguration)),
+            this.#constructRendererProcess(Object.assign({}, baseRendererConfiguration)),
             this.#constructMainProcess(Object.assign({}, baseConfiguration)),
         ];
     }
