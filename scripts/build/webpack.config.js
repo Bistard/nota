@@ -120,10 +120,10 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                 mode: this.#buildMode,
                 cwd: this.#cwd,
                 watchMode: this.#isWatchMode,
-                plugins: new WebpackPluginProvider().getPlugins({
+                plugins: [...new WebpackPluginProvider().getPlugins({
                     cwd: this.#cwd,
                     circular: this.#isCircular,
-                }),
+                })],
             })
         );
 
@@ -145,9 +145,9 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
         });
 
         return [
-            this.#constructMainProcess(Object.assign({}, baseConfiguration)),
-            this.#constructRendererProcess(Object.assign({}, baseConfiguration)),
             this.#constructInspectorProcess(Object.assign({}, baseConfiguration)),
+            this.#constructRendererProcess(Object.assign({}, baseConfiguration)),
+            this.#constructMainProcess(Object.assign({}, baseConfiguration)),
         ];
     }
 

@@ -34,7 +34,7 @@ function initialization() {
 }
 
 function startWatchChanges() {
-    log('info', '[ProductJson] start watching changes in "PACKAGE_JSON_PATH".');
+    log('info', `[ProductJson] start watching changes in "${PACKAGE_JSON_PATH}".`);
     const watcher = chokidar.watch(PACKAGE_JSON_PATH, {
         persistent: true,
         ignoreInitial: true,

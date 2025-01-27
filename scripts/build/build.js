@@ -83,7 +83,7 @@ const { ScriptProcess, ScriptHelper, log } = require("../utility");
                 ['NODE_VER', process.versions.node ?? 'N/A'],
                 ...envPair,
             ],
-            stdio: "inherit"
+            stdio: "inherit",
         },
     );
 
