@@ -4,7 +4,9 @@ import { IWidget, Widget } from "src/base/browser/basic/widget";
 import { Coordinate, IRect, ISize } from "src/base/common/utilities/size";
 import { Pair } from "src/base/common/utilities/type";
 import { off } from "process";
-
+import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
+import { KeyCode } from "src/base/common/keyboard";
+import { mixin } from "src/base/common/utilities/object";
 
 
 /**
@@ -214,15 +216,23 @@ export class HoverBox extends Widget implements IHoverBox {
     
 
     // [constructor]
-
-    constructor(opts: IHoverBoxOptions) {
+    
+    constructor(opts: IHoverBoxOptions,
+                @IKeyboardService private readonly keyboardService: IKeyboardService
+    ) {
         super();
         this.text = opts.text;
         this.target = opts.target;
         this.positionOpts = opts.position ?? {};
-        this.persistenceOpts = opts.persistence ?? {};
+        
+        this.persistenceOpts = mixin(
+            opts.persistence, 
+            { hideOnKeyDown: true },
+            false,
+        );
         this.appearanceOpts = opts.appearance ?? {};
 
+        
         this.locked = !!this.persistenceOpts.locked;
     }
 
@@ -322,18 +332,30 @@ export class HoverBox extends Widget implements IHoverBox {
                 this.tryHideOnMouseOut();
             }));
         }
-    
-        if (this.persistenceOpts.hideOnKeyDown === true) {
-            this.__register(addDisposableListener(document, EventType.keydown, (e: KeyboardEvent) => {
-                if (e.key === 'Alt') {
-                    this.toggleLock();
-                } else {
-                    if (!this.locked) {
-                        this.hide();
-                    }
+        this.__register(this.keyboardService.onKeydown(event => {
+            if (!this.persistenceOpts.hideOnKeyDown) {
+                return;
+            }
+            if (event.key === KeyCode.Alt && this.visible) {
+                this.toggleLock();
+            } else {
+                if (!this.locked) {
+                    this.hide();
                 }
-            }));
-        }
+            }
+        }));
+
+        this.__register(this.keyboardService.onKeyup(event => {
+
+            if (event.key === KeyCode.Alt) {
+                // Release Alt => unlock
+                this.locked = false;
+                // If mouse is neither in hover nor target, hide immediately
+                if (!this.mouseInHover && !this.mouseInTarget) {
+                    this.hide();
+                }
+            }
+        }));
     }
 
     private tryHideOnMouseOut(): void {
@@ -388,7 +410,6 @@ export class HoverBox extends Widget implements IHoverBox {
 
     private __determineHoverDirection(targetRect: IRect, hoverSize: ISize, viewSize: ISize): Direction {
          
-        
         // default Direction is Top(above the target)
         const desiredPosition = this.positionOpts.hoverPosition ?? DirectionY.Top;
          
