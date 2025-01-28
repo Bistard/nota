@@ -5,7 +5,6 @@ import { RegistrantType, createRegister } from "src/platform/registrant/common/r
 import { FileCommands } from "src/workbench/services/fileTree/fileCommands";
 import { Command } from "src/platform/command/common/command";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { INotificationService } from "src/workbench/services/notification/notificationService";
 import { errorToMessage } from "src/base/common/utilities/panic";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
@@ -18,11 +17,22 @@ import { IBrowserInspectorService } from "src/platform/inspector/common/inspecto
 import { INavigationViewService } from "src/workbench/parts/navigationPanel/navigationView/navigationView";
 import { ExplorerView } from "src/workbench/contrib/explorer/explorer";
 import { IRecentOpenService } from "src/platform/app/browser/recentOpenService";
+import { INotificationService } from "src/workbench/services/notification/notification";
 
 export const rendererWorkbenchCommandRegister = createRegister(
     RegistrantType.Command, 
     'rendererWorkbench',
     (registrant) => {
+        // debugger: allow to execute command with empty string.
+        registrant.registerCommandBasic(
+            {
+                id: '',
+                command: (provider) => {
+                    provider.getOrCreateService(ILogService).warn('CommandService', 'Executing command with empty id (``), make sure this is expected.');
+                },
+            },
+        );
+
         registrant.registerCommandBasic(
             {
                 id: AllCommands.toggleDevTool,
@@ -137,12 +147,8 @@ export const rendererWorkbenchCommandRegister = createRegister(
         );
         registrant.registerCommandBasic({
             id: AllCommands.fileTreeOpenFolder,
-            command: (provider, target: URI) => {
-                const navViewService = provider.getOrCreateService(INavigationViewService);
-                const currentView = navViewService.currView();
-                if (currentView && ExplorerView.is(currentView)) {
-                    currentView.open(target);
-                }
+            command: async (provider, target: URI) => {
+                provider.getOrCreateService(INavigationViewService).selectFolderAndOpen(target);
             }
         });
         registrant.registerCommandBasic(
@@ -155,6 +161,19 @@ export const rendererWorkbenchCommandRegister = createRegister(
             }
         );
     },
+);
+
+export const rendererTitleBarFileCommandRegister = createRegister(
+    RegistrantType.Command, 
+    'rendererTitleBar',
+    (registrant) => {
+        registrant.registerCommandBasic({
+            id: AllCommands.openFolderDialog, 
+            command: async (provider) => { 
+                provider.getOrCreateService(INavigationViewService).selectFolderAndOpen(null); 
+            }
+        });
+    }
 );
 
 class AlertError extends Command {
