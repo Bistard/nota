@@ -428,7 +428,8 @@ export class FileTreeService extends Disposable implements IFileTreeService, IFi
 
                     // may disable this
                     log: (level, reporter, message, error, additional) => defaultLog(this.logService, level, `${reporter} (FileTree)`, message, error, additional),
-                },);
+                },
+            );
 
             // bind the dnd with the tree
             dndProvider.bindWithTree(tree);

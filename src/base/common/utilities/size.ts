@@ -1,3 +1,4 @@
+export interface IDimension extends ISize {};
 export interface ISize {
 	width: number;
 	height: number;
@@ -5,11 +6,6 @@ export interface ISize {
 
 export interface IMeasurable {
 	size: number;
-}
-
-export interface IDimension {
-    width: number;
-    height: number;
 }
 
 export interface IPosition {
@@ -22,14 +18,8 @@ export interface ICoordinate {
 	y: number;
 }
 
-export interface IRect {
-	top: number;
-	left: number;
-	width: number;
-	height: number;
-}
-
-export interface IDomBox extends IDimension, IPosition {}
+export interface IDomBox extends IPosition, IDimension {}
+export interface IRect extends IDomBox {}
 
 interface ISize2D {
 	clone(a: number, b: number): this;
