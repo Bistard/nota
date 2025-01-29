@@ -1,4 +1,4 @@
-export interface IDimension extends ISize {};
+export interface IDimension extends ISize {}
 export interface ISize {
 	width: number;
 	height: number;
