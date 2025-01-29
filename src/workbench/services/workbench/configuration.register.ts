@@ -1,7 +1,7 @@
 import { CollapseState } from "src/base/browser/basic/dom";
-import { LanguageType } from "src/platform/i18n/common/localeTypes";
+import { LanguageType } from "src/platform/i18n/common/i18n";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
-import { EditorGroupOpenPositioning } from "src/workbench/parts/workspace/editor/editorGroupModel";
+import { EditorGroupOpenPositioning } from "src/workbench/parts/workspace/editorGroupModel";
 import { IncrementFileType } from "src/workbench/services/fileTree/fileCommands";
 import { FileSortOrder, FileSortType } from "src/workbench/services/fileTree/fileTreeSorter";
 import { PresetColorTheme } from "src/workbench/services/theme/theme";

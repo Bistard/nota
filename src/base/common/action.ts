@@ -1,4 +1,5 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
+import { ErrorHandler } from "src/base/common/error";
 import { Emitter, Register } from "src/base/common/event";
 import { Arrays } from "src/base/common/utilities/array";
 import { panic } from "src/base/common/utilities/panic";
@@ -229,7 +230,7 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
         this._contextProvider = opts.contextProvider;
         this._itemProviders = [...(opts.actionItemProviders ?? [])];
         
-        this._actionRunner = opts.actionRunner ?? new ActionRunner();
+        this._actionRunner = this.__register(opts.actionRunner ?? new ActionRunner());
         this.onBeforeRun = this._actionRunner.onBeforeRun;
         this.onDidRun = this._actionRunner.onDidRun;
         
@@ -252,9 +253,7 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
 
         if (isNumber(arg)) {
             action = this._items[arg]?.action;
-        }
-        
-        else {
+        } else {
             const id = isString(arg) ? arg : arg.id;
             action = this.get(id);
         }
@@ -316,7 +315,7 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
                 panic(`Action list cannot create item with action id '${action.id}'`);
             }
 
-            items.push(item);
+            items.push(this.__register(item));
         
             if (isNullable(index)) {
                 this._items.push(item);
@@ -400,6 +399,7 @@ export class ActionRunner extends Disposable {
             await action.run(context);
         } catch (error: any) {
             err = error;
+            ErrorHandler.onUnexpectedError(err);
         }
 
         this._onDidRun.fire({ action: action, error: err });

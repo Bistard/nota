@@ -66,6 +66,10 @@ export async function delayFor(time: Time, callback?: ITask<void>): Promise<void
 	);
 }
 
+export async function defer(callback?: ITask<void>): Promise<void> {
+	return delayFor(Time.INSTANT, callback);
+}
+
 /**
  * @class Ensures that only one promise task is executed at a time.
  */
@@ -928,7 +932,7 @@ export interface IDebouncer<T> extends IDisposable {
  * 
  * @template T The type of the return value of the queued tasks.
  */
-export class Debouncer<T> implements IDebouncer<T> {
+export class Debouncer<T> extends Disposable implements IDebouncer<T> {
 
 	// [field]
 
@@ -940,6 +944,7 @@ export class Debouncer<T> implements IDebouncer<T> {
 	// [constructor]
 
 	constructor(defaultDelay: DelayType) {
+		super();
 		this._defaultDelay = defaultDelay;
 	}
 
@@ -985,7 +990,8 @@ export class Debouncer<T> implements IDebouncer<T> {
 		this._blocker = undefined;
 	}
 
-	public dispose(): void {
+	public override dispose(): void {
+		super.dispose();
 		this.unschedule();
 	}
 
@@ -1047,13 +1053,14 @@ export interface IThrottleDebouncer<T> extends IDisposable {
  * 
  * @template T The type of the return value of the queued tasks.
  */
-export class ThrottleDebouncer<T> implements IThrottleDebouncer<T> {
+export class ThrottleDebouncer<T> extends Disposable implements IThrottleDebouncer<T> {
 	
 	private readonly debouncer: Debouncer<Promise<T>>;
 	private readonly throttler: Throttler;
 
 	constructor(defaultDelay: Time) {
-		this.debouncer = new Debouncer(defaultDelay);
+		super();
+		this.debouncer = this.__register(new Debouncer(defaultDelay));
 		this.throttler = new Throttler();
 	}
 
@@ -1076,21 +1083,19 @@ export class ThrottleDebouncer<T> implements IThrottleDebouncer<T> {
 	public unschedule(): void {
 		this.debouncer.unschedule();
 	}
-
-	public dispose(): void {
-		this.debouncer.dispose();
-	}
 }
 
 /**
  * @description A timer that runs at a set interval, and can be cancelled or 
  * disposed of.
  */
-export class IntervalTimer implements IDisposable {
+export class IntervalTimer extends Disposable {
 
     private _handle?: any = undefined;
 
-    constructor() {}
+    constructor() {
+		super();
+	}
 
 	/**
      * @description Sets the timer with a new callback and interval duration. If 
@@ -1114,7 +1119,7 @@ export class IntervalTimer implements IDisposable {
         }
     }
 
-    public dispose(): void {
+    public override dispose(): void {
         this.cancel();
     }
 }

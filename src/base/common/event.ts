@@ -1,10 +1,8 @@
 import type { IO } from "src/base/common/utilities/functional";
 import { LinkedList } from "src/base/common/structures/linkedList";
-import { Disposable, DisposableBucket, IDisposable, LooseDisposableBucket, toDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableBucket, IDisposable, LooseDisposableBucket, toDisposable, untrackDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { panic } from "src/base/common/utilities/panic";
-import { createFinalizationRegistry } from "src/base/common/garbageCollection";
-import { Time } from "src/base/common/date";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -19,20 +17,6 @@ import { Time } from "src/base/common/date";
  * 
  *  - {@link Event}
  ******************************************************************************/
-
-let _listenerFinalizer: FinalizationRegistry<string> | undefined = undefined;
-export function monitorEmitterListenerGC(opts: { listenerGCedWarning: boolean }): void {
-    if (opts.listenerGCedWarning) {
-        console.info('[monitorEmitterListenerGC] enabled');
-        _listenerFinalizer = createFinalizationRegistry({
-            onGarbageCollectedInterval: (stacks: string[]) => {
-                console.warn('[MEMORY LEAKING] GC\'ed these event listeners that were NOT yet disposed:');
-                console.warn(stacks.join('\n'));
-            },
-            internalTime: Time.sec(3),
-        });
-    }
-}
 
 /** 
  * @readonly A listener is a callback function that once the callback is invoked,
@@ -167,11 +151,9 @@ export interface IEmitterOptions {
  * 
  * @throws The unexpected caught by `fire()` error will be caught by {@link ErrorHandler.onUnexpectedError}.
  */
-export class Emitter<T> implements IDisposable, IEmitter<T> {
+export class Emitter<T> extends Disposable implements IEmitter<T> {
     
     // [field]
-
-    private _disposed: boolean = false;
 
     /** stores all the listeners to this event. */
     protected _listeners: LinkedList<__Listener<T>> = new LinkedList();
@@ -185,6 +167,7 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
     // constructor
 
     constructor(opts?: IEmitterOptions) {
+        super();
         this._opts = opts;
     }
 
@@ -193,7 +176,7 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
     get registerListener(): Register<T> {
         
         // cannot register to a disposed emitter
-        if (this._disposed) {
+        if (this.isDisposed()) {
             panic('emitter is already disposed, cannot register a new listener.');
         }
 
@@ -219,7 +202,7 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
 
             // returns a disposable in order to decide when to stop listening (unregister)
             const unRegister = toDisposable(() => {
-                if (!this._disposed && !listenerRemoved && !listenerRemoving) {
+                if (!this.isDisposed() && !listenerRemoved && !listenerRemoving) {
                     listenerRemoving = true;
 
                     this._opts?.onListenerWillRemove?.();
@@ -233,18 +216,11 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
 
                     listenerRemoving = false;
                     listenerRemoved = true;
-                    _listenerFinalizer?.unregister(unRegister);
                 }
             });
 
             if (disposables) {
                 disposables.push(unRegister);
-            }
-
-            if (_listenerFinalizer) {
-                // only select the top stack info
-                const stack = new Error().stack!.split('\n').slice(2, 3).join('\n').trim();
-                _listenerFinalizer.register(unRegister, stack, unRegister);
             }
 
             return unRegister;
@@ -267,20 +243,14 @@ export class Emitter<T> implements IDisposable, IEmitter<T> {
         this._opts?.onDidFire?.();
 	}
 
-    public dispose(): void {
-		if (!this._disposed) {
-			this._disposed = true;
-            this._listeners.clear();
-            this._opts?.onLastListenerDidRemove?.();
-		}
+    public override dispose(): void {
+        super.dispose();
+		this._listeners.clear();
+        this._opts?.onLastListenerDidRemove?.();
 	}
 
     public hasListeners(): boolean {
         return this._listeners.size() > 0;
-    }
-
-    public isDisposed(): boolean {
-        return this._disposed;
     }
 }
 
@@ -384,7 +354,6 @@ export class DelayableEmitter<T> extends Emitter<T> {
  */
 export class SignalEmitter<T, E> extends Emitter<E> { 
 
-    private disposables = new DisposableBucket();
     private logicHandler: (event: T) => E;
 
     constructor(events: Register<T>[], logicHandler: (event: T) => E) {
@@ -397,16 +366,11 @@ export class SignalEmitter<T, E> extends Emitter<E> {
     }
 
     public add(register: Register<T>, logicHandler: (event: T) => E = this.logicHandler): IDisposable {
-        return this.disposables.register(
+        return this.__register(
             register((event: T) => {
                 this.fire(logicHandler(event));
             })
         );
-    }
-
-    public override dispose(): void {
-        super.dispose();
-        this.disposables.dispose();
     }
 }
 
@@ -511,7 +475,7 @@ export interface INodeEventEmitter {
  * 
  * @type T: Converting the receiving data to the generic type T.
  */
-export class NodeEventEmitter<T> implements IDisposable {
+export class NodeEventEmitter<T> extends Disposable {
 
     private _emitter: Emitter<T>;
 
@@ -520,20 +484,18 @@ export class NodeEventEmitter<T> implements IDisposable {
         channel: string, 
         dataWrapper: (...args: any[]) => T = (data) => data,
     ) {
+        super();
         const onData = (...args: any[]) => this._emitter.fire(dataWrapper(...args));
         const onFirstAdd = () => nodeEmitter.on(channel, onData);
 		const onLastRemove = () => nodeEmitter.removeListener(channel, onData);
-        this._emitter = new Emitter({ 
+        this._emitter = this.__register(new Emitter({ 
             onFirstListenerAdd: onFirstAdd, 
-            onLastListenerDidRemove: onLastRemove });
+            onLastListenerDidRemove: onLastRemove 
+        }));
     }
 
     get registerListener(): Register<T> {
         return this._emitter.registerListener;
-    }
-
-    public dispose(): void {
-        this._emitter.dispose();
     }
 }
 
@@ -642,6 +604,19 @@ export namespace Event {
             }
 
             return oldListener;
+        };
+    }
+
+    /**
+     * @description A SAFE version of {@link Event.once()}, where the returned
+     * unregistration {@link IDisposable} is safe to be GCed withour properly 
+     * disposed.
+     */
+    export function onceSafe<T>(register: Register<T>): Register<T> {
+        return (listener: Listener<T>, disposables?: IDisposable[], thisObject: any = null) => {
+            return untrackDisposable(
+                Event.once(register)(listener, disposables, thisObject)
+            );
         };
     }
 

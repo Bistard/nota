@@ -355,13 +355,10 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     // [getter]
 
     get DOMElement(): HTMLElement { return this._tree.DOMElement; }
-
     get listElement(): HTMLElement { return this._tree.listElement; }
-
     get root(): T { return this._tree.root; }
-
     get viewportHeight(): number { return this._tree.viewportHeight; }
-
+    get scrollTop(): number { return this._tree.scrollTop; }
     get contentHeight(): number { return this._tree.contentHeight; }
 
     // [constructor]

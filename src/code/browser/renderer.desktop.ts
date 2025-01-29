@@ -2,7 +2,7 @@ import "src/styles/index.scss";
 import { Workbench } from "src/workbench/workbench";
 import { IInstantiationService, IServiceProvider, InstantiationService } from "src/platform/instantiation/common/instantiation";
 import { getSingletonServiceDescriptors, registerService, ServiceCollection } from "src/platform/instantiation/common/serviceCollection";
-import { waitDomToBeLoad } from "src/base/browser/basic/dom";
+import { initGlobalCssVariables, waitDomToBeLoad } from "src/base/browser/basic/dom";
 import { Disposable, monitorDisposableLeak } from "src/base/common/dispose";
 import { ServiceDescriptor } from "src/platform/instantiation/common/descriptor";
 import { initExposedElectronAPIs, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
@@ -41,10 +41,10 @@ import { IContextMenuService, ContextMenuService } from "src/workbench/services/
 import { IKeyboardScreenCastService, KeyboardScreenCastService } from "src/workbench/services/keyboard/keyboardScreenCastService";
 import { IKeyboardService, KeyboardService } from "src/workbench/services/keyboard/keyboardService";
 import { ILayoutService, LayoutService } from "src/workbench/services/layout/layoutService";
-import { INotificationService, NotificationService } from "src/workbench/services/notification/notificationService";
+import { NotificationService } from "src/workbench/services/notification/notificationService";
 import { IShortcutService, ShortcutService } from "src/workbench/services/shortcut/shortcutService";
 import { IThemeService, ThemeService } from "src/workbench/services/theme/themeService";
-import { rendererWorkbenchCommandRegister } from "src/workbench/services/workbench/command.register";
+import { rendererTitleBarFileCommandRegister, rendererWorkbenchCommandRegister } from "src/workbench/services/workbench/command.register";
 import { FileTreeService } from "src/workbench/services/fileTree/fileTreeService";
 import { IFileTreeMetadataService, IFileTreeService } from "src/workbench/services/fileTree/treeService";
 import { IClipboardService } from "src/platform/clipboard/common/clipboard";
@@ -58,7 +58,6 @@ import { IQuickAccessBarService, QuickAccessBar } from "src/workbench/parts/navi
 import { IToolBarService, ToolBar } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/toolBar";
 import { ActionBar, IActionBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/actionBar";
 import { FilterBar, IFilterBarService } from "src/workbench/parts/navigationPanel/navigationBar/toolBar/filterBar";
-import { monitorEmitterListenerGC } from "src/base/common/event";
 import { toBoolean } from "src/base/common/utilities/type";
 import { BrowserZoomService, IBrowserZoomService } from "src/workbench/services/zoom/zoomService";
 import { IBrowserService, initGlobalErrorHandler } from "src/code/browser/common/renderer.common";
@@ -68,6 +67,7 @@ import { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
 import { I18nService, II18nService } from "src/platform/i18n/browser/i18nService";
 import { IRecentOpenService, RecentOpenService } from "src/platform/app/browser/recentOpenService";
 import { EditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
+import { INotificationService } from "src/workbench/services/notification/notification";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -93,9 +93,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // retrieve the exposed APIs from preload.js
             initExposedElectronAPIs();
             monitorDisposableLeak(toBoolean(WIN_CONFIGURATION.disposableLeakWarning));
-            monitorEmitterListenerGC({
-                listenerGCedWarning: toBoolean(WIN_CONFIGURATION.listenerGCedWarning),
-            });
             
             // ensure we handle almost every errors properly
             initGlobalErrorHandler(() => this.logService, WIN_CONFIGURATION);
@@ -109,7 +106,10 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // service initialization
             await Promise.all([
                 this.initServices(instantiationService),
-                waitDomToBeLoad().then(() => this.logService.info('renderer', 'Web environment (DOM content) has been loaded.')),
+                waitDomToBeLoad().then(() => {
+                    initGlobalCssVariables();
+                    this.logService.info('renderer', 'Web environment (DOM content) has been loaded.');
+                }),
             ]);
 
             // create workbench UI
@@ -175,10 +175,11 @@ const renderer = new class extends class RendererInstance extends Disposable {
             // console-logger
             new ConsoleLogger(environmentService.mode === ApplicationMode.DEVELOP ? environmentService.logLevel : LogLevel.WARN),
             // file-logger
-            loggerService.createLogger(environmentService.logPath, {
-                name: `window-${environmentService.windowID}-${getFormatCurrTimeStamp()}.txt`,
-                description: `renderer`,
-            }),
+            loggerService.createLogger(
+                URI.join(environmentService.logPath, `window-${environmentService.windowID}-${getFormatCurrTimeStamp()}.txt`), 
+                {
+                    description: `renderer`,
+                }),
         ]);
         logService.setLogger(logger);
 
@@ -308,6 +309,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
                 super.initRegistrations(provider);
                 [
                     rendererWorkbenchCommandRegister,
+                    rendererTitleBarFileCommandRegister,
                 ]
                 .forEach(register => register(provider));
             }

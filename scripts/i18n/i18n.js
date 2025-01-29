@@ -249,6 +249,7 @@ class localizationGenerator {
         }
     
         localeData.contents ??= {};
+        localeData.version = enData.version;
     
         let missingFound = false;
         for (const [filePath, enKeys] of Object.entries(enContents)) {
@@ -268,7 +269,7 @@ class localizationGenerator {
             fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
             log('info', `[Localization] file update: Updated ${localeFileName} with missing keys placeholders.`);
         } else {
-            log('info', `[Localization] validation: ${localeFileName} localization file.`);
+            log('info', `[Localization] validation complete: ${localeFileName} localization file.`);
         }
     
         return localeData;
@@ -278,7 +279,7 @@ class localizationGenerator {
         let extraFound = false;
     
         for (const [localeFilePathKey, localeKeys] of Object.entries(localeData.contents)) {
-            // If the filePath doesn't exist in enContents, remove entire block
+            // If the filePath doesn't exist in enContents, remove entire block in that locale file.
             if (!enContents.hasOwnProperty(localeFilePathKey)) {
                 delete localeData.contents[localeFilePathKey];
                 this.logError(`[Localization] error: In ${localeFileName}, found extra filePath "${localeFilePathKey}" not present in EN. Removed entire block.`);

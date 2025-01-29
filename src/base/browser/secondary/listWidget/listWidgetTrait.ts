@@ -1,5 +1,5 @@
 import { IListViewRenderer, RendererType } from "src/base/browser/secondary/listView/listRenderer";
-import { IDisposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { Lazy } from "src/base/common/lazy";
 import { Arrays } from "src/base/common/utilities/array";
@@ -25,7 +25,7 @@ export interface ITraitChangeEvent {
  * Each {@link ListTrait} binds to a {@link ListTraitRenderer} so that the trait
  * can control the behaviors of when to render the trait manually.
  */
-export class ListTrait<T> implements IDisposable {
+export class ListTrait<T> extends Disposable {
 
     // [field]
 
@@ -36,7 +36,7 @@ export class ListTrait<T> implements IDisposable {
     public readonly traitID: string;
     public readonly renderer: ListTraitRenderer<T>;
 
-    private readonly _onDidChange = new Emitter<ITraitChangeEvent>();
+    private readonly _onDidChange = this.__register(new Emitter<ITraitChangeEvent>());
     public readonly onDidChange = this._onDidChange.registerListener;
 
     /**
@@ -48,15 +48,16 @@ export class ListTrait<T> implements IDisposable {
     // [constructor]
 
     constructor(trait: string) {
+        super();
         this.traitID = trait;
         this.renderer = new ListTraitRenderer(this);
         this._indice = [];
 
-        this._queryCache = new Lazy(() => {
+        this._queryCache = this.__register(new Lazy(() => {
             const cache = new Set<number>();
             this._indice.forEach(index => cache.add(index));
             return cache;
-        });
+        }));
     }
 
     // [public method]
@@ -154,13 +155,9 @@ export class ListTrait<T> implements IDisposable {
         this.set(sortedIndice);
     }
 
-    /**
-     * @description All the listeners will be removed and indice will be reset.
-     */
-    public dispose(): void {
-        this._onDidChange.dispose();
+    public override dispose(): void {
+        super.dispose();
         this._indice = [];
-        this._queryCache.dispose();
     }
 }
 

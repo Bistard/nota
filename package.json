@@ -1,7 +1,7 @@
 {
 	"name": "nota",
-	"version": "0.6.7",
-	"description": "an open-sourced markdown editor",
+	"version": "0.6.9",
+	"description": "A cross-platform markdown note-taking app.",
 	"main": "./dist/main-bundle.js",
 	"type": "commonjs",
 	"private": true,
@@ -36,7 +36,7 @@
 		"circular-dependency-plugin": "^5.2.2",
 		"cross-env": "^7.0.3",
 		"css-loader": "^6.7.3",
-		"electron": "^25.8.4",
+		"electron": "^27.0.0",
 		"eslint": "^8.56.0",
 		"estraverse": "^5.3.0",
 		"fantasticon": "^1.2.3",
@@ -47,6 +47,7 @@
 		"mocha": "^9.1.3",
 		"mochapack": "^2.1.4",
 		"node-loader": "^2.0.0",
+		"ora": "^8.1.1",
 		"prosemirror-test-builder": "^1.1.1",
 		"sass": "^1.58.3",
 		"sass-loader": "^13.2.0",
@@ -74,13 +75,15 @@
 			"mini-css-extract-plugin": "Extracts CSS from your bundles into separate files.",
 			"mocha and mochapack": "Testing framework and its webpack integration.",
 			"node-loader": "Webpack loader for Node.js native modules.",
+			"ora": "Node.js spinner for showing progress in terminal.",
 			"prosemirror-test-builder": "Utility libraries for fast building proseMirror elements.",
 			"sass and sass-loader": "CSS pre-processor and its Webpack loader.",
 			"ts-loader": "TypeScript loader for Webpack.",
 			"ts-node": "TypeScript execution environment for node.",
 			"tsconfig-paths": "Load node modules using paths from tsconfig.",
 			"typescript": "JavaScript superset offering static type checking.",
-			"webpack and related packages": "Module bundler and its various plugins/loaders."
+			"webpack and related packages": "Module bundler and its various plugins/loaders.",
+			"katex": "Renders plain text into math equations."
 		},
 		"dependencies": {
 			"chokidar": "Filesystem watcher. Used to achieve file watching on different platform.",
@@ -88,8 +91,10 @@
 		}
 	},
 	"dependencies": {
+		"@types/katex": "^0.16.7",
 		"chokidar": "^3.5.3",
 		"codemirror": "^6.0.1",
+		"katex": "^0.16.21",
 		"marked": "^14.1.3",
 		"minimist": "^1.2.8",
 		"openai": "^4.28.0",

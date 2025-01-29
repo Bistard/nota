@@ -1,4 +1,5 @@
-import { tryOrDefault } from "src/base/common/error";
+import { loadCSS } from "src/base/browser/basic/dom";
+import { ErrorHandler, tryOrDefault } from "src/base/common/error";
 import { URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { Throttler } from "src/base/common/utilities/async";
@@ -21,6 +22,11 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
     private _outline?: OutlineTree;
 
     /**
+     * A universal identifier if KaTex style is loaded.
+     */
+    public static everLoadedKaTeXCss: boolean;
+
+    /**
      * Stores editor open request. A throttler is needed to avoid excessive file
      * loading during a very short time.
      */
@@ -34,6 +40,7 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
         @IConfigurationService private readonly configurationService: IConfigurationService,
     ) {
         super(instantiationService);
+        ensureLoadKaTeXCssStyles(this.logService);
     }
 
     // [getter]
@@ -56,7 +63,7 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
         // const options = <IEditorWidgetOptions>deepCopy(this.configurationService.get('editor', {}));
 
         // editor construction
-        this._editorWidget = this.instantiationService.createInstance(
+        this._editorWidget = this.__register(this.instantiationService.createInstance(
             EditorWidget, 
             parent,
             getBuiltInExtension(),
@@ -65,10 +72,10 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
                 writable: true,
                 dropAnimation: true,
             },
-        );
+        ));
 
         // outline construction
-        this._outline = this.instantiationService.createInstance(
+        this._outline = this.__register(this.instantiationService.createInstance(
             OutlineTree,
             parent,
             [new HeadingItemRenderer()],
@@ -80,7 +87,7 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
                     getID: heading => heading.id.toString(),
                 },
             },
-        );
+        ));
 
         this.registerAutoLayout();
         this.__register(this.onDidLayout(() => {
@@ -101,11 +108,16 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
 
             // do open
             this.logService.debug('RichTextEditor', `Opening at: ${URI.toString(uri)}`);
-            await editorWidget.open(uri);
-            this.logService.debug('RichTextEditor', `Open successfully at: ${URI.toString(uri)}`);
-
-            // outline rendering
-            outline.render(editorWidget);
+            (await editorWidget.open(uri)).match(
+                () => {
+                    this.logService.debug('RichTextEditor', `Open successfully at: ${URI.toString(uri)}`);
+                    // outline rendering
+                    outline.render(editorWidget);
+                },
+                err => {
+                    ErrorHandler.onUnexpectedError(err);
+                }
+            );
 
             return uri;
         });
@@ -128,4 +140,25 @@ export class RichTextEditor extends EditorPaneView<TextEditorPaneModel> {
         this._outline?.dispose();
         super.dispose();
     }
+}
+
+/**
+ * @description Load the CSS style of KaTeX library if never loaded into DOM.
+ */
+export async function ensureLoadKaTeXCssStyles(logService: ILogService): Promise<void> {
+    if (RichTextEditor.everLoadedKaTeXCss) {
+        return;
+    }
+
+    const href = '../node_modules/katex/dist/katex.min.css';
+    const result = await loadCSS(href);
+    return result.match(
+        () => {
+            RichTextEditor.everLoadedKaTeXCss = true;
+            logService.debug('RichTextEditor', `Successfully loading KaTeX CSS style.`);
+        },
+        err => {
+            ErrorHandler.onUnexpectedError(err);
+        }
+    );
 }

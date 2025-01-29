@@ -17,7 +17,7 @@ import { panic } from "src/base/common/utilities/panic";
 import { Arrays } from "src/base/common/utilities/array";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { WorkbenchConfiguration } from "src/workbench/services/workbench/configuration.register";
-import { LanguageType, validateLanguageType } from "src/platform/i18n/common/localeTypes";
+import { LanguageType, validateLanguageType } from "src/platform/i18n/common/i18n";
 
 export const IMainWindowService = createService<IMainWindowService>('main-window-service');
 
@@ -191,7 +191,6 @@ export class MainWindowService extends Disposable implements IMainWindowService 
             log: this.environmentService.CLIArguments.log,
             'open-devtools': this.environmentService.CLIArguments['open-devtools'],
             inspector: undefined,
-            listenerGCedWarning: this.environmentService.CLIArguments.listenerGCedWarning,
             disposableLeakWarning: this.environmentService.CLIArguments.disposableLeakWarning,
 
             /** part: {@link IEnvironmentOpts} */
@@ -244,11 +243,14 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     private __openInNewWindow(configuration: IWindowCreationOptions): IWindowInstance {
         const newWindow = this.instantiationService.createInstance(WindowInstance, configuration);
 
+        this.__register(newWindow);
         this._windows.push(newWindow);
         this._onDidOpenWindow.fire(newWindow);
 
         // newly window listeners
-        Event.once(newWindow.onDidClose)(() => this.__onWindowDidClose(newWindow));
+        Event.onceSafe(newWindow.onDidClose)(() => {
+            this.__onWindowDidClose(newWindow);
+        });
 
         return newWindow;
     }
@@ -256,6 +258,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
     private __onWindowDidClose(window: IWindowInstance): void {
         Arrays.remove(this._windows, window);
         this._onDidCloseWindow.fire(window);
+        this.release(window);
     }
 
     private __bindWindowLifecycle(newWindow: IWindowInstance, ownerID: number): void {
@@ -266,7 +269,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
         }
 
         // binding lifecycle
-        Event.once(ownerWindow.onDidClose)(() => {
+        Event.onceSafe(ownerWindow.onDidClose)(() => {
             if (newWindow.isClosed() === false) {
                 newWindow.close();
             }

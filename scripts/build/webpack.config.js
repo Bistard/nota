@@ -5,6 +5,7 @@ const { KeyToIndexTransformPlugin } = require('../i18n/i18n.plugin');
 const WebpackBaseConfigurationProvider = require('../webpack/webpack.config.base');
 const { ScriptHelper, log } = require('../utility');
 const { SUPPORT_LOCALIZATION_LIST } = require('../i18n/localization');
+const { SpinnerPlugin } = require('./spinner.plugin');
 
 class WebpackPluginProvider {
     constructor() {}
@@ -120,15 +121,20 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                 mode: this.#buildMode,
                 cwd: this.#cwd,
                 watchMode: this.#isWatchMode,
-                plugins: new WebpackPluginProvider().getPlugins({
+                plugins: [...new WebpackPluginProvider().getPlugins({
                     cwd: this.#cwd,
                     circular: this.#isCircular,
-                }),
+                })],
             })
         );
 
+        // base renderer configuraition
+        const baseRendererConfiguration = Object.assign(
+            {},
+            baseConfiguration
+        );
         // compiles SCSS files to CSS files
-        baseConfiguration.module.rules.push({
+        baseRendererConfiguration.module.rules.push({
             test: /\.(css|scss|sass)$/,
             use: [
                 MiniCssExtractPlugin.loader,
@@ -138,6 +144,12 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                     options: {
                         sassOptions: {
                             includePaths: [path.resolve(this.#cwd, 'src/')],
+                            
+                            /**
+                             * @see https://github.com/sass/dart-sass/issues/2352
+                             * @see https://github.com/nolimits4web/swiper/issues/7771
+                             */
+                            silenceDeprecations: ['legacy-js-api', 'import'],
                         },
                     },
                 },
@@ -145,9 +157,9 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
         });
 
         return [
+            this.#constructInspectorProcess(Object.assign({}, baseRendererConfiguration)),
+            this.#constructRendererProcess(Object.assign({}, baseRendererConfiguration)),
             this.#constructMainProcess(Object.assign({}, baseConfiguration)),
-            this.#constructRendererProcess(Object.assign({}, baseConfiguration)),
-            this.#constructInspectorProcess(Object.assign({}, baseConfiguration)),
         ];
     }
 
@@ -159,6 +171,10 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                 filename: '[name]-bundle.js',
                 path: path.resolve(this.#cwd, this.#distPath),
             },
+            plugins: [
+                ...baseConfiguration.plugins, 
+                new SpinnerPlugin({ processType: 'main process' }),
+            ]
         });
     }
 
@@ -172,6 +188,7 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
             },
             plugins: [
                 ...baseConfiguration.plugins, 
+                new SpinnerPlugin({ processType: 'renderer process' }),
                 new KeyToIndexTransformPlugin({
                     logLevel: this.#i18n_error === true ? 'error' : 'warn',
                     sourceCodePath: path.resolve(this.#cwd, './src'),
@@ -192,6 +209,10 @@ class WebpackConfigurationProvider extends WebpackBaseConfigurationProvider {
                 filename: '[name]-inspector-bundle.js',
                 path: path.resolve(this.#cwd, this.#distPath),
             },
+            plugins: [
+                ...baseConfiguration.plugins, 
+                new SpinnerPlugin({ processType: 'renderer process (inspector)' }),
+            ]
         });
     }
 }

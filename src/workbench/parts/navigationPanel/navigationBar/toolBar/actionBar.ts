@@ -43,7 +43,7 @@ export class ActionBar extends Component implements IActionBarService {
     
     // [event]
     
-    private readonly _onDidClick = new Emitter<IActionBarClickEvent>();
+    private readonly _onDidClick = this.__register(new Emitter<IActionBarClickEvent>());
     public readonly onDidClick = this._onDidClick.registerListener;
 
     // [constructor]

@@ -281,7 +281,7 @@ export class Sash extends Disposable implements ISash {
         this._visible = opts.visible ?? false;
         this._hovering = false;
         this._visibilityController = new VisibilityController('visible', 'invisible', 'fade', false);
-        this._controller = new Lazy<AbstractSashController>(() => {
+        this._controller = this.__register(new Lazy<AbstractSashController>(() => {
             const ctorOptions = <const>[
                 (e: ISashEvent) => this._onDidStart.fire(e),
                 (e: ISashEvent) => this._onDidMove.fire(e),
@@ -295,9 +295,7 @@ export class Sash extends Disposable implements ISash {
             } else {
                 return new HorizontalSashController(this, ...ctorOptions);
             }
-        });
-        this.__register(this._controller);
-
+        }));
         this.__render();
 
         this._visibilityController.setDomNode(this._element);
@@ -441,12 +439,12 @@ export class Sash extends Disposable implements ISash {
 
         const cancellable = cancellableTimeout(this._hoverDelay);
         cancellable
-        .then(() => {
-            this._element.classList.add('hover');
-        })
-        .catch(() => {}); // cath cancel error
+            .then(() => {
+                this._element.classList.add('hover');
+            })
+            .catch(() => {}); // cath cancel error
 
-        const bucket = new DisposableBucket();
+        const bucket = this.__register(new DisposableBucket());
         
         let mouseenter = true;
         let mousedown = false;
@@ -468,7 +466,7 @@ export class Sash extends Disposable implements ISash {
 
         const cleanup = () => {
             this._hovering = false;
-            bucket.dispose();
+            this.release(bucket);
             cancellable.cancel();
             this._element.classList.remove('hover');
         };

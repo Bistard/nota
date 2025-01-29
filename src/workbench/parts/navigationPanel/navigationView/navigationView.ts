@@ -4,6 +4,12 @@ import { Emitter, Register } from 'src/base/common/event';
 import { IService, createService } from 'src/platform/instantiation/common/decorator';
 import { IInstantiationService } from 'src/platform/instantiation/common/instantiation';
 import { Constructor } from 'src/base/common/utilities/type';
+import { IBrowserDialogService, IDialogService } from 'src/platform/dialog/browser/browserDialogService';
+import { URI } from 'src/base/common/files/uri';
+import { II18nService } from 'src/platform/i18n/browser/i18nService';
+import { ExplorerView } from 'src/workbench/contrib/explorer/explorer';
+import { ExplorerViewID } from 'src/workbench/contrib/explorer/explorerService';
+import { CommonLocalize, getCommonLocalize } from 'src/platform/i18n/common/i18n';
 
 export const INavigationViewService = createService<INavigationViewService>('navigation-view-service');
 
@@ -48,8 +54,10 @@ export interface INavigationViewService extends IComponent, IService {
     /**
      * @description Switch to the view by the provided id.
      * @param id The id of the view.
+     * @returns The reference to the current switched view.
      */
-    switchView(id: string): void;
+    switchView(id: undefined): void;
+    switchView<TView extends NavView>(id: string): TView;
 
     /**
      * @description Closes the current view.
@@ -61,6 +69,13 @@ export interface INavigationViewService extends IComponent, IService {
      * returned if no views are displaying.
      */
     currView<T extends NavView>(): T | undefined;
+
+    /**
+     * @description If `source` not provided, open a dialog to let user pick a 
+     * folder and open it in {@link ExplorerView}. If `source` provided, skip
+     * the dialog step.
+     */
+    selectFolderAndOpen(source: URI | null): Promise<void>;
 }
 
 /**
@@ -73,12 +88,11 @@ export class NavigationView extends Component implements INavigationViewService 
 
     // [field]
 
-    /** The id of the current displaying view. */
-    private _currView?: string;
+    /** The current displaying view. */
+    private _currView?: NavView;
 
     /** The container that only contains the {@link INavigationView}. */
     private _viewContainer?: HTMLElement;
-
     private readonly _cachedView: Map<string, Constructor<NavView> | NavView>;
 
     // [event]
@@ -90,6 +104,8 @@ export class NavigationView extends Component implements INavigationViewService 
 
     constructor(
         @IInstantiationService instantiationService: IInstantiationService,
+        @IDialogService private readonly dialogService: IBrowserDialogService,
+        @II18nService private readonly i18nService: II18nService,
     ) {
         super('navigation-view', null, instantiationService);
         this._cachedView = new Map();
@@ -133,7 +149,7 @@ export class NavigationView extends Component implements INavigationViewService 
          * If the view is created and also displaying currently, switch to any
          * other available views if any, then destroy the view.
          */
-        if (id === this._currView) {
+        if (id === this._currView?.id) {
             const availableID = this.__getAnyAvailableView();
             if (availableID) {
                 this.switchView(availableID);
@@ -146,23 +162,43 @@ export class NavigationView extends Component implements INavigationViewService 
         return true;
     }
 
-    public switchView(id: string): void {
-        const view = this.__getOrConstructView(id);
-        this.__switchView(view);
+    public switchView(id: undefined): void;
+    public switchView<TView extends NavView>(id: string): TView;
+    public switchView<TView extends NavView>(id?: string): TView | void {
+        const view = this.__getOrConstructView(id ?? '');
+        return <TView>this.__switchView(view);
     }
 
     public closeView(): void {
         if (this._currView) {
-            this.__unloadView(this._currView);
+            this.__unloadView(this._currView.id);
         }
         this._onDidViewChange.fire({ id: undefined, view: undefined });
     }
 
     public currView<T extends NavView>(): T | undefined {
         if (this._currView) {
-            return this.getChild<T>(this._currView);
+            return this.getChild<T>(this._currView.id);
         }
         return undefined;
+    }
+
+    public async selectFolderAndOpen(source: URI | null): Promise<void> {
+        if (!source) {
+            const paths = await this.dialogService.openDirectoryDialog({ 
+                title: getCommonLocalize(this.i18nService, CommonLocalize.openDirectory),
+            });
+            if (paths.length === 0) {
+                return;
+            }
+            source = URI.fromFile(paths.at(-1)!);
+        }
+
+        const explorerView = <ExplorerView>this.switchView(ExplorerViewID);
+        if (explorerView.isOpened) {
+            await explorerView.close();
+        }
+        await explorerView.open(source);
     }
 
     // [protected override methods]
@@ -200,7 +236,7 @@ export class NavigationView extends Component implements INavigationViewService 
         return <T>newView;
     }
 
-    private __switchView(view: NavView | undefined): void {
+    private __switchView(view: NavView | undefined): NavView | void {
         if (!this._viewContainer) {
             return;
         }
@@ -212,13 +248,13 @@ export class NavigationView extends Component implements INavigationViewService 
         }
 
         // switch to the same view, do nothing.
-        if (this._currView === view.id) {
-            return;
+        if (this._currView?.id === view.id) {
+            return this._currView;
         }
 
         // if any view is displaying, unload it first.
         if (this._currView) {
-            this.__unloadView(this._currView);
+            this.__unloadView(this._currView.id);
         }
 
         // load the new view
@@ -228,9 +264,11 @@ export class NavigationView extends Component implements INavigationViewService 
             view.create(this);
             view.registerListeners();
         }
-        this._currView = view.id;
 
+        this._currView = this.__register(view);
         this._onDidViewChange.fire({ id: view.id, view: view });
+
+        return view;
     }
 
     private __unloadView(id: string): void {

@@ -9,7 +9,7 @@ import { Constructor, Mutable, isNullable } from "src/base/common/utilities/type
 import { IDimension, IDomBox, IPosition } from "src/base/common/utilities/size";
 import { AnchorMode, calcViewPositionAlongAxis } from "src/base/browser/basic/view";
 import { AnchorAbstractPosition } from "src/base/browser/basic/view";
-import { Disposable, DisposableBucket, LooseDisposableBucket } from "src/base/common/dispose";
+import { Disposable, LooseDisposableBucket } from "src/base/common/dispose";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { panic } from "src/base/common/utilities/panic";
 
@@ -213,13 +213,12 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
 
     private __registerListeners(): void {
         
-        /**
-         * Renders the item after every insertion operation.
-         */
-        this.onDidInsert(items => {
+        // Renders the item after every insertion operation.
+        this.__register(this.onDidInsert(items => {
             
             const fragment = <HTMLElement><unknown>document.createDocumentFragment();
             items.forEach((item, index) => {
+
                 // bind the item running environment to the action list
                 item.actionRunner = this.run.bind(this);
                 
@@ -243,12 +242,10 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
             if (this.__hasAnyFocused()) {
                 this.focus(this.getCurrFocusIndex());
             }
-        });
+        }));
 
-        /**
-         * Blur event
-         */
-        this._focusTracker.onDidBlur(() => {
+        // Blur event
+        this.__register(this._focusTracker.onDidBlur(() => {
             const activeNode = DomUtility.Elements.getActiveElement();
             
             /**
@@ -262,11 +259,9 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
 
             this._currFocusedIndex = -1;
             this._onDidBlur.fire();
-        });
+        }));
 
-        /**
-         * Keydown event
-         */
+        // Keydown event
         this.__register(addDisposableListener(this._element, EventType.keydown, (e) => {
             const event = createStandardKeyboardEvent(e);
             let eventHandled = true;
@@ -303,9 +298,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
             }
         }));
 
-        /**
-         * Keyup event
-         */
+        // Keyup event
         this.__register(addDisposableListener(this._element, EventType.keyup, (e) => {
             const event = createStandardKeyboardEvent(e);
             const item = this._items[this._currFocusedIndex];
@@ -562,13 +555,13 @@ export class MenuWithSubmenu extends MenuDecorator {
     // [private helper methods]
 
     private __closeCurrSubmenu(): void {
-        
-        this._submenu?.dispose();
+        this.release(this._submenu);
         this._submenu = undefined;
 
-        this._submenuContainer?.dispose();
+        this.release(this._submenuContainer);
         this._submenuContainer = undefined;
-        this._submenuLifecycle.dispose();
+        
+        this.release(this._submenuLifecycle);
     }
 
     private __openNewSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
@@ -587,7 +580,7 @@ export class MenuWithSubmenu extends MenuDecorator {
     }
 
     private __constructSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
-        const submenuContainer = new FastElement(document.createElement('div'));
+        const submenuContainer = this.__register(new FastElement(document.createElement('div')));
         this._submenuContainer = submenuContainer;
         
         anchor.appendChild(submenuContainer.raw);
@@ -600,12 +593,14 @@ export class MenuWithSubmenu extends MenuDecorator {
         }
         const parentMenuTop = parseFloat(this.element.style.paddingTop || '0') || 0;
 
-        this._submenu = new this._submenuCtor(
-            new Menu(this._submenuContainer.raw, {
-                contextProvider: this._menu.getContext.bind(this._menu),
-                /** shares the same {@link IActionRunEvent} with the parent menu */
-                actionRunner: this._menu.actionRunner,
-            })
+        this._submenu = this.__register(
+            new this._submenuCtor(
+                new Menu(this._submenuContainer.raw, {
+                    contextProvider: this._menu.getContext.bind(this._menu),
+                    /** shares the same {@link IActionRunEvent} with the parent menu */
+                    actionRunner: this._menu.actionRunner,
+                })
+            )
         );
         
         this._submenu.build(actions);

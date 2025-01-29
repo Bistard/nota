@@ -38,12 +38,6 @@ export interface ICLIArguments {
     inspector?: true | 'true';
 
     /**
-     * Print warnings whenever a listener is GC'ed without having been disposed. 
-     * It means a memory LEAK.
-     */
-    listenerGCedWarning?: boolean;
-
-    /**
      * Print warnings (after the first 5 seconds) whenever a `IDisposable` is 
      * either:
      *  - not disposed

@@ -297,6 +297,10 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     /** Invoked when every scroll happens */
     private readonly _scrollAnimate: RequestAnimateController<{}>;
 
+    /**
+     * position: `top` pixels of each row
+     * index: the index of the row
+     */
     private _rangeTable: RangeTable;
 
     private readonly _renderers: Map<RendererType, IListViewRenderer<T, any>>;
@@ -386,7 +390,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
             this._listContainer.style.transform = 'translate3d(0px, 0px, 0px)';
         }
         
-        this._scrollable = new Scrollable(options.scrollbarSize ?? 10, 0, 0, 0);
+        this._scrollable = this.__register(new Scrollable(options.scrollbarSize ?? 10, 0, 0, 0));
         this._scrollableWidget = new ScrollableWidget(
             this._scrollable, {
                 ...options,
@@ -428,7 +432,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
         this._itemProvider = itemProvider;
 
-        this._cache = new ListViewCache(this._renderers);
+        this._cache = this.__register(new ListViewCache(this._renderers));
 
         // DOM rendering
         this._element.appendChild(this._listContainer);
@@ -710,6 +714,7 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     }
 
     public getItemRenderTop(index: number): number {
+        // FIX
         const itemTop = this.positionAt(index);
         const itemHeight = this.getItemHeight(index);
         

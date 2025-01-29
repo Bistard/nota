@@ -1,9 +1,9 @@
 import "src/editor/contrib/dragAndDropExtension/dropBlinkRenderer.scss";
-import { IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable } from "src/base/common/dispose";
 import { ProseDecoration, ProseDecorationSet, ProseEditorView } from "src/editor/common/proseMirror";
 import { IEditorWidget } from "src/editor/editorWidget";
 
-export class DropBlinkRenderer implements IDisposable {
+export class DropBlinkRenderer extends Disposable {
 
     // [fields]
 
@@ -14,6 +14,7 @@ export class DropBlinkRenderer implements IDisposable {
     constructor(
         private readonly _editorWidget: IEditorWidget,
     ) {
+        super();
         this._decorations = ProseDecorationSet.empty;
     }
 
@@ -44,7 +45,8 @@ export class DropBlinkRenderer implements IDisposable {
         return this._decorations;
     }
 
-    public dispose(): void {
+    public override dispose(): void {
+        super.dispose();
         this._decorations = ProseDecorationSet.empty;
     }
 }

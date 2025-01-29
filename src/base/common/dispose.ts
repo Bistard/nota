@@ -1,6 +1,6 @@
 import { Time } from "src/base/common/date";
 import { errorToMessage, panic } from "src/base/common/utilities/panic";
-import { isFunction, isObject } from "src/base/common/utilities/type";
+import { isFunction, isObject, nullable } from "src/base/common/utilities/type";
 
 /**
  * Calling {@link dispose()} will dispose all the resources that belongs to that
@@ -101,6 +101,17 @@ export class Disposable implements IDisposable {
 	public register<T extends IDisposable>(obj: T): T {
 		return this.__register(obj);
 	}
+
+	/**
+	 * @description Removes the reference of a {@link IDisposable} from bucket 
+	 * and disposes of it. 
+	 */
+	public release<T extends IDisposable>(obj: T | nullable): void {
+		if (!obj) {
+			return;
+		}
+		return this._$bucket$_.release(obj);
+	}
 }
 
 /**
@@ -130,9 +141,6 @@ export class LooseDisposableBucket implements IDisposable {
 		}
 	}
 
-	/**
-	 * @description Registers a disposable.
-	 */
 	public register<T extends IDisposable>(obj: T): T {
 		if (obj && (obj as unknown) === this) {
 			panic('cannot register the disposable object to itself');
@@ -143,10 +151,7 @@ export class LooseDisposableBucket implements IDisposable {
 		return obj;
 	}
 
-	/**
-	 * @description Deletes a {@link IDisposable} from bucket and disposes of it. 
-	 */
-	public delete<T extends IDisposable>(obj: T): void {
+	public release<T extends IDisposable>(obj?: T): void {
 		if (!obj) {
 			return;
 		}
@@ -253,6 +258,15 @@ export function untrackDisposable<T extends IDisposable>(obj: T): T {
 
 /**
  * @description If you have a top-level (root) {@link IDisposable} whose 
+ * lifecycle is guaranteed can be safely GCed without properly disposed.
+ */
+export function safeDisposable<T extends IDisposable>(obj: T): T {
+	monitor?.untrack(obj);
+	return obj;
+}
+
+/**
+ * @description If you have a top-level (root) {@link IDisposable} whose 
  * lifecycle is:
  * 		1. meant to share the same lifecycle with the whole application and
  * 		   should never get disposed.
@@ -262,92 +276,6 @@ export function untrackDisposable<T extends IDisposable>(obj: T): T {
 export function asGlobalDisposable<T extends IDisposable>(obj: T): T {
 	GlobalDisposable?.register(obj);
 	return obj;
-}
-
-/**
- * @class A disposable object that automatically cleans up its internal object 
- * upon disposal. This ensures that when the disposable value is changed, the 
- * previously held disposable is disposed of.
- * 
- * @note You may also register disposable children to the current object, those
- * children will be disposed along with the current object.
- */
-export class AutoDisposable<T extends IDisposable> implements IDisposable {
-
-	// [fields]
-
-	private _object?: T;
-	private _children: IDisposable[];
-
-	// [constructor]
-
-	constructor(object?: T, children?: IDisposable[]) {
-		this._object = object ?? undefined;
-		this._children = children ?? [];
-		
-		monitor?.track(this);
-		this.__trackDisposable(object, children);
-	}
-
-	// [public methods]
-
-	public set(object: T): void {
-		if (this._object === object) {
-			return;
-		}
-
-		this._object?.dispose();
-		this._object = object;
-		
-		this.__cleanChildren();
-		this.__trackDisposable(object, undefined);
-	}
-
-	public get(): T | undefined {
-		return this._object;
-	}
-
-	public isSet(): boolean {
-		return !!this._object;
-	}
-
-	public register(children: IDisposable | IDisposable[]): void {
-		if (!this._object) {
-			panic('[SelfCleaningWrapper] cannot bind children to no objects.');
-		}
-		
-		if (!Array.isArray(children)) {
-			children = [children];
-		}
-
-		this._children.push(...children);
-		this.__trackDisposable(undefined, children);
-	}
-
-	public detach(): { obj: T, children: IDisposable[] } | undefined {
-		const obj = this._object;
-		this._object = undefined;
-		this._children = [];
-		return obj ? { obj, children: this._children } : undefined;
-	}
-
-	public dispose(): void {
-		this._object?.dispose();
-		this._object = undefined;
-		this.__cleanChildren();
-	}
-
-	// [private helper methods]
-
-	private __cleanChildren(): void {
-		disposeAll(this._children);
-		this._children.length = 0;
-	}
-
-	private __trackDisposable(object?: any, children?: any[]): void {
-		object && monitor?.bindToParent(object, this);
-		children && monitor && children.forEach(child => monitor!.bindToParent(child, this));
-	}
 }
 
 /**

@@ -1,6 +1,6 @@
 import "src/base/browser/secondary/widgetBar/widgetBar.scss";
 import { IWidget } from "src/base/browser/basic/widget";
-import { Disposable, disposeAll, IDisposable, untrackDisposable } from "src/base/common/dispose";
+import { Disposable, disposeAll, IDisposable } from "src/base/common/dispose";
 import { addDisposableListener, DomUtility, EventType, Orientation } from "src/base/browser/basic/dom";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { Arrays } from "src/base/common/utilities/array";
@@ -211,7 +211,7 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
 
     public addItem(item: IWidgetBarItem<T>, index?: number): void {
         if (item.disposable) {
-            untrackDisposable(item.disposable);
+            this.__register(item.disposable);
         }
 
         // create a new view HTMLElement
@@ -249,10 +249,8 @@ export class WidgetBar<T extends IWidget> extends Disposable implements IWidgetB
         this._itemContainer.removeChild(this._itemContainer.childNodes[index]!);
         
         // dispose data if needed
-        const toBeRemoved = this._items.splice(index, 1);
-        for (const toRemove of toBeRemoved) {
-            toRemove.disposable?.dispose();
-        }
+        const toRemove = this._items.splice(index, 1)[0]!;
+        this.release(toRemove.disposable);
 
         return true;
     }

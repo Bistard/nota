@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Disposable, DisposableBucket, disposeAll, AutoDisposable, toDisposable, LooseDisposableBucket } from 'src/base/common/dispose';
+import { Disposable, DisposableBucket, disposeAll, toDisposable, LooseDisposableBucket } from 'src/base/common/dispose';
 
 suite('dispose-test', () => {
 	test('toDisposable', () => {
@@ -259,66 +259,4 @@ suite('DisposableBucket-test', () => {
 
         assert.strictEqual(bucket.disposed, true);
     });
-});
-
-suite('AutoDisposable-test', () => {
-	test('AutoDisposable - basics', () => {
-		const obj1 = new Disposable();
-		const obj2 = new Disposable();
-		const obj3 = new Disposable();
-
-		const wrapper = new AutoDisposable();
-		wrapper.set(obj1);
-		
-		assert.ok(!obj1.isDisposed());
-		assert.ok(!obj2.isDisposed());
-
-		wrapper.detach();
-
-		assert.ok(!obj1.isDisposed());
-		assert.ok(!obj2.isDisposed());
-
-		wrapper.set(obj1);
-
-		assert.ok(!obj1.isDisposed());
-		assert.ok(!obj2.isDisposed());
-
-		wrapper.set(obj2);
-
-		assert.ok(obj1.isDisposed());
-		assert.ok(!obj2.isDisposed());
-
-		wrapper.set(obj3);
-
-		assert.ok(obj1.isDisposed());
-		assert.ok(obj2.isDisposed());
-
-		wrapper.dispose();
-
-		assert.ok(obj3.isDisposed());
-	});
-
-	test('AutoDisposable - binding children to the current object', () => {
-
-		const obj1 = new Disposable();
-		const obj2 = new Disposable();
-		const child1 = new Disposable();
-		const child2 = new Disposable();
-
-		const wrapper = new AutoDisposable();
-		wrapper.set(obj1);
-		wrapper.register(child1);
-		wrapper.register(child2);
-		
-		assert.ok(!obj1.isDisposed());
-		assert.ok(!child1.isDisposed());
-		assert.ok(!child2.isDisposed());
-
-		wrapper.set(obj2);
-
-		assert.ok(obj1.isDisposed());
-		assert.ok(!obj2.isDisposed());
-		assert.ok(child1.isDisposed());
-		assert.ok(child2.isDisposed());
-	});
 });

@@ -47,7 +47,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
         }));
 
         // RENDER LOGIC
-        this._renderController = new RequestAnimateController(({ event: e }) => {
+        this._renderController = this.__register(new RequestAnimateController(({ event: e }) => {
             /**
              * If hovering outside the editor (hovering overlay), we still can
              * try to render the widget.
@@ -70,15 +70,15 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
 
             this.__unrenderWidget();
             this.__renderWidget(editorWidget.view.editor.overlayContainer, e.target.resolvedPosition, e.target.nodeElement);
-        });
+        }));
     }
 
     protected override onViewInit(view: ProseEditorView): void {
-        this._widget = this.__initWidget(view);
+        this._widget = this.__register(this.__initWidget(view));
     }
 
     protected override onViewDestroy(view: ProseEditorView): void {
-        this._widget?.dispose();
+        this.release(this._widget);
         this._widget = undefined;
         this._currPosition = undefined;
         this._renderController.cancel();

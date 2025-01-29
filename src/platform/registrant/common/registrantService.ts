@@ -1,3 +1,4 @@
+import { Disposable, isDisposable } from "src/base/common/dispose";
 import { InitProtector } from "src/base/common/error";
 import { ILogService } from "src/base/common/logger";
 import { panic } from "src/base/common/utilities/panic";
@@ -51,7 +52,7 @@ export interface IRegistrantService extends IService {
  * It provides mechanisms to add, retrieve, and initialize different kinds of 
  * registrants.
  */
-export class RegistrantService implements IRegistrantService {
+export class RegistrantService extends Disposable implements IRegistrantService {
 
     declare _serviceMarker: undefined;
 
@@ -65,6 +66,7 @@ export class RegistrantService implements IRegistrantService {
     constructor(
         @ILogService private readonly logService: ILogService,
     ) {
+        super();
         this.logService.debug('RegistrantService', 'RegistrantService constructed.');
         this._initProtector = new InitProtector();
         this._registrants = new Map();
@@ -83,6 +85,9 @@ export class RegistrantService implements IRegistrantService {
         }
 
         this._registrants.set(registrant.type, registrant);
+        if (isDisposable(registrant)) {
+            this.__register(registrant);
+        }
 
         this.logService.trace('RegistrantService', `Registrant registered: ${registrant.type}`);
     }

@@ -21,7 +21,7 @@ suite('ShortcutRegistrant', () => {
             weight: ShortcutWeight.Core
         };
         
-        const disposable = registrant.register(commandID, registration);
+        const disposable = registrant.register2(commandID, registration);
         
         assert.strictEqual(registrant.isRegistered(shortcut, commandID), true);
         
@@ -50,8 +50,8 @@ suite('ShortcutRegistrant', () => {
         const commandID1 = 'command1';
         const commandID2 = 'command2';
         
-        const disposable1 = registrant.register(commandID1, { shortcut: shortcut1, commandArgs: [], when: null, weight: ShortcutWeight.Editor });
-        const disposable2 = registrant.register(commandID2, { shortcut: shortcut2, commandArgs: [], when: null, weight: ShortcutWeight.Editor });
+        const disposable1 = registrant.register2(commandID1, { shortcut: shortcut1, commandArgs: [], when: null, weight: ShortcutWeight.Editor });
+        const disposable2 = registrant.register2(commandID2, { shortcut: shortcut2, commandArgs: [], when: null, weight: ShortcutWeight.Editor });
 
         assert.strictEqual(registrant.isRegistered(shortcut1, commandID1), true);
         assert.strictEqual(registrant.isRegistered(shortcut2, commandID2), true);
@@ -67,10 +67,10 @@ suite('ShortcutRegistrant', () => {
         const shortcut = Shortcut.fromString('Ctrl+Z');
         const commandID = 'duplicateCommand';
         
-        registrant.register(commandID, { shortcut, commandArgs: [], when: null, weight: ShortcutWeight.Core });
+        registrant.register2(commandID, { shortcut, commandArgs: [], when: null, weight: ShortcutWeight.Core });
 
         assert.throws(() => {
-            registrant.register(commandID, { shortcut, commandArgs: [], when: null, weight: ShortcutWeight.Core });
+            registrant.register2(commandID, { shortcut, commandArgs: [], when: null, weight: ShortcutWeight.Core });
         });
     });
 
@@ -78,7 +78,7 @@ suite('ShortcutRegistrant', () => {
         const shortcut = Shortcut.fromString('Ctrl+Q');
         const commandID = 'findCommand';
         
-        registrant.register(commandID, { shortcut, commandArgs: [], when: null, weight: ShortcutWeight.Core });
+        registrant.register2(commandID, { shortcut, commandArgs: [], when: null, weight: ShortcutWeight.Core });
 
         const result = registrant.findShortcut(shortcut);
 
@@ -99,8 +99,8 @@ suite('ShortcutRegistrant', () => {
         const commandID1 = 'commandE';
         const commandID2 = 'commandR';
         
-        registrant.register(commandID1, { shortcut: shortcut1, commandArgs: [], when: null, weight: ShortcutWeight.Core });
-        registrant.register(commandID2, { shortcut: shortcut2, commandArgs: [], when: null, weight: ShortcutWeight.Core });
+        registrant.register2(commandID1, { shortcut: shortcut1, commandArgs: [], when: null, weight: ShortcutWeight.Core });
+        registrant.register2(commandID2, { shortcut: shortcut2, commandArgs: [], when: null, weight: ShortcutWeight.Core });
 
         const allRegistrations = registrant.getAllShortcutRegistrations();
 

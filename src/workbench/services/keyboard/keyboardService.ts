@@ -54,7 +54,7 @@ export interface IKeyboardService extends IService, IDisposable {
  * The reason to convert the events is mainly due to different operating system 
  * may have different keycode with the same key pressed.
  */
-export class KeyboardService extends Disposable implements IDisposable, IKeyboardService {
+export class KeyboardService extends Disposable implements IKeyboardService {
 
     declare _serviceMarker: undefined;
 

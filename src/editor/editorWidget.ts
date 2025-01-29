@@ -13,12 +13,14 @@ import { EditorModel } from "src/editor/model/editorModel";
 import { EditorView } from "src/editor/view/editorView";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IContextKey } from "src/platform/context/common/contextKey";
-import { ConfigurationModuleType, IConfigurationService } from "src/platform/configuration/common/configuration";
+import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IEditorDragEvent, IEditorMouseEvent, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidContentChangeEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
 import { EditorExtension } from "src/editor/common/editorExtension";
-import { assert } from "src/base/common/utilities/panic";
-import { AsyncResult } from "src/base/common/result";
+import { assert, errorToMessage } from "src/base/common/utilities/panic";
+import { AsyncResult, err, ok, Result } from "src/base/common/result";
 import { EditorDragState } from "src/editor/common/cursorDrop";
+import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
+import { IEditorViewModel } from "src/editor/common/viewModel";
 
 /**
  * An interface only for {@link EditorWidget}.
@@ -75,7 +77,7 @@ export interface IEditorWidget extends
      * 
      * @throws An exception will be thrown if the editor cannot open it.
      */
-    open(source: URI): Promise<void>;
+    open(source: URI): Promise<Result<void, Error>>;
 
     /**
      * @description Updates the options of the editor widget.
@@ -113,6 +115,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     
     // MVVM
     private _model: EditorModel | null;
+    private _viewModel: EditorViewModel | null;
     private _view: EditorView | null;
     private _editorData: EditorData | null;
 
@@ -262,8 +265,9 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     ) {
         super();
 
-        this._container = new FastElement(container);
+        this._container = this.__register(new FastElement(container));
         this._model = null;
+        this._viewModel = null;
         this._view = null;
         this._editorData = null;
 
@@ -288,10 +292,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     // #region [public methods]
 
-    public async open(source: URI): Promise<void> {
+    public async open(source: URI): Promise<Result<void, Error>> {
         const currSource = this._model?.source;
         if (currSource && URI.equals(source, currSource)) {
-            return;
+            return ok();
         }
 
         this.__detachData();
@@ -299,14 +303,26 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
         // model
         this._model = this.instantiationService.createInstance(EditorModel, source, this._options.getOptions());
-        const initState = await this._model.build(extensionList).unwrap();
+        const initState = await this._model.build(extensionList);
+        
+        // unexpected behavior, we need to let the user know.
+        if (initState.isErr()) {
+            const error = new Error(`Editor: Cannot open editor at '${URI.toFsPath(source)}'. ${errorToMessage(initState.unwrapErr(), false)}`);
+            this._model.dispose();
+            return err(error);
+        }
+
+        const initData = initState.unwrap();
+
+        // view-model
+        this._viewModel = this.instantiationService.createInstance(EditorViewModel, this._model);
 
         // view
         this._view = this.instantiationService.createInstance(
             EditorView,
             this._container.raw,
-            this._model,
-            initState,
+            this._viewModel,
+            initData,
             extensionList,
             this._options.getOptions(),
         );
@@ -315,7 +331,8 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this.__registerMVVMListeners(this._model, this._view);
 
         // cache data
-        this._editorData = new EditorData(this._model, this._view, undefined);
+        this._editorData = this.__register(new EditorData(this._model, this._viewModel, this._view, undefined));
+        return ok();
     }
 
     public save(): AsyncResult<void, Error> {
@@ -368,10 +385,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     // #region [private helper methods]
 
     private __detachData(): void {
-        this._editorData?.dispose();
+        this.release(this._editorData);
+        this._editorData = null;
         this._model = null;
         this._view = null;
-        this._editorData = null;
     }
 
     private __assertModel(): EditorModel {
@@ -444,18 +461,21 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     }
 }
 
-class EditorData implements IDisposable {
+class EditorData extends Disposable {
 
     constructor(
         public readonly model: IEditorModel,
+        public readonly viewModel: IEditorViewModel,
         public readonly view: IEditorView,
         public readonly listeners?: IDisposable,
-    ) { }
-
-    public dispose(): void {
-        this.listeners?.dispose();
-        this.model.dispose();
-        this.view.dispose();
+    ) {
+        super();
+        this.__register(model);
+        this.__register(viewModel);
+        this.__register(view);
+        if (listeners) {
+            this.__register(listeners);
+        }
     }
 }
 
@@ -541,8 +561,7 @@ class EditorExtensionController extends Disposable {
 
         for (const { id, ctor} of extensions) {
             try {
-                logService.trace('EditorWidget', `Editor extension constructing: ${id}`);
-                const instance = instantiationService.createInstance(ctor, editorWidget);
+                const instance = this.__register(instantiationService.createInstance(ctor, editorWidget));
                 this._extensions.set(id, instance);
                 logService.trace('EditorWidget', `Editor extension constructed: ${id}`);
             } catch (error: any) {

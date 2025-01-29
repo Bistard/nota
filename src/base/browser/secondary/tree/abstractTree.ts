@@ -96,7 +96,7 @@ class __TreeListDragAndDropProvider<T, TFilter> extends Disposable implements IL
  * @template T: The type of data in {@link AbstractTree}.
  * @note `trait` does not care about TFilter type.
  */
-class TreeTrait<T> implements IDisposable {
+class TreeTrait<T> extends Disposable {
 
     // [field]
 
@@ -105,13 +105,16 @@ class TreeTrait<T> implements IDisposable {
 
     // [event]
 
-    private readonly _onDidChange = new Emitter<ITreeTraitChangeEvent<T>>();
+    private readonly _onDidChange = this.__register(new Emitter<ITreeTraitChangeEvent<T>>());
     public readonly onDidChange = this._onDidChange.registerListener;
 
     // [constructor]
 
     constructor() {
-        this._nodesCache = new Lazy(() => Arrays.fromSet(this._nodes, node => node.data));
+        super();
+        this._nodesCache = this.__register(new Lazy(
+            () => Arrays.fromSet(this._nodes, node => node.data)
+        ));
     }
 
     // [public methods]
@@ -180,11 +183,6 @@ class TreeTrait<T> implements IDisposable {
 
         // update the current traits
         this.set(currNodes);
-    }
-
-    public dispose(): void {
-        this._nodesCache.dispose();
-        this._onDidChange.dispose();
     }
 }
 
@@ -473,6 +471,11 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
      * The viewport size of the tree in pixels.
      */
     readonly viewportHeight: number;
+
+    /**
+     * The viewport top of the tree in pixels.
+     */
+    readonly scrollTop: number;
 
     /** 
      * The actual content size of the tree in pixels. 
@@ -836,10 +839,11 @@ export interface IAbstractTreeOptions<T, TFilter> extends
  * TFilter: type of filter data for filtering nodes in the tree.
  * TRef: a reference leads to find the corresponding tree node.
  */
-export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implements IAbstractTree<T, TFilter, TRef>, IDisposable {
+export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implements IAbstractTree<T, TFilter, TRef> {
 
     // [fields]
 
+    private readonly _onDidChangeCollapseState: RelayEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>;
     protected readonly _model: ITreeModel<T, TFilter, TRef>;
     protected readonly _view: TreeWidget<T, TFilter, TRef>;
 
@@ -859,10 +863,11 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
          * to create the renderers first. After the model is created, we can 
          * have the chance to reset the input event emitter.
          */
-        const relayEmitter = new RelayEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>();
+        const relayEmitter = this.__register(new RelayEmitter<ITreeCollapseStateChangeEvent<T, TFilter>>());
+        this._onDidChangeCollapseState = this.__register(relayEmitter);
 
         // wraps each tree list view renderer with a basic tree item renderer
-        renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener));
+        renderers = renderers.map(renderer => new TreeItemRenderer<T, TFilter, any>(renderer, relayEmitter.registerListener, o => this.__register(o)));
 
         // tree view
         const createTreeWidgetArguments = <const>[
@@ -902,7 +907,7 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
         }
 
         // create the tree model from abstraction, client may override it.
-        this._model = this.createModel(rootData, this._view, opts);
+        this._model = this.__register(this.createModel(rootData, this._view, opts));
         
         // updates traits in the tree-level after each splice
         this.__register(this._model.onDidSplice(e => this._view.onDidSplice(e, opts.identityProvider)));
@@ -912,13 +917,12 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
         // dispose registration
         this.__register(this._view);
-        this.__register(relayEmitter);
     }
 
     // [event]
 
     get onDidSplice(): Register<ITreeSpliceEvent<T, TFilter>> { return this._model.onDidSplice; }
-    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T, TFilter>> { return this._model.onDidChangeCollapseState; }
+    get onDidChangeCollapseState(): Register<ITreeCollapseStateChangeEvent<T, TFilter>> { return this._onDidChangeCollapseState.registerListener; }
 
     get onDidScroll(): Register<IScrollEvent> { return this._view.onDidScroll; }
     get onDidChangeFocus(): Register<boolean> { return this._view.onDidChangeFocus; }
@@ -1130,6 +1134,10 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     get viewportHeight(): number {
         return this._view.getViewportSize();
+    }
+
+    get scrollTop(): number {
+        return this._view.getScrollPosition();
     }
 
     get contentHeight(): number {

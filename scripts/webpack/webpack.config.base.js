@@ -138,7 +138,7 @@ class WebpackBaseConfigurationProvider {
              * 
              * {@link https://webpack.js.org/configuration/stats/}
              */
-            stats: 'normal',
+            stats: 'minimal',
 
             /**
              * Fail out on the first error instead of tolerating it. 

@@ -79,19 +79,22 @@ export interface IComponent extends ICreatable, ILayoutable {
 
     /**
      * @description Appends the component to the DOM. This method represents the 
-     * first step in the 'create()' process and solely handles the insertion of 
-     * the component into the DOM tree.
+     * first step in the {@link create()} process and solely handles the insertion 
+     * of the component into the DOM tree.
      * @param parent If provided, the component will be registered under this 
      *               component. If no parent is provided, the component will be 
      *               rendered under this parent component.
      * @param avoidRender If provided, this will force to avoid rendering the
      *                    component into the DOM tree. The client must handle
      *                    the rendering by themselves.
-     * @note If both not provided, either renders under the constructor provided 
-     *       HTMLElement, or `document.body`.
-     * @note `createInDom()` and `createContent()` are useful when you wish to
-     *       have extra operations between those two operations. Otherwise you
-     *       may invoke `create()` for simplicity.
+     * @note This will stores the current component as a child of the parent 
+     *       (But the lifecycle is not bound). {@link detachFromDom} will 
+     *       reverse this operation.
+     * @note If both parameters not provided, will either renders under the 
+     *       constructor provided HTMLElement, or `document.body`.
+     * @note {@link createInDom()} and {@link createContent()} are useful when 
+     *       you wish to have extra operations between those two operations. 
+     *       Otherwise you may invoke {@link create()} for simplicity.
      * @panic
      */
     createInDom(parent?: Component, avoidRender?: boolean): void;
@@ -103,13 +106,13 @@ export interface IComponent extends ICreatable, ILayoutable {
 
     /**
      * @description Renders the content of the component. This method is the 
-     * second step in the 'create()' process, following the insertion of the 
-     * component into the DOM. 
-     * @note It triggers the internal '__createContent' method to render the 
-     *       component's actual contents.
-     * @note `createInDom()` and `createContent()` are useful when you wish to
-     *       have extra operations between those two operations. Otherwise you
-     *       may invoke `create()` for simplicity.
+     * second step in the {@link create()} process, following the insertion of 
+     * the component into the DOM. 
+     * @note It triggers the internal {@link __createContent} method to render 
+     *       the component's actual contents.
+     * @note {@link createInDom()} and {@link createContent()} are useful when 
+     *       you wish to have extra operations between those two operations. 
+     *       Otherwise you may invoke {@link create()} for simplicity.
      * @panic
      */
     createContent(): void;

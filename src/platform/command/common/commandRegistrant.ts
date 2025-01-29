@@ -103,14 +103,14 @@ export interface ICommandRegistrant extends IRegistrant<RegistrantType.Command> 
  * 
  * @note Make sure 'CommandRegistrant' is constructed after 'ShortcutRegistrant'.
  */
-export class CommandRegistrant implements ICommandRegistrant {
+export class CommandRegistrant extends Disposable implements ICommandRegistrant {
 
     // [event]
 
-    private readonly _onDidRegister = new Emitter<string>();
+    private readonly _onDidRegister = this.__register(new Emitter<string>());
     public readonly onDidRegister = this._onDidRegister.registerListener;
 
-    private readonly _onDidUnRegister = new Emitter<string>();
+    private readonly _onDidUnRegister = this.__register(new Emitter<string>());
     public readonly onDidUnRegister = this._onDidUnRegister.registerListener;
 
     // [fields]
@@ -126,6 +126,7 @@ export class CommandRegistrant implements ICommandRegistrant {
         @ILogService private readonly logService: ILogService,
         @IRegistrantService registrantService: IRegistrantService,
     ) {
+        super();
         this._shortcutRegistrant = registrantService.getRegistrant(RegistrantType.Shortcut);
     }
 
@@ -171,7 +172,7 @@ export class CommandRegistrant implements ICommandRegistrant {
 
         // shortcut registration
         if (command.schema.shortcutOptions) {
-            this._shortcutRegistrant.register(command.id, {
+            this._shortcutRegistrant.register2(command.id, {
                 ...command.schema.shortcutOptions,
                 when: CreateContextKeyExpr.And(command.when, command.schema.shortcutOptions.when),
             });

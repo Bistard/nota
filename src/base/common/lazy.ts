@@ -1,12 +1,12 @@
 import { Time } from "src/base/common/date";
-import { isDisposable } from "src/base/common/dispose";
+import { Disposable, isDisposable, LooseDisposableBucket } from "src/base/common/dispose";
 
 /**
  * An interface defining a lazy-loadable object with disposable capabilities.
  * @template T The lazy-loaded type.
  * @template TArgs The arguments type to initialize the lazy-loaded object.
  */
-export interface ILazy<T, TArgs extends any[]> {
+export interface ILazy<T, TArgs extends any[]> extends LooseDisposableBucket {
     
     /**
      * Determine if the object is already loaded. Access this property will not
@@ -40,7 +40,7 @@ export interface ILazy<T, TArgs extends any[]> {
  *       the class loses the actual reference.
  * @note The class may be re-valued or re-disposed.
  */
-export class Lazy<T, TArgs extends any[] = []> implements ILazy<T, TArgs> {
+export class Lazy<T, TArgs extends any[] = []> extends LooseDisposableBucket implements ILazy<T, TArgs> {
 
     // [fields]
 
@@ -56,6 +56,7 @@ export class Lazy<T, TArgs extends any[] = []> implements ILazy<T, TArgs> {
         obtainValue: (...args: TArgs) => T,
         timeout?: Time,
     ) {
+        super();
         this._lazyValue = null;
         this._obtainValue = obtainValue;
         
@@ -77,19 +78,19 @@ export class Lazy<T, TArgs extends any[] = []> implements ILazy<T, TArgs> {
         if (this._lazyValue === null) {
             this._lazyValue = this._obtainValue(...args);
             this.__resetTimeout();
+            
+            // bind lifecycle if needed
+            if (isDisposable(this._lazyValue)) {
+                this.register(this._lazyValue);
+            }
         }
         return this._lazyValue;
     }
 
-    public dispose(): void {
-        if (this._lazyValue === null) {
-            return;
-        }
-
+    public override dispose(): void {
         if (isDisposable(this._lazyValue)) {
-            this._lazyValue.dispose();
+            this.release(this._lazyValue);
         }
-
         this._lazyValue = null;
     }
 
