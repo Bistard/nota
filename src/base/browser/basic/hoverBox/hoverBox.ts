@@ -8,6 +8,7 @@ import { mixin } from "src/base/common/utilities/object";
 
 /**
  * A construction option for {@link HoverBox}.
+ * @note Default option see {@link defaultHoverBoxOption}
  */
 export interface IHoverBoxOptions {
 
@@ -58,7 +59,7 @@ export interface IHoverPositionOptions {
 
     /**
      * Position of the hover. 
-     * @default DirectionY.Above
+     * @default DirectionY.Top
      * 
      * The default is to show above the `target`. This option will be ignored
      * if there is not enough room to layout the hover in the specified position, 
@@ -71,9 +72,14 @@ export interface IHoverPositionOptions {
 
     /**
      * Force the hover position.
+     * @default false
      */
     readonly forcePosition?: boolean;
 
+    /**
+     * If provided, the hoverBox will have given offset based on the position.
+     * @default {{x: 0, y: 0}}
+     */
     readonly offest?: {
         x: number,
         y: number,
@@ -127,42 +133,41 @@ export interface IHoverBox extends IWidget {
 export class HoverBox extends Widget implements IHoverBox {
 
     // [fields]
+    
     private readonly text: string;
     private readonly target: HTMLElement | IHoverTarget;
-    private readonly positionOpts: IHoverPositionOptions;
-    private readonly persistenceOpts: IHoverPersistenceOptions;
-    private readonly appearanceOpts: IHoverAppearanceOptions;
-
-    private locked: boolean;
-
-    // Set to 1 when the mouse enters the target
-    private mouseInTargetCounter: number = 1;
-    private onAltkDown: boolean = false;
+    private readonly positionOptions   : Required<IHoverPositionOptions>;
+    private readonly persistenceOptions: Required<IHoverPersistenceOptions>;
+    private readonly appearanceOptions : Required<IHoverAppearanceOptions>;
+    
+    /** 
+     * Set to 1 because whenever a hoverbox is constructed, it must already on 
+     * 1 target. 
+     */
+    private _mouseInTargetCounter: number;
+    private _onAltkDown: boolean;
+    private _locked: boolean;
 
     // [constructor]
     
-    constructor(opts: IHoverBoxOptions,
-                @IKeyboardService private readonly keyboardService: IKeyboardService
+    constructor(
+        options: IHoverBoxOptions,
+        @IKeyboardService private readonly keyboardService: IKeyboardService
     ) {
         super();
-        this.text = opts.text;
-        this.target = opts.target;
-        this.positionOpts = opts.position ?? {};
-        
-        this.persistenceOpts = mixin(
-            opts.persistence, 
-            { hideOnKeyDown: true },
-            false,
-        );
-        this.appearanceOpts = opts.appearance ?? {};
+        const resolvedOptions = mixin<typeof defaultHoverBoxOption>(options, defaultHoverBoxOption, false);
+        this.text               = resolvedOptions.text;
+        this.target             = resolvedOptions.target;
+        this.positionOptions    = resolvedOptions.position;
+        this.persistenceOptions = resolvedOptions.persistence;
+        this.appearanceOptions  = resolvedOptions.appearance;
+        this._locked = !!this.persistenceOptions.locked;
 
-        this.locked = !!this.persistenceOpts.locked;
-
+        this._mouseInTargetCounter = 1;
+        this._onAltkDown = false;
     }
 
     // [public methods]
-
-    // [private methods]
 
     public layout(): void {
 
@@ -179,7 +184,7 @@ export class HoverBox extends Widget implements IHoverBox {
         // x, y coordinate
         const untailoredHoverXY = this.__determineHoverXY(hoverSize, viewSize);
 
-        const offset = this.positionOpts.offest ?? {x: 0, y: 0};
+        const offset = this.positionOptions.offest;
         
         let x = untailoredHoverXY.x + offset.x;
         let y = untailoredHoverXY.y + offset.y;
@@ -199,21 +204,23 @@ export class HoverBox extends Widget implements IHoverBox {
     }
 
     public toggleLock(): void {
-        this.locked = !this.locked;
-        if (!this.locked && this.mouseInTargetCounter <= 0) {
+        this._locked = !this._locked;
+        if (!this._locked && this._mouseInTargetCounter <= 0) {
             this.dispose();
         }
     }
 
-    protected override __render(element: HTMLElement): void {
-        element.classList.add('monaco-hover', 'hover-box');
+    // [private methods]
 
-        if (!this.appearanceOpts.skipFadeInAnimation) {
+    protected override __render(element: HTMLElement): void {
+        element.classList.add('hover-box');
+
+        if (!this.appearanceOptions.skipFadeInAnimation) {
             element.classList.add('fade-in');
         }
 
-        if (this.appearanceOpts.additionalClasses) {
-            this.appearanceOpts.additionalClasses.forEach(cls => element.classList.add(cls));
+        if (this.appearanceOptions.additionalClasses) {
+            this.appearanceOptions.additionalClasses.forEach(cls => element.classList.add(cls));
         }
 
         const textDiv = document.createElement('div');
@@ -225,7 +232,7 @@ export class HoverBox extends Widget implements IHoverBox {
     }
 
     protected override __applyStyle(element: HTMLElement): void {
-        // Basic styling handled in SCSS
+        // TODO: use css instead of hardcode on js
         element.style.position = 'absolute';
         element.style.zIndex = '9999';
     }
@@ -238,42 +245,39 @@ export class HoverBox extends Widget implements IHoverBox {
         for (const t of targetElements) {
             this.__register(addDisposableListener(t, EventType.mouseenter, () => {
                 
-                this.mouseInTargetCounter += 1;
+                this._mouseInTargetCounter += 1;
             }));
-            this.__register(addDisposableListener(t, EventType.mouseleave, () => {
 
-                this.mouseInTargetCounter -= 1;
+            this.__register(addDisposableListener(t, EventType.mouseleave, () => {
+                this._mouseInTargetCounter -= 1;
                 this.__tryHideOnMouseOut();
             }));
         }
 
         this.__register(this.keyboardService.onKeydown(event => {
-
-            if (this.onAltkDown) {
+            if (this._onAltkDown) {
                 return;
             }
             if (event.key === KeyCode.Alt) {
-                this.onAltkDown = true;
+                this._onAltkDown = true;
                 this.toggleLock();
             } else {
-                if (this.persistenceOpts.hideOnKeyDown && !this.locked) {
+                if (this.persistenceOptions.hideOnKeyDown && !this._locked) {
                     this.dispose();
                 }
             }
         }));
 
         this.__register(this.keyboardService.onKeyup(event => {
-
             if (event.key === KeyCode.Alt) {
-                this.onAltkDown = false;
+                this._onAltkDown = false;
                 this.toggleLock();
             }
         }));
     }
 
     private __tryHideOnMouseOut(): void {
-        if (this.locked) return;
-        if (this.mouseInTargetCounter <= 0) {
+        if (!this._locked && this._mouseInTargetCounter <= 0) {
             this.dispose();
         }
     }
@@ -291,8 +295,8 @@ export class HoverBox extends Widget implements IHoverBox {
         // Position relative to target
         const targetRect = getTargetRect(this.target);
 
-        if (Coordinate.is(this.positionOpts.hoverPosition)) {
-            const coordinate = this.positionOpts.hoverPosition;
+        if (Coordinate.is(this.positionOptions.hoverPosition)) {
+            const coordinate = this.positionOptions.hoverPosition;
             return coordinate;
         }
 
@@ -321,9 +325,8 @@ export class HoverBox extends Widget implements IHoverBox {
     private __determineHoverDirection(targetRect: IRect, hoverSize: ISize, viewSize: ISize): Direction {
         
         // default Direction is Top(above the target)
-        const desiredPosition = this.positionOpts.hoverPosition ?? DirectionY.Top;
-        
-        const force = !!this.positionOpts.forcePosition;
+        const desiredPosition = this.positionOptions.hoverPosition;
+        const force = this.positionOptions.forcePosition;
         let finalPos = desiredPosition as Direction;
 
         if (force) {
@@ -354,6 +357,24 @@ export class HoverBox extends Widget implements IHoverBox {
         return finalPos;
     }
 }
+
+const defaultHoverBoxOption = {
+    text: '',
+    target: document.body,
+    position: {
+        hoverPosition: DirectionY.Top,
+        forcePosition: false,
+        offest: Coordinate.None,
+    },
+    persistence: { 
+        hideOnKeyDown: true,
+        locked: false,
+    },
+    appearance: {
+        additionalClasses: [],
+        skipFadeInAnimation: false,
+    }
+};
 
 function computeRect(target: HTMLElement): { top: number, left: number, width: number, height: number } {
     const top    = DomUtility.Attrs.getViewportTop(target);
