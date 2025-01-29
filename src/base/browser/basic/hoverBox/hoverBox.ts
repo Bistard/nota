@@ -6,7 +6,6 @@ import { IKeyboardService } from "src/workbench/services/keyboard/keyboardServic
 import { KeyCode } from "src/base/common/keyboard";
 import { mixin } from "src/base/common/utilities/object";
 
-
 /**
  * A construction option for {@link HoverBox}.
  */
@@ -123,47 +122,6 @@ export interface IHoverAppearanceOptions {
 export interface IHoverBox extends IWidget {
     layout(): void;
     toggleLock(): void;
-}
-
-function computeRect(target: HTMLElement): { top: number, left: number, width: number, height: number } {
-    const top    = DomUtility.Attrs.getViewportTop(target);
-    const left   = DomUtility.Attrs.getViewportLeft(target);
-    const width  = DomUtility.Attrs.getTotalWidth(target);
-    const height = DomUtility.Attrs.getTotalHeight(target);
-    return { top, left, width, height };
-}
-
-/**
- * Compute a combined rect for multiple elements (used if target is IHoverTarget).
- */
-function computeCombinedRect(elements: readonly HTMLElement[]): { top: number; left: number; width: number; height: number } {
-    let left   = Number.MAX_SAFE_INTEGER;
-    let top    = Number.MAX_SAFE_INTEGER;
-    let right  = Number.MIN_SAFE_INTEGER;
-    let bottom = Number.MIN_SAFE_INTEGER;
-
-    for (const e of elements) {
-        const r = computeRect(e);
-        if (r.left < left) left = r.left;
-        if (r.top < top) top = r.top;
-        if ((r.left + r.width) > right) right = r.left + r.width;
-        if ((r.top + r.height) > bottom) bottom = r.top + r.height;
-    }
-
-    return {
-        top,
-        left,
-        width: right - left,
-        height: bottom - top
-    };
-}
-
-function getTargetRect(target: HTMLElement | IHoverTarget): IRect {
-    if (!DomUtility.Elements.isHTMLElement(target)) {
-        return computeCombinedRect(target.targetElements);
-    } else {
-        return computeRect(target);
-    }
 }
 
 export class HoverBox extends Widget implements IHoverBox {
@@ -394,5 +352,46 @@ export class HoverBox extends Widget implements IHoverBox {
             }
         }
         return finalPos;
+    }
+}
+
+function computeRect(target: HTMLElement): { top: number, left: number, width: number, height: number } {
+    const top    = DomUtility.Attrs.getViewportTop(target);
+    const left   = DomUtility.Attrs.getViewportLeft(target);
+    const width  = DomUtility.Attrs.getTotalWidth(target);
+    const height = DomUtility.Attrs.getTotalHeight(target);
+    return { top, left, width, height };
+}
+
+/**
+ * Compute a combined rect for multiple elements (used if target is IHoverTarget).
+ */
+function computeCombinedRect(elements: readonly HTMLElement[]): { top: number; left: number; width: number; height: number } {
+    let left   = Number.MAX_SAFE_INTEGER;
+    let top    = Number.MAX_SAFE_INTEGER;
+    let right  = Number.MIN_SAFE_INTEGER;
+    let bottom = Number.MIN_SAFE_INTEGER;
+
+    for (const e of elements) {
+        const r = computeRect(e);
+        if (r.left < left) left = r.left;
+        if (r.top < top) top = r.top;
+        if ((r.left + r.width) > right) right = r.left + r.width;
+        if ((r.top + r.height) > bottom) bottom = r.top + r.height;
+    }
+
+    return {
+        top,
+        left,
+        width: right - left,
+        height: bottom - top
+    };
+}
+
+function getTargetRect(target: HTMLElement | IHoverTarget): IRect {
+    if (!DomUtility.Elements.isHTMLElement(target)) {
+        return computeCombinedRect(target.targetElements);
+    } else {
+        return computeRect(target);
     }
 }
