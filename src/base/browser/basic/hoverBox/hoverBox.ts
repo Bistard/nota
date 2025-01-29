@@ -43,7 +43,6 @@ export interface IHoverBoxOptions {
     readonly appearance?: IHoverAppearanceOptions;
 }
 
-
 /**
  * A target for a hover.
  */
@@ -84,7 +83,6 @@ export interface IHoverPositionOptions {
 
 export interface IHoverPersistenceOptions {
 
-
     /**
      * Whether to hide the hover when a key is pressed.
      * @default true
@@ -120,35 +118,17 @@ export interface IHoverAppearanceOptions {
 
 /**
  * An interface only for {@link HoverBox}.
+ * // TODO: doc
  */
 export interface IHoverBox extends IWidget {
-
     layout(): void;
     toggleLock(): void;
 }
 
-function isHoverTarget(x: HTMLElement | IHoverTarget): x is IHoverTarget {
-    return !!(x as IHoverTarget).targetElements;
-}
-
-/**
- * Get the viewport size using the window's inner dimensions.
- */
-function getViewportSize(): ISize {
-    return {
-        width: window.innerWidth,
-        height: window.innerHeight
-    };
-}
-
-function isCoordinate(pos: Direction | Coordinate | undefined): pos is Coordinate {
-    return !!pos && typeof (pos as Coordinate).x === 'number' && typeof (pos as Coordinate).y === 'number';
-}
-
 function computeRect(target: HTMLElement): { top: number, left: number, width: number, height: number } {
-    const top = DomUtility.Attrs.getViewportTop(target);
-    const left = DomUtility.Attrs.getViewportLeft(target);
-    const width = DomUtility.Attrs.getTotalWidth(target);
+    const top    = DomUtility.Attrs.getViewportTop(target);
+    const left   = DomUtility.Attrs.getViewportLeft(target);
+    const width  = DomUtility.Attrs.getTotalWidth(target);
     const height = DomUtility.Attrs.getTotalHeight(target);
     return { top, left, width, height };
 }
@@ -156,11 +136,11 @@ function computeRect(target: HTMLElement): { top: number, left: number, width: n
 /**
  * Compute a combined rect for multiple elements (used if target is IHoverTarget).
  */
-function computeCombinedRect(elements: HTMLElement[]): { top: number; left: number; width: number; height: number } {
-    let left = Infinity;
-    let top = Infinity;
-    let right = -Infinity;
-    let bottom = -Infinity;
+function computeCombinedRect(elements: readonly HTMLElement[]): { top: number; left: number; width: number; height: number } {
+    let left   = Number.MAX_SAFE_INTEGER;
+    let top    = Number.MAX_SAFE_INTEGER;
+    let right  = Number.MIN_SAFE_INTEGER;
+    let bottom = Number.MIN_SAFE_INTEGER;
 
     for (const e of elements) {
         const r = computeRect(e);
@@ -179,8 +159,8 @@ function computeCombinedRect(elements: HTMLElement[]): { top: number; left: numb
 }
 
 function getTargetRect(target: HTMLElement | IHoverTarget): IRect {
-    if (isHoverTarget(target)) {
-        return computeCombinedRect(target.targetElements as HTMLElement[]);
+    if (!DomUtility.Elements.isHTMLElement(target)) {
+        return computeCombinedRect(target.targetElements);
     } else {
         return computeRect(target);
     }
@@ -230,7 +210,10 @@ export class HoverBox extends Widget implements IHoverBox {
 
         if (!this.rendered) return;
         const element = this.element;
-        const viewSize = getViewportSize();
+        const viewSize = {
+            width: window.innerWidth,
+            height: window.innerHeight
+        };
 
         // Measure the hover itself
         const hoverSize = this.__getHoverSize();
@@ -290,8 +273,10 @@ export class HoverBox extends Widget implements IHoverBox {
     }
 
     protected override __registerListeners(element: HTMLElement): void {
-        
-        const targetElements = isHoverTarget(this.target) ? this.target.targetElements : [this.target];
+        const targetElements = !DomUtility.Elements.isHTMLElement(this.target) 
+            ? this.target.targetElements 
+            : [this.target];
+            
         for (const t of targetElements) {
             this.__register(addDisposableListener(t, EventType.mouseenter, () => {
                 
@@ -342,20 +327,18 @@ export class HoverBox extends Widget implements IHoverBox {
     }
     
     private __determineHoverXY(hoverSize: ISize, viewSize: ISize): Coordinate {
-        let x, y: number = 0;
+        let x: number = 0;
+        let y: number = 0;
 
         // Position relative to target
         const targetRect = getTargetRect(this.target);
 
-        if (isCoordinate(this.positionOpts.hoverPosition)) {
-            x = this.positionOpts.hoverPosition.x;
-            y = this.positionOpts.hoverPosition.y;
-            return new Coordinate(x, y);
+        if (Coordinate.is(this.positionOpts.hoverPosition)) {
+            const coordinate = this.positionOpts.hoverPosition;
+            return coordinate;
         }
 
         const direction = this.__determineHoverDirection(targetRect, hoverSize, viewSize);
-        console.log('direction:', direction);
-
         if (direction === DirectionY.Top) {
             y = targetRect.top - hoverSize.height;
             x = targetRect.left + (targetRect.width - hoverSize.width) / 2;

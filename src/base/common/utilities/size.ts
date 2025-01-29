@@ -76,6 +76,10 @@ export class Dimension extends Size2D implements Readonly<IDimension>, ISize2D {
 		return this._b;
 	}
 
+	public static is(other: any): other is Dimension {
+		return other instanceof Dimension;
+	}
+
 	public static lift(obj: IDimension): Dimension {
 		if (obj instanceof Dimension) {
 			return obj;
@@ -100,6 +104,10 @@ export class Position extends Size2D implements Readonly<IPosition>, ISize2D {
 		return this._b;
 	}
 
+	public static is(other: any): other is Position {
+		return other instanceof Position;
+	}
+
 	public static lift(obj: IPosition): Position {
 		if (obj instanceof Position) {
 			return obj;
@@ -122,6 +130,10 @@ export class Coordinate extends Size2D implements Readonly<ICoordinate>, ISize2D
 	
 	get y(): number {
 		return this._b;
+	}
+
+	public static is(other: any): other is Coordinate {
+		return other instanceof Coordinate;
 	}
 
 	public static lift(obj: ICoordinate): Coordinate {
