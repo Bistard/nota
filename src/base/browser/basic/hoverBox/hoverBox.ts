@@ -124,8 +124,6 @@
     export interface IHoverBox extends IWidget {
 
         layout(): void;
-        hide(): void;
-        show(): void;
         toggleLock(): void;
     }
 
@@ -199,10 +197,7 @@
 
         private locked: boolean;
         private mouseInTargetCounter: number = 1;
-        private visible: boolean = true; // Tracks if currently visible
         private onAltkDown: boolean = false;
-
-        
 
         // [constructor]
         
@@ -260,24 +255,10 @@
             element.style.top = `${y}px`;
         }
 
-        public hide(): void {
-            if (this.locked) return;
-            if (!this.visible) return;
-            this.element.style.display = 'none';
-            this.visible = false;
-        }
-
-        public show(): void {
-            if (this.visible) return;
-            this.element.style.display = '';
-            this.visible = true;
-            this.layout();
-        }
-
         public toggleLock(): void {
             this.locked = !this.locked;
             if (!this.locked && this.mouseInTargetCounter <= 0) {
-                this.hide();
+                this.dispose();
             }
         }
 
@@ -331,7 +312,7 @@
                     this.toggleLock();
                 } else {
                     if (this.persistenceOpts.hideOnKeyDown && !this.locked) {
-                        this.hide();
+                        this.dispose();
                     }
                 }
             }));
