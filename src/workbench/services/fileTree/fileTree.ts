@@ -154,7 +154,6 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
                 return;
             }
             const target = this.getHTMLElement(this.getItemIndex(e.data))!;
-            
             const hoverBox = this.instantiationService.createInstance(HoverBox, {target: target, text: e.data.basename});
 
             console.log(e.browserEvent.target);
@@ -164,7 +163,6 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
             
             console.log(e.data);
         });
-
     }
 
     private __onClick(event: ITreeMouseEvent<T>): void {
