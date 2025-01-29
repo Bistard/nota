@@ -198,8 +198,9 @@
         private readonly appearanceOpts: IHoverAppearanceOptions;
 
         private locked: boolean;
-        private mouseInTargetCouter: number = 0;
+        private mouseInTargetCounter: number = 1;
         private visible: boolean = true; // Tracks if currently visible
+        private onAltkDown: boolean = false;
 
         
 
@@ -220,7 +221,6 @@
             );
             this.appearanceOpts = opts.appearance ?? {};
 
-            
             this.locked = !!this.persistenceOpts.locked;
 
         }
@@ -276,7 +276,7 @@
 
         public toggleLock(): void {
             this.locked = !this.locked;
-            if (!this.locked && this.mouseInTargetCouter <= 0) {
+            if (!this.locked && this.mouseInTargetCounter <= 0) {
                 this.hide();
             }
         }
@@ -312,17 +312,22 @@
             for (const t of targetElements) {
                 this.__register(addDisposableListener(t, EventType.mouseenter, () => {
                     
-                    this.mouseInTargetCouter += 1;
+                    this.mouseInTargetCounter += 1;
                 }));
                 this.__register(addDisposableListener(t, EventType.mouseleave, () => {
-                    // fix: multiple targets
-                    this.mouseInTargetCouter -= 1;
+
+                    this.mouseInTargetCounter -= 1;
                     this.__tryHideOnMouseOut();
                 }));
             }
-            this.__register(this.keyboardService.onKeypress(event => {
 
+            this.__register(this.keyboardService.onKeydown(event => {
+
+                if (this.onAltkDown) {
+                    return;
+                }
                 if (event.key === KeyCode.Alt) {
+                    this.onAltkDown = true;
                     this.toggleLock();
                 } else {
                     if (this.persistenceOpts.hideOnKeyDown && !this.locked) {
@@ -334,6 +339,7 @@
             this.__register(this.keyboardService.onKeyup(event => {
 
                 if (event.key === KeyCode.Alt) {
+                    this.onAltkDown = false;
                     this.toggleLock();
                 }
             }));
@@ -341,8 +347,8 @@
 
         private __tryHideOnMouseOut(): void {
             if (this.locked) return;
-            if (this.mouseInTargetCouter <= 0) {
-                this.hide();
+            if (this.mouseInTargetCounter <= 0) {
+                this.dispose();
             }
         }
         
