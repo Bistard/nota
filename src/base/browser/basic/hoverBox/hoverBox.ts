@@ -196,6 +196,8 @@
         private readonly appearanceOpts: IHoverAppearanceOptions;
 
         private locked: boolean;
+
+        // Set to 1 when the mouse enters the target
         private mouseInTargetCounter: number = 1;
         private onAltkDown: boolean = false;
 
@@ -392,6 +394,8 @@
             const fitsBelow = (targetRect.top + targetRect.height + hoverSize.height) <= viewSize.height;
             const fitsLeft =  (targetRect.left - hoverSize.width) >= 0;
             const fitsRight = (targetRect.left + targetRect.width + hoverSize.width) <= viewSize.width;
+
+            // Default order: top, bottom, left, right
             const fits: Record<Direction, boolean> = {
                 [DirectionY.Top]: fitsAbove,
                 [DirectionY.Bottom]: fitsBelow,
