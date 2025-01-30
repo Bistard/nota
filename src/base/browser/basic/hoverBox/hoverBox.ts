@@ -283,14 +283,15 @@ export class HoverBox extends Widget implements IHoverBox {
     }
     
     private __getHoverSize(): ISize {
-        const width: number = DomUtility.Attrs.getTotalWidth(this.element);
-        const height: number = DomUtility.Attrs.getTotalHeight(this.element); 
-        return {width, height};
+        const computed = getComputedStyle(this.element);
+        const width = DomUtility.Attrs.getTotalWidth(this.element, computed);
+        const height = DomUtility.Attrs.getTotalHeight(this.element, computed); 
+        return { width, height };
     }
     
     private __determineHoverXY(hoverSize: ISize, viewSize: ISize): Coordinate {
-        let x: number = 0;
-        let y: number = 0;
+        let x = 0;
+        let y = 0;
 
         // Position relative to target
         const targetRect = getTargetRect(this.target);
@@ -377,10 +378,11 @@ const defaultHoverBoxOption = {
 };
 
 function computeRect(target: HTMLElement): { top: number, left: number, width: number, height: number } {
+    const styles = getComputedStyle(target);
     const top    = DomUtility.Attrs.getViewportTop(target);
     const left   = DomUtility.Attrs.getViewportLeft(target);
-    const width  = DomUtility.Attrs.getTotalWidth(target);
-    const height = DomUtility.Attrs.getTotalHeight(target);
+    const width  = DomUtility.Attrs.getTotalWidth(target, styles);
+    const height = DomUtility.Attrs.getTotalHeight(target, styles);
     return { top, left, width, height };
 }
 
