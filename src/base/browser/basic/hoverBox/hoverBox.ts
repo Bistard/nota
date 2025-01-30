@@ -294,29 +294,9 @@ export class HoverBox extends Widget implements IHoverBox {
 
         // case 2: calc position relative to target
         const targetRect = getTargetRect(this.target);
-        const direction = this.__determineHoverDirection(this.positionOptions.hoverPosition, targetRect, hoverSize, viewSize);
-        
-        let x = 0;
-        let y = 0;
-        if (direction === DirectionY.Top) {
-            y = targetRect.top - hoverSize.height;
-            x = targetRect.left + (targetRect.width - hoverSize.width) / 2;
-        } else if (direction === DirectionY.Bottom) {
-            y = targetRect.top + targetRect.height;
-            x = targetRect.left + (targetRect.width - hoverSize.width) / 2;
-        } else if (direction === DirectionX.Left) {
-            y = targetRect.top + (targetRect.height - hoverSize.height) / 2;
-            x = targetRect.left - hoverSize.width;
-        } else if (direction === DirectionX.Right) {
-            y = targetRect.top + (targetRect.height - hoverSize.height) / 2;
-            x = targetRect.left + targetRect.width;
-        } else {
-            // fallback to `DirectionY.Top`
-            y = targetRect.top - hoverSize.height;
-            x = targetRect.left;
-        }
-        
-        return new Coordinate(x, y);
+        const direction  = this.__determineHoverDirection(this.positionOptions.hoverPosition, targetRect, hoverSize, viewSize);
+        const coordinate = this.__calcHoverPosition(targetRect, hoverSize, direction);
+        return coordinate;
     }
 
     private __determineHoverDirection(hoverPosition: Direction, targetRect: IRect, hoverSize: ISize, viewSize: ISize): Direction {
@@ -353,6 +333,30 @@ export class HoverBox extends Widget implements IHoverBox {
         }
 
         return finalPosition;
+    }
+
+    private __calcHoverPosition(targetRect: IRect, hoverSize: ISize, direction: Direction): Coordinate {
+        let x = 0;
+        let y = 0;
+        if (direction === DirectionY.Top) {
+            y = targetRect.top - hoverSize.height;
+            x = targetRect.left + (targetRect.width - hoverSize.width) / 2;
+        } else if (direction === DirectionY.Bottom) {
+            y = targetRect.top + targetRect.height;
+            x = targetRect.left + (targetRect.width - hoverSize.width) / 2;
+        } else if (direction === DirectionX.Left) {
+            y = targetRect.top + (targetRect.height - hoverSize.height) / 2;
+            x = targetRect.left - hoverSize.width;
+        } else if (direction === DirectionX.Right) {
+            y = targetRect.top + (targetRect.height - hoverSize.height) / 2;
+            x = targetRect.left + targetRect.width;
+        } else {
+            // fallback to `DirectionY.Top`
+            y = targetRect.top - hoverSize.height;
+            x = targetRect.left + (targetRect.width - hoverSize.width) / 2;
+        }
+        
+        return new Coordinate(x, y);
     }
 }
 
