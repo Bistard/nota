@@ -155,7 +155,7 @@ export class HoverBox extends Widget implements IHoverBox {
         @IKeyboardService private readonly keyboardService: IKeyboardService
     ) {
         super();
-        const resolvedOptions = mixin<typeof defaultHoverBoxOption>(options, defaultHoverBoxOption, false);
+        const resolvedOptions = mixin<typeof defaultHoverBoxOption>(defaultHoverBoxOption, options, true);
         this.text               = resolvedOptions.text;
         this.target             = resolvedOptions.target;
         this.positionOptions    = resolvedOptions.position;
