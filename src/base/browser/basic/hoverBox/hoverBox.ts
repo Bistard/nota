@@ -5,6 +5,7 @@ import { Coordinate, IRect, ISize } from "src/base/common/utilities/size";
 import { IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
 import { KeyCode } from "src/base/common/keyboard";
 import { mixin } from "src/base/common/utilities/object";
+import { Numbers } from "src/base/common/utilities/number";
 
 /**
  * A construction option for {@link HoverBox}.
@@ -61,9 +62,9 @@ export interface IHoverPositionOptions {
      * Position of the hover. 
      * @default DirectionY.Top
      * 
-     * The default is to show above the `target`. This option will be ignored
-     * if there is not enough room to layout the hover in the specified position, 
-     * unless the forcePosition option is set.
+     * If {@link Direction} is provided, the position is relative to the target.
+     * This option will be ignored if there is not enough room to layout the 
+     * hover in the specified position, unless the `forcePosition` option is set.
      * 
      * If {@link Coordinate} is provided, the position will be entirely decided
      * by the coordinate, instead of relative to the `target`.
@@ -71,7 +72,7 @@ export interface IHoverPositionOptions {
     readonly hoverPosition?: Direction | Coordinate;
 
     /**
-     * Force the hover position.
+     * Force the hover position even if there is not enough space for hoverbox.
      * @default false
      */
     readonly forcePosition?: boolean;
@@ -170,9 +171,10 @@ export class HoverBox extends Widget implements IHoverBox {
     // [public methods]
 
     public layout(): void {
-
-        if (!this.rendered) return;
-        const element = this.element;
+        if (!this.rendered) {
+            return;
+        }
+        
         const viewSize = {
             width: window.innerWidth,
             height: window.innerHeight
@@ -181,11 +183,9 @@ export class HoverBox extends Widget implements IHoverBox {
         // Measure the hover itself
         const hoverSize = this.__getHoverSize();
         
-        // x, y coordinate
+        // calc xy coordinate of the hover
         const untailoredHoverXY = this.__determineHoverXY(hoverSize, viewSize);
-
         const offset = this.positionOptions.offest;
-        
         let x = untailoredHoverXY.x + offset.x;
         let y = untailoredHoverXY.y + offset.y;
         
@@ -193,14 +193,10 @@ export class HoverBox extends Widget implements IHoverBox {
         const maxX = viewSize.width - hoverSize.width;
         const maxY = viewSize.height - hoverSize.height;
 
-        x = Math.max(0, x);
-        y = Math.max(0, y);
-
-        x = Math.min(x , maxX);
-        y = Math.min(y , maxY);
-
-        element.style.left = `${x}px`;
-        element.style.top = `${y}px`;
+        x = Numbers.clamp(x, 0, maxX);
+        y = Numbers.clamp(y, 0, maxY);
+        this.element.style.left = `${x}px`;
+        this.element.style.top = `${y}px`;
     }
 
     public toggleLock(): void {
@@ -290,18 +286,18 @@ export class HoverBox extends Widget implements IHoverBox {
     }
     
     private __determineHoverXY(hoverSize: ISize, viewSize: ISize): Coordinate {
-        let x = 0;
-        let y = 0;
-
-        // Position relative to target
-        const targetRect = getTargetRect(this.target);
-
+        // case 1: use absolute coordinate
         if (Coordinate.is(this.positionOptions.hoverPosition)) {
             const coordinate = this.positionOptions.hoverPosition;
             return coordinate;
         }
 
-        const direction = this.__determineHoverDirection(targetRect, hoverSize, viewSize);
+        // case 2: calc position relative to target
+        const targetRect = getTargetRect(this.target);
+        const direction = this.__determineHoverDirection(this.positionOptions.hoverPosition, targetRect, hoverSize, viewSize);
+        
+        let x = 0;
+        let y = 0;
         if (direction === DirectionY.Top) {
             y = targetRect.top - hoverSize.height;
             x = targetRect.left + (targetRect.width - hoverSize.width) / 2;
@@ -315,7 +311,7 @@ export class HoverBox extends Widget implements IHoverBox {
             y = targetRect.top + (targetRect.height - hoverSize.height) / 2;
             x = targetRect.left + targetRect.width;
         } else {
-            // fallback
+            // fallback to `DirectionY.Top`
             y = targetRect.top - hoverSize.height;
             x = targetRect.left;
         }
@@ -323,39 +319,40 @@ export class HoverBox extends Widget implements IHoverBox {
         return new Coordinate(x, y);
     }
 
-    private __determineHoverDirection(targetRect: IRect, hoverSize: ISize, viewSize: ISize): Direction {
-        
-        // default Direction is Top(above the target)
-        const desiredPosition = this.positionOptions.hoverPosition;
+    private __determineHoverDirection(hoverPosition: Direction, targetRect: IRect, hoverSize: ISize, viewSize: ISize): Direction {
         const force = this.positionOptions.forcePosition;
-        let finalPos = desiredPosition as Direction;
-
         if (force) {
-            return finalPos as Direction;
+            return hoverPosition;
         }
-        
-        // No force determine fits
+
+        let finalPosition = hoverPosition;
         const fitsAbove = (targetRect.top - hoverSize.height) >= 0;
         const fitsBelow = (targetRect.top + targetRect.height + hoverSize.height) <= viewSize.height;
-        const fitsLeft =  (targetRect.left - hoverSize.width) >= 0;
+        const fitsLeft  =  (targetRect.left - hoverSize.width) >= 0;
         const fitsRight = (targetRect.left + targetRect.width + hoverSize.width) <= viewSize.width;
 
-        // Default order: top, bottom, left, right
-        const fits: Record<Direction, boolean> = {
+        const fits = <const>{
             [DirectionY.Top]: fitsAbove,
             [DirectionY.Bottom]: fitsBelow,
             [DirectionX.Left]: fitsLeft,
             [DirectionX.Right]: fitsRight,
         };
         
-        if (!fits[finalPos]) {
-            for (const [direction, fit] of Object.entries(fits)) {
-                if (fit) {
-                    finalPos = direction as Direction;
-                }
+        // the desired position has enough space
+        if (fits[finalPosition]) {
+            return finalPosition;
+        }
+
+        // check order: top, bottom, left, right
+        for (const dir of [DirectionY.Top, DirectionY.Bottom, DirectionX.Left, DirectionX.Right]) {
+            const fit = fits[dir];
+            if (fit) {
+                finalPosition = dir;
+                break;
             }
         }
-        return finalPos;
+
+        return finalPosition;
     }
 }
 
