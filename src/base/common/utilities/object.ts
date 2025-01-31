@@ -60,8 +60,9 @@ export function mixin<T>(destination: any, source: any, options: IMixinOptions):
 			continue;
 		}
 		
-		// not able to overwrite, we do nothing
-		if (!options.overwrite) {
+		// Not able to overwrite, we do nothing.
+		const overWrite = options.overwrite ?? true;
+		if (!overWrite) {
 			continue;
 		}
 

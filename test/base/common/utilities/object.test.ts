@@ -105,6 +105,20 @@ suite('object-test', () => {
             mixin(dest, src, {});
             assert.strictEqual(({})['polluted'], undefined);
         });
+
+        test('should ignore object overwrites with certain constructors', () => {
+            class TestObject {
+                constructor(public readonly value: number) {}
+            }
+            const oldObject = new TestObject(1);
+            const newObject = new TestObject(2);
+            const dest = { target: oldObject };
+            const src = { target: newObject };
+            mixin(dest, src, { ignored: [TestObject], overwrite: true });
+            assert.strictEqual(dest.target, newObject);
+            assert.strictEqual(oldObject.value, 1);
+            assert.strictEqual(newObject.value, 2);
+        });
     });
     
     test('deepCopy', () => {
