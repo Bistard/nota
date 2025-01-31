@@ -1,6 +1,7 @@
-import type { EditorPaneDescriptor, IEditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
+import type { IEditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
 import type { IEditorPaneView } from "src/workbench/services/editorPane/editorPaneView";
 import type { AtLeastOneArray } from "src/base/common/utilities/type";
+import { EditorPaneDescriptor } from "src/workbench/services/editorPane/editorPaneDescriptor";
 import { URI } from "src/base/common/files/uri";
 
 /**
