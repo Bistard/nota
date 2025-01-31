@@ -141,10 +141,6 @@ export class HoverBox extends Widget implements IHoverBox {
     private readonly persistenceOptions: Required<IHoverPersistenceOptions>;
     private readonly appearanceOptions : Required<IHoverAppearanceOptions>;
     
-    /** 
-     * Set to 1 because whenever a hoverbox is constructed, it must already on 
-     * 1 target. 
-     */
     private _mouseInTargetCounter: number;
     private _onAltkDown: boolean;
     private _locked: boolean;
@@ -156,7 +152,14 @@ export class HoverBox extends Widget implements IHoverBox {
         @IKeyboardService private readonly keyboardService: IKeyboardService
     ) {
         super();
-        const resolvedOptions = mixin<typeof defaultHoverBoxOption>(defaultHoverBoxOption, options, true);
+        const resolvedOptions = mixin<typeof defaultHoverBoxOption>(
+            Object.assign({}, defaultHoverBoxOption), 
+            options, 
+            { 
+                overwrite: true, 
+                ignored: [HTMLElement] 
+            },
+        );
         this.text               = resolvedOptions.text;
         this.target             = resolvedOptions.target;
         this.positionOptions    = resolvedOptions.position;
@@ -164,7 +167,7 @@ export class HoverBox extends Widget implements IHoverBox {
         this.appearanceOptions  = resolvedOptions.appearance;
         this._locked = !!this.persistenceOptions.locked;
 
-        this._mouseInTargetCounter = 1;
+        this._mouseInTargetCounter = 0;
         this._onAltkDown = false;
     }
 
@@ -240,7 +243,6 @@ export class HoverBox extends Widget implements IHoverBox {
             
         for (const t of targetElements) {
             this.__register(addDisposableListener(t, EventType.mouseenter, () => {
-                
                 this._mouseInTargetCounter += 1;
             }));
 

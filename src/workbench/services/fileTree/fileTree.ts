@@ -10,8 +10,9 @@ import { FileItem } from "src/workbench/services/fileTree/fileItem";
 import { LogLevel } from "src/base/common/logger";
 import { Dictionary, isTruthy } from "src/base/common/utilities/type";
 import { HoverBox } from "src/base/browser/basic/hoverBox/hoverBox";
-import { IInstantiationService, InstantiationService } from "src/platform/instantiation/common/instantiation";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { DirectionX } from "src/base/browser/basic/dom";
+import { ILayoutService } from "src/workbench/services/layout/layoutService";
 
 export interface IFileTreeOpenEvent<T extends FileItem> {
     readonly item: T;
@@ -111,6 +112,7 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
         rootData: T,
         opts: IFileTreeOptions<T, TFilter>,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @ILayoutService private readonly layoutService: ILayoutService,
     ) {
         opts.log?.(LogLevel.DEBUG, 'FileTree', 'FileTree constructing with options:', null, __logFileTreeOptions(opts));
         super(container, rootData, opts);
@@ -150,20 +152,30 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
             this.DOMElement.classList.toggle('blurred', !isFocused);
         }));
 
-        this.onClick(e => {
-            if (!e.data) {
+        this.__register(this.onDidChangeItemHover(e => {
+            const data = e.data[0];
+            if (!data) {
                 return;
             }
-            const target = this.getHTMLElement(this.getItemIndex(e.data))!;
-            const hoverBox = this.instantiationService.createInstance(HoverBox, {target: target, text: e.data.basename, position: {hoverPosition: DirectionX.Right}});
 
-            console.log(e.browserEvent.target);
-            const element =  document.createElement('div');
-            document.body.appendChild(element);
+            const target = this.getHTMLElement(this.getItemIndex(data));
+            if (!target) {
+                return;
+            }
+
+            const hoverBox = this.instantiationService.createInstance(
+                HoverBox, 
+                { 
+                    target: target, 
+                    text: data.basename, 
+                    position: { hoverPosition: DirectionX.Right }
+                }
+            );
+
+            const element = document.createElement('div');
+            this.layoutService.parentContainer.appendChild(element);
             hoverBox.render(element);
-            
-            console.log(e.data);
-        });
+        }));
     }
 
     private __onClick(event: ITreeMouseEvent<T>): void {
