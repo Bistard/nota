@@ -1,10 +1,11 @@
 import { Agent } from "openai/_shims";
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { AsyncResult } from "src/base/common/result";
-import { IService } from "src/platform/instantiation/common/decorator";
+import { createService, IService } from "src/platform/instantiation/common/decorator";
 
 export const enum TextModelType {
     GPT = 'GPT',
+    DeepSeek = 'DeepSeek',
 }
 
 export type MessageRequestRole  = 'system' | 'user' | 'assistant';
@@ -62,6 +63,8 @@ export interface IAITextResponse {
 
     readonly usage?: IAIRequestTokenUsage;
 }
+
+export const IAITextService = createService<IAITextService>('ai-text-service');
 
 export interface IAITextService extends Disposable, IService {
     init(IAITextModelOpts: IAITextModelOpts): void;

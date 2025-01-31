@@ -2,10 +2,7 @@ import { Disposable } from "src/base/common/dispose";
 import { AsyncResult } from "src/base/common/result";
 import { IAITextModel, IAIRequestTextMessage, IAiTextRequestOpts, IAITextResponse, IAITextServiceOpts, IAITextModelOpts, IAITextService, TextModelType } from "src/platform/ai/electron/textAI";
 import { GPTModel } from "src/platform/ai/electron/gptModel";
-import { createService } from "src/platform/instantiation/common/decorator";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-
-export const IMainAITextService = createService<IAITextService>('main-ai-text-service');
 
 export class MainAITextService extends Disposable implements IAITextService {
 
@@ -52,6 +49,9 @@ export class MainAITextService extends Disposable implements IAITextService {
     private __constructModel(): IAITextModel {
         switch (this._modelType) {
             case TextModelType.GPT:
+                return new GPTModel();
+            case TextModelType.DeepSeek:
+            default:
                 return new GPTModel();
         }
     }

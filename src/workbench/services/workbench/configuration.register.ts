@@ -1,4 +1,5 @@
 import { CollapseState } from "src/base/browser/basic/dom";
+import { TextModelType } from "src/platform/ai/electron/textAI";
 import { LanguageType } from "src/platform/i18n/common/i18n";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
 import { EditorGroupOpenPositioning } from "src/workbench/parts/workspace/editorGroupModel";
@@ -7,6 +8,10 @@ import { FileSortOrder, FileSortType } from "src/workbench/services/fileTree/fil
 import { PresetColorTheme } from "src/workbench/services/theme/theme";
 
 export const enum WorkbenchConfiguration {
+
+    // [application]
+
+    AiTextModel = 'workbench.ai.textModel',
 
     // [workbench]
 
@@ -40,11 +45,39 @@ export const enum WorkbenchConfiguration {
 }
 
 /**
+ * {@link sharedApplicationConfigurationRegister}
  * {@link sharedWorkbenchConfigurationRegister}
  * {@link sharedNavigationViewConfigurationRegister}
  * {@link sharedWorkspaceConfigurationRegister}
  * {@link sharedEditorConfigurationRegister}
  */
+
+export const sharedApplicationConfigurationRegister = createRegister(
+    RegistrantType.Configuration,
+    'application',
+    (registrant) => {
+        registrant.registerConfigurations({
+            id: 'application',
+            properties: {
+
+                // AI configurations
+                ['ai']: {
+                    type: 'object',
+                    properties: {
+                        ['textModel']: {
+                            type: 'string',
+                            default: TextModelType.DeepSeek,
+                            enum: [
+                                TextModelType.DeepSeek,
+                                TextModelType.GPT,
+                            ]
+                        }
+                    }
+                }
+            }
+        });
+    }
+);
 
 export const sharedWorkbenchConfigurationRegister = createRegister(
     RegistrantType.Configuration,
