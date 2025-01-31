@@ -13,6 +13,8 @@ import { HoverBox } from "src/base/browser/basic/hoverBox/hoverBox";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { DirectionX } from "src/base/browser/basic/dom";
 import { ILayoutService } from "src/workbench/services/layout/layoutService";
+import { UnbufferedScheduler } from "src/base/common/utilities/async";
+import { Time } from "src/base/common/date";
 
 export interface IFileTreeOpenEvent<T extends FileItem> {
     readonly item: T;
@@ -98,12 +100,14 @@ export interface IFileTree<T extends FileItem, TFilter> extends IAsyncTree<T, TF
 
 export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter> implements IFileTree<T, TFilter> {
 
-    // [field]
-
     // [event]
 
     private readonly _onSelect = this.__register(new Emitter<IFileTreeOpenEvent<T>>());
     public readonly onSelect = this._onSelect.registerListener;
+
+    // [field]
+
+    private readonly _hoverItem: UnbufferedScheduler<T | undefined>;
 
     // [constructor]
 
@@ -117,7 +121,7 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
         opts.log?.(LogLevel.DEBUG, 'FileTree', 'FileTree constructing with options:', null, __logFileTreeOptions(opts));
         super(container, rootData, opts);
         this.DOMElement.classList.add('file-tree');
-        
+        this._hoverItem = this.__register(new UnbufferedScheduler(Time.sec(0.5), data => this.__onItemHover(data)));
         this.__registerListeners();
     }
 
@@ -152,29 +156,9 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
             this.DOMElement.classList.toggle('blurred', !isFocused);
         }));
 
+        // hover item delay
         this.__register(this.onDidChangeItemHover(e => {
-            const data = e.data[0];
-            if (!data) {
-                return;
-            }
-
-            const target = this.getHTMLElement(this.getItemIndex(data));
-            if (!target) {
-                return;
-            }
-
-            const hoverBox = this.instantiationService.createInstance(
-                HoverBox, 
-                { 
-                    target: target, 
-                    text: data.basename, 
-                    position: { hoverPosition: DirectionX.Right }
-                }
-            );
-
-            const element = document.createElement('div');
-            this.layoutService.parentContainer.appendChild(element);
-            hoverBox.render(element);
+            this._hoverItem.schedule(e.data[0]);
         }));
     }
 
@@ -193,6 +177,30 @@ export class FileTree<T extends FileItem, TFilter> extends AsyncTree<T, TFilter>
         }
 
         this._onSelect.fire({ item: event.data });
+    }
+
+    private __onItemHover(data?: T): void {
+        if (!data) {
+            return;
+        }
+
+        const target = this.getHTMLElement(this.getItemIndex(data));
+        if (!target) {
+            return;
+        }
+
+        const hoverBox = this.instantiationService.createInstance(
+            HoverBox, 
+            { 
+                target: target, 
+                text: data.basename, 
+                position: { hoverPosition: DirectionX.Right }
+            }
+        );
+
+        const element = document.createElement('div');
+        this.layoutService.parentContainer.appendChild(element);
+        hoverBox.render(element);
     }
 }
 
