@@ -572,8 +572,7 @@ export function isObject<T>(obj: T): obj is NonNullable<T> {
         && obj !== null
         && !Array.isArray(obj)
         && !(obj instanceof RegExp)
-        && !(obj instanceof Date)
-        && !isHTMLElement(obj);
+        && !(obj instanceof Date);
 }
 
 export function isEmptyObject(obj: any): boolean {

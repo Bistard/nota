@@ -225,7 +225,7 @@ export class MainWindowService extends Disposable implements IMainWindowService 
          * application (provided opts, app config, environment and so on). This
          * configuration will be passed when creating a `BrowserWindow`.
          */
-        const configuration = mixin<Mutable<IWindowCreationOptions>>(defaultConfiguration, optionalConfiguration, true);
+        const configuration = mixin<Mutable<IWindowCreationOptions>>(defaultConfiguration, optionalConfiguration, { overwrite: true });
 
         // open a new window instance
         window = this.__openInNewWindow(configuration);
