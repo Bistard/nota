@@ -1,6 +1,8 @@
+import OpenAI from "openai";
 import { Disposable } from "src/base/common/dispose";
 import { AsyncResult } from "src/base/common/result";
-import { IAITextModel, IAIRequestTextMessage, IAiTextRequestOpts, IAITextResponse, IAITextServiceOpts, IAITextModelOpts, IAITextService, TextModelType } from "src/platform/ai/electron/textAI";
+import { AI } from "src/platform/ai/common/ai";
+import { IAITextService } from "src/platform/ai/common/aiText";
 import { GPTModel } from "src/platform/ai/electron/gptModel";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
@@ -10,49 +12,81 @@ export class MainAITextService extends Disposable implements IAITextService {
     
     // [fields]
 
-    private _model: IAITextModel;
-    private _modelType: TextModelType;
+    private _model?: AI.Text.Model;
 
     // [constructor]
 
     constructor(
-        opts: IAITextServiceOpts,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
     ) {
         super();
-        this._modelType = opts.type;
-        this._model = this.__constructModel();
     }
 
     // [public methods]
 
-    public init(opts: IAITextModelOpts): void {
-        this._model.init(opts);
-    }
-
-    public switchModel(opts: IAITextServiceOpts): void {
-        if (this._modelType === opts.type) {
+    public init(options: AI.Text.IModelOptions): void {
+        if (this._model) {
             return;
         }
-        this._modelType = opts.type;
-        this._model.dispose();
 
-        this._model = this.__constructModel();
+        this._model = this.__constructModel(options);
+        this._model.init(options);
     }
 
-    public sendRequest(message: IAIRequestTextMessage[], opts: IAiTextRequestOpts): AsyncResult<IAITextResponse, Error> {
-        return this._model.sendTextRequest(message, opts);
+    public getModel(): AsyncResult<AI.Text.Model, Error> {
+        if (!this._model) {
+            return AsyncResult.err(new Error('Text model is not initialized.'));
+        }
+        return AsyncResult.ok(this._model);
+    }
+
+    public switchModel(opts: AI.Text.IModelOptions): void {
+        if (!this._model) {
+            return;
+        }
+        
+        if (this._model.type === opts.type) {
+            return;
+        }
+        
+        this.__destructCurrentModel();
+        this._model = this.__constructModel(opts);
+    }
+
+    public sendRequest(options: OpenAI.ChatCompletionCreateParamsNonStreaming): AsyncResult<AI.Text.Response, Error> {
+        return this
+            .getModel()
+            .andThen(model => model.sendTextRequest(options));
+    }
+
+    public sendTextRequestStream(options: OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): AsyncResult<void, Error> {
+        return this
+            .getModel()
+            .andThen(model => model.sendTextRequestStream(options, onChunkReceived));
     }
 
     // [private helper methods]
 
-    private __constructModel(): IAITextModel {
-        switch (this._modelType) {
-            case TextModelType.GPT:
-                return new GPTModel();
-            case TextModelType.DeepSeek:
+    private __constructModel(opts: AI.Text.IModelOptions): AI.Text.Model {
+        let model: AI.Text.Model;
+
+        switch (opts.type) {
+            case AI.Text.ModelType.GPT:
+                model = new GPTModel();
+                break;
+            case AI.Text.ModelType.DeepSeek:
             default:
-                return new GPTModel();
+                model = new GPTModel();
         }
+
+        return this.__register(model);
+    }
+
+    private __destructCurrentModel(): void {
+        if (!this._model) {
+            return;
+        }
+        this._model.dispose();
+        this.release(this._model);
     }
 }

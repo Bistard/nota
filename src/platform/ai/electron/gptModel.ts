@@ -1,41 +1,37 @@
 import OpenAI from "openai";
+import { AI } from "src/platform/ai/common/ai";
 import { Disposable } from "src/base/common/dispose";
-import { InitProtector } from "src/base/common/error";
 import { AsyncResult, Result } from "src/base/common/result";
 import { panic } from "src/base/common/utilities/panic";
-import { ArrayToUnion } from "src/base/common/utilities/type";
-import { IAITextModel, IAITextModelOpts, IAIRequestTextMessage, IAIResponseTextMessage, IAITextResponse, IAiTextRequestOpts, MessageResponseRole } from "src/platform/ai/electron/textAI";
+import { nullable } from "src/base/common/utilities/type";
+import { ChatCompletionCreateParamsNonStreaming } from "openai/resources";
 
-export class GPTModel extends Disposable implements IAITextModel {
+export class GPTModel extends Disposable implements AI.Text.Model {
     
     // [field]
 
-    private _model?: OpenAI;
-    private _initProtector: InitProtector;
-    private readonly _textValidFinishReasons = ['stop', 'length', 'content_filter'] as const;
+    public readonly type = AI.Text.ModelType.GPT;
+    private _client?: OpenAI;
 
     // [constructor]
 
     constructor() {
         super();
-        this._initProtector = new InitProtector();
     }
 
     // [public methods]
 
-    public init(opts: IAITextModelOpts): void {
-        this._initProtector.init('GPTModel cannot initialize twice').unwrap();
-        this._model = new OpenAI({ ...opts });
+    public init(opts: AI.Text.IModelOptions): void {
+        if (this._client) {
+            return;
+        }
+        this._client = new OpenAI({ ...opts });
     }
 
-    public sendTextRequest(messages: IAIRequestTextMessage[], opts: IAiTextRequestOpts): AsyncResult<IAITextResponse, Error> {
+    public sendTextRequest(options: ChatCompletionCreateParamsNonStreaming): AsyncResult<AI.Text.Response, Error> {
         const client = this.__assertModel();
         return Result.fromPromise(async () => {
-            const completion = await client.chat.completions.create({
-                messages: messages,
-                stream: false,
-                ...opts
-            });
+            const completion = await client.chat.completions.create(options);
 
             const textResponse = this.__constructTextResponse(
                 completion.id,
@@ -46,7 +42,8 @@ export class GPTModel extends Disposable implements IAITextModel {
                     choice => choice.message.content,
                     choice => choice.message.role,
                     choice => choice.finish_reason,
-                )
+                ),
+                () => completion.usage,
             );
 
             return textResponse;
@@ -54,19 +51,14 @@ export class GPTModel extends Disposable implements IAITextModel {
     }
 
     public sendTextRequestStream(
-        messages: IAIRequestTextMessage[], 
-        opts: IAiTextRequestOpts, 
-        onChunkReceived: (chunk: IAITextResponse) => void,
+        options: OpenAI.ChatCompletionCreateParamsStreaming,
+        onChunkReceived: (chunk: AI.Text.Response) => void,
     ): AsyncResult<void, Error>
     {
         const client = this.__assertModel();
 
         return Result.fromPromise(async() => {
-            const stream = await client.chat.completions.create({
-                messages: messages,
-                stream: true,
-                ...opts
-            });
+            const stream = await client.chat.completions.create(options);
 
             for await (const chunk of stream) {
                 const textResponse = this.__constructTextResponse(
@@ -79,6 +71,7 @@ export class GPTModel extends Disposable implements IAITextModel {
                         choice => choice.delta.role,
                         choice => choice.finish_reason,
                     ),
+                    () => chunk.usage,
                 );
 
                 onChunkReceived(textResponse);
@@ -86,32 +79,29 @@ export class GPTModel extends Disposable implements IAITextModel {
         });
     }
 
-    // [private helper methods]
-
-    private __assertFinishReasonValidity<TValidReasons extends readonly string[]>(finishReason: string | null, validReasons: TValidReasons): ArrayToUnion<TValidReasons>{
-        if (finishReason === null || !validReasons.includes(finishReason)) {
-            panic(new Error(`Text request finished with invalid reason: ${finishReason}`));
-        }
-        return finishReason;
+    public override dispose(): void {
+        super.dispose();
     }
 
+    // [private helper methods]
+
     private __assertModel(): OpenAI {
-        if (!this._model) {
+        if (!this._client) {
             panic(new Error('Try to send request without ai model'));
         }
-        return this._model;
+        return this._client;
     }
 
     private __createTextMessage<TChoice>(
         choice: TChoice, 
-        getContent: (choice: TChoice) => string | null | undefined,
-        getRole: (choice: TChoice) => MessageResponseRole | undefined,
-        getFinishReason: (choice: TChoice) => string | null,
-    ): IAIResponseTextMessage {
+        getContent: (choice: TChoice) => string | nullable,
+        getRole: (choice: TChoice) => AI.Text.SingleMessageRole | undefined,
+        getFinishReason: (choice: TChoice) => AI.Text.SingleMessageFinishReason | null,
+    ): AI.Text.SingleMessage {
         return {
             content: getContent(choice),
             role: getRole(choice),
-            finishReason: this.__assertFinishReasonValidity(getFinishReason(choice), this._textValidFinishReasons)
+            finishReason: getFinishReason(choice),
         };
     }
 
@@ -119,8 +109,9 @@ export class GPTModel extends Disposable implements IAITextModel {
         id: string,
         model: string,
         getChoices: () => TChoice[],
-        createTextMessage: (choice: TChoice) => IAIResponseTextMessage,
-    ): IAITextResponse {
+        createTextMessage: (choice: TChoice) => AI.Text.SingleMessage,
+        getUsage: () => OpenAI.CompletionUsage | nullable,
+    ): AI.Text.Response {
         const choices = getChoices();
 
         const firstChoice = choices[0];
@@ -130,7 +121,7 @@ export class GPTModel extends Disposable implements IAITextModel {
 
         const firstMessage = createTextMessage(firstChoice);
 
-        const alternativeMessages: IAIResponseTextMessage[] = [];
+        const alternativeMessages: AI.Text.SingleMessage[] = [];
         for (const choice of choices) {
             alternativeMessages.push(createTextMessage(choice));
         }
@@ -140,6 +131,7 @@ export class GPTModel extends Disposable implements IAITextModel {
             alternativeMessages: alternativeMessages,
             id: id,
             model: model,
+            usage: getUsage() ?? undefined,
         };
     }
 }
