@@ -3,7 +3,7 @@ import { Disposable } from "src/base/common/dispose";
 import { AsyncResult } from "src/base/common/result";
 import { AI } from "src/platform/ai/common/ai";
 import { IAITextService } from "src/platform/ai/common/aiText";
-import { TextGPTModel } from "src/platform/ai/electron/TextGPTModel";
+import { TextGPTModel } from "src/platform/ai/electron/atextGPTModel";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
 export class MainAITextService extends Disposable implements IAITextService {
