@@ -69,7 +69,7 @@ export const sharedApplicationConfigurationRegister = createRegister(
                             default: AI.Text.ModelType.DeepSeek,
                             enum: [
                                 AI.Text.ModelType.DeepSeek,
-                                AI.Text.ModelType.GPT,
+                                AI.Text.ModelType.ChatGPT,
                             ]
                         }
                     }

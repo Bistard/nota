@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { Disposable } from "src/base/common/dispose";
+import { ILogService } from "src/base/common/logger";
 import { AsyncResult } from "src/base/common/result";
 import { AI } from "src/platform/ai/common/ai";
 import { IAITextService } from "src/platform/ai/common/aiText";
@@ -18,6 +19,7 @@ export class MainAITextService extends Disposable implements IAITextService {
     // [constructor]
 
     constructor(
+        @ILogService private readonly logService: ILogService,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
     ) {
         super();
@@ -70,11 +72,14 @@ export class MainAITextService extends Disposable implements IAITextService {
         let model: AI.Text.Model;
 
         switch (options.type) {
-            case AI.Text.ModelType.GPT:
+            case AI.Text.ModelType.ChatGPT:
                 model = new TextGPTModel(options);
                 break;
             case AI.Text.ModelType.DeepSeek:
+                model = new TextDeepSeekModel(options);
+                break;
             default:
+                this.logService.warn('[MainAITextService]', `Unknown model type: ${options.type}. Use ${AI.Text.ModelType.DeepSeek} instead.`);
                 model = new TextDeepSeekModel(options);
         }
 

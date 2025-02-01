@@ -15,7 +15,7 @@ export namespace AIText {
      * The supported text-model in our application.
      */
     export const enum ModelType {
-        GPT = 'GPT',
+        ChatGPT = 'ChatGPT',
         DeepSeek = 'DeepSeek',
     }
 

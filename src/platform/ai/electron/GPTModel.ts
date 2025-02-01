@@ -6,7 +6,7 @@ export class TextGPTModel extends TextSharedOpenAIModel implements AI.Text.Model
     
     // [field]
 
-    public readonly type = AI.Text.ModelType.GPT;
+    public readonly type = AI.Text.ModelType.ChatGPT;
 
     // [constructor]
 
