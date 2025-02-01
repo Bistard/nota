@@ -6,7 +6,7 @@ import { panic } from "src/base/common/utilities/panic";
 import { nullable } from "src/base/common/utilities/type";
 import { ChatCompletionCreateParamsNonStreaming } from "openai/resources";
 
-export class GPTModel extends Disposable implements AI.Text.Model {
+export class TextGPTModel extends Disposable implements AI.Text.Model {
     
     // [field]
 
@@ -40,6 +40,7 @@ export class GPTModel extends Disposable implements AI.Text.Model {
                 choice => this.__createTextMessage(
                     choice,
                     choice => choice.message.content,
+                    choice => undefined,
                     choice => choice.message.role,
                     choice => choice.finish_reason,
                 ),
@@ -68,6 +69,7 @@ export class GPTModel extends Disposable implements AI.Text.Model {
                     choice => this.__createTextMessage(
                         choice,
                         choice => choice.delta.content,
+                        choice => undefined,
                         choice => choice.delta.role,
                         choice => choice.finish_reason,
                     ),
@@ -95,11 +97,13 @@ export class GPTModel extends Disposable implements AI.Text.Model {
     private __createTextMessage<TChoice>(
         choice: TChoice, 
         getContent: (choice: TChoice) => string | nullable,
+        getReasoningContent: (choice: TChoice) => string | nullable,
         getRole: (choice: TChoice) => AI.Text.SingleMessageRole | undefined,
         getFinishReason: (choice: TChoice) => AI.Text.SingleMessageFinishReason | null,
     ): AI.Text.SingleMessage {
         return {
             content: getContent(choice),
+            reasoning_content: getReasoningContent(choice),
             role: getRole(choice),
             finishReason: getFinishReason(choice),
         };

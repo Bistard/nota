@@ -4,6 +4,7 @@ import type { AI } from "src/platform/ai/common/ai";
 import { Disposable } from "src/base/common/dispose";
 import { AsyncResult } from "src/base/common/result";
 import { createService, IService } from "src/platform/instantiation/common/decorator";
+import { nullable } from "src/base/common/utilities/type";
 
 /**
  * // TODO: doc
@@ -90,7 +91,12 @@ export namespace AIText {
     export interface SingleMessage {
         readonly role?: AI.Text.SingleMessageRole;
         readonly finishReason: AI.Text.SingleMessageFinishReason;
-        readonly content: string | null | undefined;
+        readonly content: string | nullable;
+        
+        /**
+         * Supported in deepseek-reasoner.
+         */
+        readonly reasoning_content: string | nullable;
     }
 }
 

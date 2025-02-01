@@ -3,7 +3,7 @@ import { Disposable } from "src/base/common/dispose";
 import { AsyncResult } from "src/base/common/result";
 import { AI } from "src/platform/ai/common/ai";
 import { IAITextService } from "src/platform/ai/common/aiText";
-import { GPTModel } from "src/platform/ai/electron/gptModel";
+import { TextGPTModel } from "src/platform/ai/electron/TextGPTModel";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
 export class MainAITextService extends Disposable implements IAITextService {
@@ -72,11 +72,11 @@ export class MainAITextService extends Disposable implements IAITextService {
 
         switch (opts.type) {
             case AI.Text.ModelType.GPT:
-                model = new GPTModel();
+                model = new TextGPTModel();
                 break;
             case AI.Text.ModelType.DeepSeek:
             default:
-                model = new GPTModel();
+                model = new TextGPTModel();
         }
 
         return this.__register(model);
