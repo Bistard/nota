@@ -63,7 +63,6 @@ export namespace AIText {
      */
     export interface Model extends Disposable {
         readonly type: AI.Text.ModelType;
-        init(opts: AI.Text.IModelOptions): void;
         sendTextRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): AsyncResult<AI.Text.Response, Error>;
         sendTextRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): AsyncResult<void, Error>;
     }

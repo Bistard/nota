@@ -3,6 +3,7 @@ import { Disposable } from "src/base/common/dispose";
 import { AsyncResult } from "src/base/common/result";
 import { AI } from "src/platform/ai/common/ai";
 import { IAITextService } from "src/platform/ai/common/aiText";
+import { TextDeepSeekModel } from "src/platform/ai/electron/deepSeekModel";
 import { TextGPTModel } from "src/platform/ai/electron/GPTModel";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
@@ -28,9 +29,7 @@ export class MainAITextService extends Disposable implements IAITextService {
         if (this._model) {
             return;
         }
-
         this._model = this.__constructModel(options);
-        this._model.init(options);
     }
 
     public getModel(): AsyncResult<AI.Text.Model, Error> {
@@ -67,16 +66,16 @@ export class MainAITextService extends Disposable implements IAITextService {
 
     // [private helper methods]
 
-    private __constructModel(opts: AI.Text.IModelOptions): AI.Text.Model {
+    private __constructModel(options: AI.Text.IModelOptions): AI.Text.Model {
         let model: AI.Text.Model;
 
-        switch (opts.type) {
+        switch (options.type) {
             case AI.Text.ModelType.GPT:
-                model = new TextGPTModel();
+                model = new TextGPTModel(options);
                 break;
             case AI.Text.ModelType.DeepSeek:
             default:
-                model = new TextGPTModel();
+                model = new TextDeepSeekModel(options);
         }
 
         return this.__register(model);
@@ -86,7 +85,6 @@ export class MainAITextService extends Disposable implements IAITextService {
         if (!this._model) {
             return;
         }
-        this._model.dispose();
         this.release(this._model);
     }
 }
