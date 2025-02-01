@@ -1,5 +1,5 @@
 import { CollapseState } from "src/base/browser/basic/dom";
-import { TextModelType } from "src/platform/ai/electron/textAI";
+import { AI } from "src/platform/ai/common/ai";
 import { LanguageType } from "src/platform/i18n/common/i18n";
 import { RegistrantType, createRegister } from "src/platform/registrant/common/registrant";
 import { EditorGroupOpenPositioning } from "src/workbench/parts/workspace/editorGroupModel";
@@ -66,10 +66,10 @@ export const sharedApplicationConfigurationRegister = createRegister(
                     properties: {
                         ['textModel']: {
                             type: 'string',
-                            default: TextModelType.DeepSeek,
+                            default: AI.Text.ModelType.DeepSeek,
                             enum: [
-                                TextModelType.DeepSeek,
-                                TextModelType.GPT,
+                                AI.Text.ModelType.DeepSeek,
+                                AI.Text.ModelType.GPT,
                             ]
                         }
                     }
