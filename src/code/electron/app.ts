@@ -141,6 +141,9 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // main-inspector-service
         this.mainInstantiationService.store(IMainInspectorService, new ServiceDescriptor(MainInspectorService, []));
 
+        // main-encryption-service
+        this.mainInstantiationService.store(IEncryptionService, new ServiceDescriptor(MainEncryptionService, []));
+
         this.logService.debug('App', 'Application services constructed.');
         return this.mainInstantiationService;
     }
@@ -166,6 +169,11 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         const dialogService = provider.getService(IMainDialogService);
         const dialogChannel = ProxyChannel.wrapService(dialogService);
         server.registerChannel(IpcChannel.Dialog, dialogChannel);
+
+        // encryption-service-channel
+        const encryptionService = provider.getOrCreateService(IEncryptionService);
+        const encryptionChannel = ProxyChannel.wrapService(encryptionService);
+        server.registerChannel(IpcChannel.Encryption, encryptionChannel);
 
         // ai-service-channel
 
