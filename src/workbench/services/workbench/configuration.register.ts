@@ -11,7 +11,7 @@ export const enum WorkbenchConfiguration {
 
     // [application]
 
-    AiTextModel = 'workbench.ai.textModel',
+    AiTextModel = 'application.ai.textModel',
 
     // [workbench]
 
@@ -59,18 +59,23 @@ export const sharedApplicationConfigurationRegister = createRegister(
         registrant.registerConfigurations({
             id: 'application',
             properties: {
-
-                // AI configurations
-                ['ai']: {
-                    type: 'object',
+                ['application']: {
+                    type: "object",
                     properties: {
-                        ['textModel']: {
-                            type: 'string',
-                            default: AI.Text.ModelType.DeepSeek,
-                            enum: [
-                                AI.Text.ModelType.DeepSeek,
-                                AI.Text.ModelType.ChatGPT,
-                            ]
+
+                        // AI configurations
+                        ['ai']: {
+                            type: 'object',
+                            properties: {
+                                ['textModel']: {
+                                    type: 'string',
+                                    default: AI.Text.ModelType.DeepSeek,
+                                    enum: [
+                                        AI.Text.ModelType.DeepSeek,
+                                        AI.Text.ModelType.ChatGPT,
+                                    ]
+                                }
+                            }
                         }
                     }
                 }
