@@ -208,11 +208,14 @@ class InspectorWindow {
     private readonly _inspectorViewContainer: HTMLElement;
     private _tree?: InspectorTree;
 
+    private _currView?: InspectorDataType;
+
     // [constructor]
 
     constructor(
         parent: HTMLElement,
         @IConfigurationService private readonly configurationService: IConfigurationService,
+        @IHostService private readonly hostService: IHostService,
     ) {
         this._parent = parent;
 
@@ -232,7 +235,13 @@ class InspectorWindow {
             this._tree.dispose();
             this._tree = undefined;
         }
-        this._tree = new InspectorTree(this._inspectorViewContainer, data, this.configurationService);
+        this._tree = new InspectorTree(
+            this._inspectorViewContainer, 
+            data, 
+            this.configurationService, 
+            this.hostService,
+            () => this._currView,
+        );
     }
 
     public layout(): void {
@@ -270,6 +279,7 @@ class InspectorWindow {
                 currButton = button;
                 button.element.classList.toggle('focused');
                 this.__beginListening(type);
+                this._currView = type;
             });
         }
         

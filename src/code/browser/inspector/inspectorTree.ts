@@ -3,7 +3,8 @@ import { ITreeNodeItem } from "src/base/browser/secondary/tree/tree";
 import { PrimitiveType } from "src/base/common/utilities/type";
 import { InspectorItemRenderer, InspectorItemProvider } from "src/code/browser/inspector/inspectorItemRenderer";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
-import { InspectorData } from "src/platform/inspector/common/inspector";
+import { IHostService } from "src/platform/host/common/hostService";
+import { InspectorData, InspectorDataType } from "src/platform/inspector/common/inspector";
 
 export class InspectorTree extends MultiTree<InspectorItem, void> {
 
@@ -13,13 +14,15 @@ export class InspectorTree extends MultiTree<InspectorItem, void> {
         container: HTMLElement,
         data: InspectorData[],
         configurationService: IConfigurationService,
+        hostService: IHostService,
+        getCurrentView: () => InspectorDataType | undefined,
     ) {
         const rootItem = new InspectorItem('$_root_', undefined, 'object');
         const initData = transformDataToTree(data);
         super(
             container,
             rootItem,
-            [new InspectorItemRenderer(configurationService)],
+            [new InspectorItemRenderer(configurationService, hostService, getCurrentView)],
             new InspectorItemProvider(),
             {
                 collapsedByDefault: false,
