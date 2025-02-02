@@ -13,6 +13,7 @@ import { BrowserConfigurationService } from "src/platform/configuration/browser/
 import { APP_CONFIG_NAME, IConfigurationService } from "src/platform/configuration/common/configuration";
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { initExposedElectronAPIs, ipcRenderer, safeIpcRendererOn, WIN_CONFIGURATION } from "src/platform/electron/browser/global";
+import { IEncryptionService } from "src/platform/encryption/common/encryptionService";
 import { BrowserEnvironmentService } from "src/platform/environment/browser/browserEnvironmentService";
 import { IBrowserEnvironmentService, ApplicationMode } from "src/platform/environment/common/environment";
 import { BrowserFileChannel } from "src/platform/files/browser/fileChannel";
@@ -137,6 +138,10 @@ new class InspectorRenderer {
         });
         instantiationService.store(IConfigurationService, configurationService);
 
+        // encryption-service
+        const encryptionService = ProxyChannel.unwrapChannel<IEncryptionService>(ipcService.getChannel(IpcChannel.Encryption));
+        instantiationService.store(IEncryptionService, encryptionService);
+
         return instantiationService;
     }
 
@@ -214,8 +219,7 @@ class InspectorWindow {
 
     constructor(
         parent: HTMLElement,
-        @IConfigurationService private readonly configurationService: IConfigurationService,
-        @IHostService private readonly hostService: IHostService,
+        @IInstantiationService private readonly instantiationService: IInstantiationService,
     ) {
         this._parent = parent;
 
@@ -235,11 +239,9 @@ class InspectorWindow {
             this._tree.dispose();
             this._tree = undefined;
         }
-        this._tree = new InspectorTree(
+        this._tree = this.instantiationService.createInstance(InspectorTree,
             this._inspectorViewContainer, 
             data, 
-            this.configurationService, 
-            this.hostService,
             () => this._currView,
         );
     }

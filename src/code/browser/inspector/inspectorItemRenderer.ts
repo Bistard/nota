@@ -9,6 +9,7 @@ import { FuzzyScore } from "src/base/common/fuzzy";
 import { isBoolean, isNullable, isNumber, isString } from "src/base/common/utilities/type";
 import { InspectorItem } from "src/code/browser/inspector/inspectorTree";
 import { IConfigurationService, ConfigurationModuleType } from "src/platform/configuration/common/configuration";
+import { IEncryptionService } from "src/platform/encryption/common/encryptionService";
 import { IHostService } from "src/platform/host/common/hostService";
 import { InspectorDataType } from "src/platform/inspector/common/inspector";
 import { StatusKey } from "src/platform/status/common/status";
@@ -24,9 +25,10 @@ export class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, F
     public readonly type: RendererType = InspectorRendererType;
 
     constructor(
-        private readonly configurationService: IConfigurationService,
-        private readonly hostService: IHostService,
         private readonly getCurrentView: () => InspectorDataType | undefined,
+        @IConfigurationService private readonly configurationService: IConfigurationService,
+        @IHostService private readonly hostService: IHostService,
+        @IEncryptionService private readonly encryptionService: IEncryptionService,
     ) {}
 
     public render(element: HTMLElement): IInspectorItemMetadata {
@@ -68,7 +70,7 @@ export class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, F
         }
         // editable
         else {
-            valuePart.addEventListener('change', e => {
+            valuePart.addEventListener('change', async e => {
                 const raw = valuePart.value;
                 const rawLower = raw.toLowerCase();
                 let value: any;
@@ -99,6 +101,10 @@ export class InspectorItemRenderer implements ITreeListRenderer<InspectorItem, F
                 
                 const currView = this.getCurrentView();
                 if (currView === InspectorDataType.Status) {
+                    // special handling: write these values as encrypted
+                    if (data.id === StatusKey.textAPIKey) {
+                        value = await this.encryptionService.encrypt(value);
+                    }
                     this.hostService.setApplicationStatus(data.id as StatusKey, value);
                 } else if (currView === InspectorDataType.Configuration) {
                     this.configurationService.set(data.id!, value, { type: ConfigurationModuleType.User });
