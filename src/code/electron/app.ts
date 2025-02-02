@@ -37,6 +37,8 @@ import { MainInspectorService } from "src/platform/inspector/electron/mainInspec
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 import { IS_MAC } from "src/base/common/platform";
 import { RecentOpenUtility } from "src/platform/app/common/recentOpen";
+import { IEncryptionService } from "src/platform/encryption/common/encryptionService";
+import { MainEncryptionService } from "src/platform/encryption/electron/mainEncryptionService";
 
 /**
  * An interface only for {@link ApplicationInstance}
