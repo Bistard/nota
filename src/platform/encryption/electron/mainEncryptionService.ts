@@ -26,6 +26,10 @@ export class MainEncryptionService implements IEncryptionService {
 
     // [public methods]
 
+    public async isEncryptionAvailable(): Promise<boolean> {
+        return safeStorage.isEncryptionAvailable();
+    }
+
     public async encrypt(value: string): Promise<string> {
         
         this.logService.trace('[MainEncryptionService]', 'Encrypting value...');
