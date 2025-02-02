@@ -33,11 +33,27 @@ export class MainEncryptionService implements IEncryptionService {
     public async encrypt(value: string): Promise<string> {
         
         this.logService.trace('[MainEncryptionService]', 'Encrypting value...');
-        const encrypted = safeStorage.encryptString(value);
-        const str = Strings.stringifySafe2(encrypted).unwrap();
+        const encryptedBuffer = safeStorage.encryptString(value);
+        /**
+         * Using {@link Buffer.toString()} directly may result in encoding issues, 
+         * as not all bytes can be safely represented in UTF-8.
+         * 
+         * Instead, we use {@link JSON.stringify()} to serialize the buffer into 
+         * a structured format (`{"type":"Buffer","data":[…]}`), ensuring 
+         * consistent encoding.
+         * 
+         * @example
+         * const buffer = Buffer.from([0x00, 0x80, 0xFF]);
+         * const str = buffer.toString();
+         * console.log(str); // '��'
+         * 
+         * // the following is corrupted
+         * console.log(JSON.stringify(str)); // {"type":"Buffer","data":[0,239,191,189,239,191,189]}
+         */
+        const encrypted = Strings.stringifySafe2(encryptedBuffer).unwrap();
         this.logService.trace('[MainEncryptionService]', 'Encrypted value.');
 
-        return str;
+        return encrypted;
     }
     
     public async decrypt(value: string): Promise<string> {
