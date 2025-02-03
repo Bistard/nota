@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { Disposable } from "src/base/common/dispose";
 import { Emitter, Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
-import { AsyncResult, err } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 import { isNullable } from "src/base/common/utilities/type";
 import { AI } from "src/platform/ai/common/ai";
 import { IAITextService } from "src/platform/ai/common/aiText";
@@ -75,11 +75,11 @@ export class MainAITextService extends Disposable implements IAITextService {
         this._model = this.__constructModel(options);
     }
 
-    public getModel(): AsyncResult<AI.Text.Model, Error> {
+    public getModel(): AI.Text.Model {
         if (!this._model) {
-            return AsyncResult.err(new Error('Text model is not initialized.'));
+            return panic('Text model is not initialized.');
         }
-        return AsyncResult.ok(this._model);
+        return this._model;
     }
 
     public switchModel(opts: AI.Text.IModelOptions): void {
@@ -95,24 +95,19 @@ export class MainAITextService extends Disposable implements IAITextService {
         this._model = this.__constructModel(opts);
     }
 
-    public sendRequest(options: OpenAI.ChatCompletionCreateParamsNonStreaming): AsyncResult<AI.Text.Response, Error> {
-        return this
-            .getModel()
-            .andThen(model => model.sendTextRequest(options))
-            .orElse(error => {
-                this._onDidError.fire(error);
-                return err(error);
-            });
+    public async sendRequest(options: OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response> {
+        const model = this.getModel();
+        try {
+            return model.sendTextRequest(options);
+        } catch (error: any) {
+            this._onDidError.fire(error);
+            panic(error);
+        }
     }
 
-    public sendTextRequestStream(options: OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): AsyncResult<void, Error> {
-        return this
-            .getModel()
-            .andThen(model => model.sendTextRequestStream(options, onChunkReceived))
-            .orElse(error => {
-                this._onDidError.fire(error);
-                return err(error);
-            });
+    public async sendTextRequestStream(options: OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void> {
+        const model = this.getModel();
+        return model.sendTextRequestStream(options, onChunkReceived);
     }
 
     // [private helper methods]
