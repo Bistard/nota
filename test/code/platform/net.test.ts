@@ -14,6 +14,7 @@ import { TestIPC } from 'test/utils/testService';
 const TestChannelId = 'testchannel';
 
 interface ITestService extends IService {
+	ping(message: string): Promise<void>;
 	marco(): Promise<string>;
 	error(message: string): Promise<void>;
 	neverComplete(): Promise<void>;
@@ -48,7 +49,7 @@ class TestService implements ITestService {
 		return Promise.resolve(buffers.reduce((r, b) => r + b.buffer.length, 0));
 	}
 
-	ping(msg: string): void {
+	async ping(msg: string): Promise<void> {
 		this._onPong.fire(msg);
 	}
 
@@ -116,6 +117,10 @@ class TestClientChannel implements ITestService {
 	context(): Promise<unknown> {
 		return this.channel.callCommand('context');
 	}
+
+	ping(message: string): Promise<void> {
+		return this.channel.callCommand('ping', [message]);
+	}
 }
 
 suite('IPC-test', function () {
@@ -177,11 +182,11 @@ suite('IPC-test', function () {
 			await delayFor(INSTANT_TIME);
 
 			assert.deepStrictEqual(messages, []);
-			service.ping('hello');
+			await service.ping('hello');
 			await delayFor(INSTANT_TIME);
 
 			assert.deepStrictEqual(messages, ['hello']);
-			service.ping('world');
+			await service.ping('world');
 			await delayFor(INSTANT_TIME);
 
 			assert.deepStrictEqual(messages, ['hello', 'world']);
@@ -196,7 +201,7 @@ suite('IPC-test', function () {
 	suite('one to one (proxy)', function () {
 		let server: ServerBase;
 		let client: ClientBase;
-		let service: TestService;
+		let service: ITestService;
 		let ipcService: ITestService;
 
 		before(function () {
@@ -236,11 +241,11 @@ suite('IPC-test', function () {
 			await delayFor(INSTANT_TIME);
 
 			assert.deepStrictEqual(messages, []);
-			service.ping('hello');
+			await service.ping('hello');
 			await delayFor(INSTANT_TIME);
 
 			assert.deepStrictEqual(messages, ['hello']);
-			service.ping('world');
+			await service.ping('world');
 			await delayFor(INSTANT_TIME);
 
 			assert.deepStrictEqual(messages, ['hello', 'world']);
@@ -270,7 +275,7 @@ suite('IPC-test', function () {
 			ipcService2.onPong(() => client2GotPinged = true);
 
 			await delayFor(new Time(TimeUnit.Milliseconds, 1));
-			service.ping('hello');
+			await service.ping('hello');
 
 			await delayFor(new Time(TimeUnit.Milliseconds, 1));
 			assert.ok(client1GotPinged);

@@ -1,7 +1,7 @@
 import type { IService } from "src/platform/instantiation/common/decorator";
 import type { ServerBase } from "src/platform/ipc/common/net";
 import type { IChannel, IServerChannel } from "src/platform/ipc/common/channel";
-import type { Dictionary } from "src/base/common/utilities/type";
+import type { AsyncOnly, Dictionary } from "src/base/common/utilities/type";
 import type { Register } from "src/base/common/event";
 import type { IReviverRegistrant } from "src/platform/ipc/common/revive";
 import { CharCode } from "src/base/common/utilities/char";
@@ -21,14 +21,14 @@ export namespace ProxyChannel {
      * function transforms a provided service into an {@link IServerChannel} by 
      * extracting its commands and listeners.
      *
-     * @param service - The service to be wrapped.
-     * @param opts - Optional parameters to configure the wrapping behavior.
+     * @param service The service to be wrapped.
+     * @param opts Optional parameters to configure the wrapping behavior.
      * @returns A {@link IServerChannel} that represents the wrapped service.
      * 
-     * @throws {Error} If a command is not found during invocation.
-     * @throws {Error} If an event is not found during listener registration.
+     * @throws If a command is not found during invocation.
+     * @throws If an event is not found during listener registration.
      */
-    export function wrapService(service: unknown, opts?: IWrapServiceOpt): IServerChannel {
+    export function wrapService<T extends AsyncOnly<IService>>(service: T, opts?: IWrapServiceOpt): IServerChannel {
         const object = <Dictionary<string, unknown>>service;
         const eventRegisters = new Map<string, Register<unknown>>();
         
@@ -74,14 +74,14 @@ export namespace ProxyChannel {
      * Additionally, argument and result revival can be configured using the 
      * provided options.
      *
-     * @template T - The type of the service being unwrapped.
-     * @param channel - The channel to be unwrapped.
-     * @param opt - Optional parameters to configure the unwrapping behavior and revival logic.
+     * @template T The type of the service being unwrapped.
+     * @param channel The channel to be unwrapped.
+     * @param opt Optional parameters to configure the unwrapping behavior and revival logic.
      * @returns A {@link Proxy} that represents the unwrapped microservice.
      * 
-     * @throws {Error} If a property is not found during access.
+     * @throws If a property is not found during access.
      */
-    export function unwrapChannel<T extends IService>(channel: IChannel, opt?: IUnwrapChannelOpt): T {
+    export function unwrapChannel<T extends AsyncOnly<IService>>(channel: IChannel, opt?: IUnwrapChannelOpt): T {
         return (new Proxy<T>(
             <T>{}, {
             get: (_target: T, propName: string | symbol): unknown => {
