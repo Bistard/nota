@@ -15,13 +15,15 @@ const enum AITextCommand {
     sendRequestStream = 'sendRequestStream',
 }
 
-export class MainAITextChannel implements IServerChannel {
+export class MainAITextChannel extends Disposable implements IServerChannel {
     
     // [constructor]
 
     constructor(
         private readonly mainAITextService: IAITextService,
-    ) {}
+    ) {
+        super();
+    }
 
     // [public methods]
     
@@ -102,7 +104,7 @@ export class BrowserAITextChannel extends Disposable implements IAITextService {
         await this._channel.callCommand(AITextCommand.updateAPIKey, [newKey, modelType, presisted]);
     }
 
-    public async sendRequest(options: ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response> {
+    public async sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response> {
         return this._channel.callCommand(AITextCommand.sendRequest, [options]);
     }
 
