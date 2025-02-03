@@ -3,10 +3,10 @@ import type { IAITextService } from "src/platform/ai/common/aiText";
 import { IpcChannel, type IChannel, type IServerChannel } from "src/platform/ipc/common/channel";
 import { panic } from "src/base/common/utilities/panic";
 import { AI } from "src/platform/ai/common/ai";
-import { Register } from "src/base/common/event";
+import { Emitter, Register } from "src/base/common/event";
 import { Disposable } from "src/base/common/dispose";
 import { IIpcService } from "src/platform/ipc/browser/ipcService";
-import { ChatCompletionCreateParamsNonStreaming, ChatCompletionCreateParamsStreaming } from "openai/resources";
+import { Blocker } from "src/base/common/utilities/async";
 
 const enum AITextCommand {
     switchModel = 'switchModel',
@@ -30,12 +30,14 @@ export class MainAITextChannel implements IServerChannel {
             case AITextCommand.switchModel: return this.__switchModel(arg[0]);
             case AITextCommand.updateAPIKey: return this.__updateAPIKey(arg[0], arg[1], arg[2]);
             case AITextCommand.sendRequest: return this.__sendRequest(arg[0]);
-            case AITextCommand.sendRequestStream: return this.__sendRequestStream(arg[0], arg[1]);
             default: panic(`main-ai-text channel - unknown file command ${command}`);
         }
     }
 
-    public registerListener<T>(_id: string, event: never, arg?: any[]): Register<T> {
+    public registerListener(_id: string, event: never, arg: any[]): Register<any> {
+        switch (event) {
+            case AITextCommand.sendRequestStream: return this.__sendRequestStream(arg[0]);
+        }
         panic(`Event not found: ${event}`);
     }
 
@@ -53,9 +55,19 @@ export class MainAITextChannel implements IServerChannel {
         return this.mainAITextService.sendRequest(options);
     }
 
-    private async __sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void> {
-        // FIX
-        panic('Method not implemented yet');
+    private __sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming): Register<AI.Text.Response> {
+        const emitter = this.__register(new Emitter<AI.Text.Response>({}));
+
+        this.mainAITextService.sendRequestStream(options, response => {
+            emitter.fire(response);
+            
+            // finished for some reason, clean up.
+            if (response.primaryMessage.finishReason !== null) {
+                this.release(emitter);
+            }
+        });
+
+        return emitter.registerListener;
     }
 }
 
@@ -94,7 +106,20 @@ export class BrowserAITextChannel extends Disposable implements IAITextService {
         return this._channel.callCommand(AITextCommand.sendRequest, [options]);
     }
 
-    public async sendRequestStream(options: ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void> {
-        panic('Method not supported in browser.');
+    public async sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void> {
+        const blocker = new Blocker<void>();
+        
+        const listener = this._channel.registerListener<AI.Text.Response>(AITextCommand.sendRequestStream, [options]);
+        const disconnect = this.__register(listener(response => {
+            onChunkReceived(response);
+
+            // finished for some reason, clean up.
+            if (response.primaryMessage.finishReason !== null) {
+                blocker.resolve();
+                this.release(disconnect);
+            }
+        }));
+
+        return blocker.waiting();
     }
 }
