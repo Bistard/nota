@@ -25,6 +25,7 @@ export abstract class TextSharedOpenAIModel extends Disposable implements AI.Tex
     // [getter]
 
     get apiKey() { return this.client.apiKey; }
+    public setAPIKey(newKey: string): void { this.client.apiKey = newKey; }
 
     // [abstract methods]
 

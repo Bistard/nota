@@ -63,8 +63,10 @@ export namespace AIText {
      * The actual data model for handling text communication with LLM.
      */
     export interface Model extends Disposable {
-        readonly apiKey: string;
         readonly type: AI.Text.ModelType;
+        readonly apiKey: string;
+        setAPIKey(newKey: string): void;
+
         sendTextRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response>;
         sendTextRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void>;
     }
@@ -104,8 +106,9 @@ export namespace AIText {
 export const IAITextService = createService<IAITextService>('ai-text-service');
 export interface IAITextService extends Disposable, IService {
     readonly onDidError: Register<Error>;
-    init(options: AI.Text.IModelOptions): Promise<void>;
+    init(): Promise<void>;
     switchModel(options: AI.Text.IModelOptions): Promise<void>;
+    updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, presisted?: boolean): Promise<void>;
     sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response>;
     sendTextRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void>;
 }

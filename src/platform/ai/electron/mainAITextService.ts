@@ -49,30 +49,28 @@ export class MainAITextService extends Disposable implements IAITextService {
 
     // [public methods]
 
-    public async constructOptions(): Promise<AI.Text.IModelOptions> {
-        const modelType = this.configurationService.get<AI.Text.ModelType>(WorkbenchConfiguration.AiTextModel);
-        const statusKey = `${StatusKey.textAPIKey}-${modelType}` as StatusKey;
-        
-        const encrypted = this.statusService.get<string>(statusKey);
-        if (isNullable(encrypted) || encrypted === '') {
-            this._onDidError.fire(new Error('No API Key provided.'));
-        }
-        
-        const apiKey = encrypted 
-            ? await this.encryptionService.decrypt(encrypted)
-            : ''; // still provide mock string
-
-        return {
-            type: modelType,
-            apiKey: apiKey, 
-        };
-    }
-
-    public async init(options: AI.Text.IModelOptions): Promise<void> {
+    public async init(): Promise<void> {
         if (this._model) {
             return;
         }
+        const options = await this.__constructOptions();
         this._model = this.__constructModel(options);
+    }
+
+    public async updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, presisted: boolean = true): Promise<void> {
+        const encrypted = await this.encryptionService.encrypt(newKey);
+        const resolvedType = modelType || this._model?.type;
+
+        // if presisted and desired to change specific model APIKey
+        if (presisted && resolvedType) {
+            const key = this.__getStatusAPIKey(resolvedType);
+            this.statusService.set(key, encrypted).unwrap(); // we do not wait here
+        }
+
+        // if any current model, we update its API Key in memory.
+        if (this._model) {
+            this._model.setAPIKey(newKey);
+        }
     }
 
     public getModel(): AI.Text.Model {
@@ -135,7 +133,7 @@ export class MainAITextService extends Disposable implements IAITextService {
                     if (!this._model) {
                         return;
                     }
-                    const key = `${StatusKey.textAPIKey}-${this._model.type}` as StatusKey;
+                    const key = this.__getStatusAPIKey(this._model.type);
                     return this.statusService.set(key, encrypted).unwrap();
                 });
             e.join(saveAPIKey);
@@ -143,8 +141,26 @@ export class MainAITextService extends Disposable implements IAITextService {
 
         // initialize when the window is ready
         window.whenRendererReady().then(async () => {
-            this.init(await this.constructOptions());
+            this.init();
         });
+    }
+
+    private async __constructOptions(): Promise<AI.Text.IModelOptions> {
+        const modelType = this.configurationService.get<AI.Text.ModelType>(WorkbenchConfiguration.AiTextModel);
+        const encrypted = this.statusService.get<string>(this.__getStatusAPIKey(modelType));
+
+        if (isNullable(encrypted) || encrypted === '') {
+            this._onDidError.fire(new Error('No API Key provided.'));
+        }
+        
+        const apiKey = encrypted 
+            ? await this.encryptionService.decrypt(encrypted)
+            : ''; // still provide mock string
+
+        return {
+            type: modelType,
+            apiKey: apiKey, 
+        };
     }
 
     private __constructModel(options: AI.Text.IModelOptions): AI.Text.Model {
@@ -170,5 +186,9 @@ export class MainAITextService extends Disposable implements IAITextService {
             return;
         }
         this.release(this._model);
+    }
+
+    private __getStatusAPIKey(modelType: AI.Text.ModelType): StatusKey {
+        return `${StatusKey.textAPIKey}-${modelType}` as StatusKey;
     }
 }
