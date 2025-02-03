@@ -65,7 +65,7 @@ export namespace AIText {
         readonly apiKey: string;
         setAPIKey(newKey: string): void;
 
-        sendTextRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response>;
+        sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response>;
         sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void>;
     }
 

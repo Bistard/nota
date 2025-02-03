@@ -96,7 +96,7 @@ export class MainAITextService extends Disposable implements IAITextService {
     public async sendRequest(options: OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response> {
         const model = this.getModel();
         try {
-            return model.sendTextRequest(options);
+            return model.sendRequest(options);
         } catch (error: any) {
             this._onDidError.fire(error);
             panic(error);

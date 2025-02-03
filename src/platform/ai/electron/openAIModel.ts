@@ -34,7 +34,7 @@ export abstract class TextSharedOpenAIModel extends Disposable implements AI.Tex
 
     // [public methods]
 
-    public async sendTextRequest(options: ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response> {
+    public async sendRequest(options: ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response> {
         const completion = await this.client.chat.completions.create(options);
         const textResponse = this.__createResponse(
             completion.id,
