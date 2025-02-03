@@ -68,7 +68,7 @@ export class MainAITextService extends Disposable implements IAITextService {
         };
     }
 
-    public init(options: AI.Text.IModelOptions): void {
+    public async init(options: AI.Text.IModelOptions): Promise<void> {
         if (this._model) {
             return;
         }
@@ -82,7 +82,7 @@ export class MainAITextService extends Disposable implements IAITextService {
         return this._model;
     }
 
-    public switchModel(opts: AI.Text.IModelOptions): void {
+    public async switchModel(opts: AI.Text.IModelOptions): Promise<void> {
         if (!this._model) {
             return;
         }

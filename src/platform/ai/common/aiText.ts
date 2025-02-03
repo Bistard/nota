@@ -104,8 +104,8 @@ export namespace AIText {
 export const IAITextService = createService<IAITextService>('ai-text-service');
 export interface IAITextService extends Disposable, IService {
     readonly onDidError: Register<Error>;
-    init(options: AI.Text.IModelOptions): void;
-    switchModel(options: AI.Text.IModelOptions): void;
+    init(options: AI.Text.IModelOptions): Promise<void>;
+    switchModel(options: AI.Text.IModelOptions): Promise<void>;
     sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response>;
     sendTextRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void>;
 }
