@@ -23,6 +23,10 @@ export abstract class TextSharedOpenAIModel extends Disposable implements AI.Tex
         super();
     }
 
+    // [getter]
+
+    get apiKey() { return this.client.apiKey; }
+
     // [abstract methods]
 
     protected abstract __createNonStreamingSingleMessage(choice: OpenAI.Chat.Completions.ChatCompletion.Choice): AI.Text.SingleMessage;

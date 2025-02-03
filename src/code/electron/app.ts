@@ -37,6 +37,8 @@ import { MainInspectorService } from "src/platform/inspector/electron/mainInspec
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 import { IS_MAC } from "src/base/common/platform";
 import { RecentOpenUtility } from "src/platform/app/common/recentOpen";
+import { IAITextService } from "src/platform/ai/common/aiText";
+import { MainAITextService } from "src/platform/ai/electron/mainAITextService";
 import { IEncryptionService } from "src/platform/encryption/common/encryptionService";
 import { MainEncryptionService } from "src/platform/encryption/electron/mainEncryptionService";
 
@@ -146,6 +148,9 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // main-encryption-service
         this.mainInstantiationService.store(IEncryptionService, new ServiceDescriptor(MainEncryptionService, []));
 
+        // ai-text-service
+        this.mainInstantiationService.store(IAITextService, new ServiceDescriptor(MainAITextService, []));
+
         this.logService.debug('App', 'Application services constructed.');
         return this.mainInstantiationService;
     }
@@ -178,7 +183,8 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         server.registerChannel(IpcChannel.Encryption, encryptionChannel);
 
         // ai-service-channel
-
+        const aiTextService = provider.getOrCreateService(IAITextService);
+        // TODO: IPC channel
 
         this.logService.debug('App', 'IPC channels registered successfully.');
     }
