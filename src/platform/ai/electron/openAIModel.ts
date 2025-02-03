@@ -46,7 +46,7 @@ export abstract class TextSharedOpenAIModel extends Disposable implements AI.Tex
         return textResponse;
     }
 
-    public async sendTextRequestStream(
+    public async sendRequestStream(
         options: OpenAI.ChatCompletionCreateParamsStreaming,
         onChunkReceived: (chunk: AI.Text.Response) => void,
     ): Promise<void>

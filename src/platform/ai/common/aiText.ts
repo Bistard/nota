@@ -68,7 +68,7 @@ export namespace AIText {
         setAPIKey(newKey: string): void;
 
         sendTextRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response>;
-        sendTextRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void>;
+        sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void>;
     }
 
     /**
@@ -110,5 +110,5 @@ export interface IAITextService extends Disposable, IService {
     switchModel(options: AI.Text.IModelOptions): Promise<void>;
     updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, presisted?: boolean): Promise<void>;
     sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response>;
-    sendTextRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void>;
+    sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void>;
 }

@@ -103,9 +103,9 @@ export class MainAITextService extends Disposable implements IAITextService {
         }
     }
 
-    public async sendTextRequestStream(options: OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void> {
+    public async sendRequestStream(options: OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void> {
         const model = this.getModel();
-        return model.sendTextRequestStream(options, onChunkReceived);
+        return model.sendRequestStream(options, onChunkReceived);
     }
 
     // [private helper methods]
