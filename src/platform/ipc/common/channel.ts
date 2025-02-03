@@ -17,6 +17,7 @@ export const enum IpcChannel {
     Dialog = 'nota:dialog',
     Menu = 'nota:menu',
     Encryption = 'nota:encryption',
+    AIText = 'nota:aiText',
 
     // main process direct communication to renderer process
     rendererAlertError = 'nota:rendererAlertError',

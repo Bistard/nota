@@ -2,10 +2,8 @@
 import type * as OpenAI from "openai";
 import type { AI } from "src/platform/ai/common/ai";
 import { Disposable } from "src/base/common/dispose";
-import { AsyncResult } from "src/base/common/result";
 import { createService, IService } from "src/platform/instantiation/common/decorator";
 import { nullable } from "src/base/common/utilities/type";
-import { Register } from "src/base/common/event";
 
 /**
  * // TODO: doc
@@ -105,7 +103,6 @@ export namespace AIText {
 
 export const IAITextService = createService<IAITextService>('ai-text-service');
 export interface IAITextService extends Disposable, IService {
-    readonly onDidError: Register<Error>;
     init(): Promise<void>;
     switchModel(options: AI.Text.IModelOptions): Promise<void>;
     updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, presisted?: boolean): Promise<void>;

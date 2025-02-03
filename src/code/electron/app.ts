@@ -41,6 +41,7 @@ import { IAITextService } from "src/platform/ai/common/aiText";
 import { MainAITextService } from "src/platform/ai/electron/mainAITextService";
 import { IEncryptionService } from "src/platform/encryption/common/encryptionService";
 import { MainEncryptionService } from "src/platform/encryption/electron/mainEncryptionService";
+import { MainAITextChannel } from "src/platform/ai/common/aiTextChannel";
 
 /**
  * An interface only for {@link ApplicationInstance}
@@ -184,7 +185,8 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
 
         // ai-service-channel
         const aiTextService = provider.getOrCreateService(IAITextService);
-        // TODO: IPC channel
+        const aiTextChannel = new MainAITextChannel(aiTextService);
+        server.registerChannel(IpcChannel.AIText, aiTextChannel);
 
         this.logService.debug('App', 'IPC channels registered successfully.');
     }
