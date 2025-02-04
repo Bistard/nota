@@ -69,10 +69,12 @@ export class MainAITextChannel extends Disposable implements IServerChannel {
             if (response.primaryMessage.finishReason !== null) {
                 this.release(emitter);
             }
-        }).mapErr(error => {
+        })
+        .mapErr(error => {
             this.release(emitter);
             return error;
-        }).unwrap();
+        })
+        .unwrap();
 
         return emitter.registerListener;
     }
