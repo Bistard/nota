@@ -2,7 +2,7 @@ import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Result, err, ok } from "src/base/common/result";
 import { mixin } from "src/base/common/utilities/object";
 import { errorToMessage, panic } from "src/base/common/utilities/panic";
-import { isPromise } from "src/base/common/utilities/type";
+import { isObject, isPromise, isString } from "src/base/common/utilities/type";
 
 type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;

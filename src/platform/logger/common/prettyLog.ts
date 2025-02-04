@@ -1,11 +1,12 @@
 /* eslint-disable local/code-no-json-stringify */
 import { TextColors } from "src/base/common/color";
 import { getCurrTimeStamp } from "src/base/common/date";
-import { IpcErrorTag, tryOrDefault } from "src/base/common/error";
+import { tryOrDefault } from "src/base/common/error";
 import { Schemas, URI } from "src/base/common/files/uri";
 import { Additional, ILogService, LogLevel, PrettyTypes, parseLogLevel } from "src/base/common/logger";
 import { Iterable } from "src/base/common/utilities/iterable";
 import { iterPropEnumerable } from "src/base/common/utilities/object";
+import { isError } from "src/base/common/utilities/panic";
 import { Coordinate, Dimension, Position } from "src/base/common/utilities/size";
 import { isFunction, isObject } from "src/base/common/utilities/type";
 
@@ -135,15 +136,17 @@ function getErrorString(color: boolean, error: any): string {
         return '';
     }
 
-    if (!(error instanceof Error) && !(error[IpcErrorTag] === null)) {
+    if (!isError(error)) {
         return `    ${tryPaintValue(1, color, 'error', error)}`;
     }
 
     const stackLines: string[] = error.stack
         ? error.stack.split 
-            ? error.stack.split('\n') // array of string
-            : error.stack             // already a string
-        : [];                         // no stacks
+            ? error.stack.split('\n') // stack is a string, make it array of string
+            : Array.isArray(error.stack)
+                ? error.stack             // already array of string
+                : []                      // weird data, we consider no stacks.
+        : [];                             // no stacks
     
     // Find the maximum length of the lines (Adding space for formatting and borders)
     const maxLength = (Iterable.maxBy(stackLines, line => line.trim().length)?.length ?? 0) + 6;

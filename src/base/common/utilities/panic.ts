@@ -1,19 +1,11 @@
+import { IpcErrorTag } from "src/base/common/error";
 import type { ArrayToUnion } from "src/base/common/utilities/type";
 
 /**
  * To prevent potential circular dependency issues due to the wide use of `panic` 
- * throughout the program, this function has been relocated to a separate file 
+ * throughout the program, these functions has been relocated to a separate file 
  * that does not import any other files.
  */
-
-function __stringifySafe(obj: unknown): string {
-    try {
-        // eslint-disable-next-line local/code-no-json-stringify
-        return JSON.stringify(obj);
-    } catch (err) {
-        return '';
-    }
-}
 
 /**
  * @description Panics the program by throwing an error with the provided message.
@@ -31,13 +23,35 @@ export function panic(error: unknown): never {
         throw new Error('unknown panic error');
     }
 
-    if (error instanceof Error) {
+    if (isError(error)) {
         // eslint-disable-next-line local/code-no-throw
         throw error;
     }
 
     // eslint-disable-next-line local/code-no-throw
     throw new Error(errorToMessage(error));
+}
+
+/**
+ * @description An ipc-safe function to check the given object is {@link Error} 
+ * or not.
+ */
+export function isError(obj: any): obj is Error {
+    if (obj instanceof Error) {
+        return true;
+    }
+
+    if (typeof obj === "object" && obj !== null) {
+        return false;
+    }
+
+    // check for standard errors
+    if (typeof obj['name'] === 'string' && typeof obj['message'] === 'string') {
+        return true;
+    }
+
+    // check for IPC-converted errors
+    return obj?.[IpcErrorTag] === null;
 }
 
 /**
@@ -221,5 +235,14 @@ function __stackToMessage(stack: any): string {
         return stack.join('\n');
     } else {
         return stack;
+    }
+}
+
+function __stringifySafe(obj: unknown): string {
+    try {
+        // eslint-disable-next-line local/code-no-json-stringify
+        return JSON.stringify(obj);
+    } catch (err) {
+        return '';
     }
 }

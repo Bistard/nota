@@ -26,6 +26,8 @@ export class MainAITextService extends Disposable implements IAITextService {
     // [fields]
 
     private readonly _onDidError = this.__register(new Emitter<Error>());
+
+    // FIX: deprecated, use AsyncResult instead.
     public readonly onDidError = this._onDidError.registerListener;
     private _model?: AI.Text.Model;
 
@@ -98,7 +100,6 @@ export class MainAITextService extends Disposable implements IAITextService {
         try {
             return model.sendRequest(options);
         } catch (error: any) {
-            this._onDidError.fire(error);
             panic(error);
         }
     }
@@ -164,8 +165,13 @@ export class MainAITextService extends Disposable implements IAITextService {
     }
 
     private __constructModel(options: AI.Text.IModelOptions): AI.Text.Model {
-        this.logService.debug('[MainAITextService]', `Constructing model (${options.type})...`);
         
+        // log options excludes API keys
+        const logOptions: any = Object.assign({}, options);
+        logOptions.apiKey = undefined;
+        this.logService.debug('[MainAITextService]', `Constructing model (${options.type}) with options:`, logOptions);
+        
+        // model construction
         let model: AI.Text.Model;
         switch (options.type) {
             case AI.Text.ModelType.ChatGPT:
