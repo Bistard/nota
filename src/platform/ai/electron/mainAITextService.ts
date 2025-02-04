@@ -27,9 +27,8 @@ export class MainAITextService extends Disposable implements IAITextService {
     // [fields]
 
     private readonly _onDidError = this.__register(new Emitter<Error>());
-
-    // FIX: deprecated, use AsyncResult instead.
     public readonly onDidError = this._onDidError.registerListener;
+    
     private _model?: AI.Text.Model;
 
     // [constructor]
@@ -56,13 +55,18 @@ export class MainAITextService extends Disposable implements IAITextService {
         if (this._model) {
             return;
         }
+        this.logService.debug('MainAITextService', `Initializing...`);
         const options = await this.__constructOptions();
         this._model = this.__constructModel(options);
+        this.logService.debug('MainAITextService', `Initialized successfully.`);
     }
 
     public async updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, persisted: boolean = true): Promise<void> {
+        if (newKey === '') {
+            return;
+        }
         this.logService.debug('MainAITextService', `Updating API key (model: ${modelType})...`);
-        
+
         const encrypted = await this.encryptionService.encrypt(newKey);
         const resolvedType = modelType || this._model?.type;
 
@@ -82,7 +86,7 @@ export class MainAITextService extends Disposable implements IAITextService {
 
     public getModel(): Result<AI.Text.Model, AIError> {
         if (!this._model) {
-            return err(new AIError(null, 'Model not initialized'));
+            return err(new AIError(null, 'service not initialized'));
         }
         return ok(this._model);
     }
@@ -149,15 +153,13 @@ export class MainAITextService extends Disposable implements IAITextService {
         const modelType = this.configurationService.get<AI.Text.ModelType>(WorkbenchConfiguration.AiTextModel);
         const encrypted = this.statusService.get<string>(this.__getStatusAPIKey(modelType));
 
-        if (isNullable(encrypted) || encrypted === '') {
-            this._onDidError.fire(new Error('No API Key provided.'));
-        }
-
-        console.log('read from status api', encrypted);
-        
         const apiKey = encrypted 
             ? await this.encryptionService.decrypt(encrypted)
             : ''; // still provide mock string
+
+        if (isNullable(apiKey) || apiKey === '') {
+            this._onDidError.fire(new Error('No API Key provided.'));
+        }
 
         return {
             type: modelType,
@@ -167,9 +169,9 @@ export class MainAITextService extends Disposable implements IAITextService {
 
     private __constructModel(options: AI.Text.IModelOptions): AI.Text.Model {
         
-        // log options excludes API keys
+        // log options, make sure to exclude API keys.
         const logOptions: any = Object.assign({}, options);
-        // logOptions.apiKey = undefined;
+        delete logOptions.apiKey;
         this.logService.debug('[MainAITextService]', `Constructing model (${options.type}) with options:`, logOptions);
         
         // model construction

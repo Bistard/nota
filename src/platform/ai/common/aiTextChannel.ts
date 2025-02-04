@@ -1,7 +1,7 @@
 import type * as OpenAI from "openai";
 import type { IAITextService } from "src/platform/ai/common/aiText";
 import { IpcChannel, type IChannel, type IServerChannel } from "src/platform/ipc/common/channel";
-import { isError, panic } from "src/base/common/utilities/panic";
+import { panic } from "src/base/common/utilities/panic";
 import { AI } from "src/platform/ai/common/ai";
 import { Emitter, Register } from "src/base/common/event";
 import { Disposable } from "src/base/common/dispose";
