@@ -201,6 +201,11 @@ export interface IEditorModel extends IDisposable {
     getCharCodeByLine(lineNumber: number, lineOffset: number): number;
 
     /**
+     * @description Mark if the model has any unsaved changes.
+     */
+    setDirty(value: boolean): void;
+
+    /**
      * @description Save the text model into the disk.
      */
     save(): AsyncResult<void, Error>;

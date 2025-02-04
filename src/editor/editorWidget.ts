@@ -328,7 +328,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         );
 
         // listeners
-        this.__registerMVVMListeners(this._model, this._view);
+        this.__registerMVVMListeners(this._model, this._viewModel, this._view);
 
         // cache data
         this._editorData = this.__register(new EditorData(this._model, this._viewModel, this._view, undefined));
@@ -395,6 +395,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         return assert(this._model, '[EditorWidget] EditorModel is not initialized.');
     }
     
+    private __assertViewModel(): EditorViewModel {
+        return assert(this._viewModel, '[EditorWidget] EditorViewModel is not initialized.');
+    }
+    
     private __assertView(): EditorView {
         return assert(this._view, '[EditorWidget] EditorView is not initialized.');
     }
@@ -410,7 +414,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         }));
     }
 
-    private __registerMVVMListeners(model: IEditorModel, view: IEditorView): void {
+    private __registerMVVMListeners(model: IEditorModel, viewModel: IEditorViewModel, view: IEditorView): void {
 
         // binding to the model
         this._onDidStateChange.setInput(model.onDidStateChange);

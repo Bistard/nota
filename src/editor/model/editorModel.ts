@@ -24,16 +24,16 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [events]
 
-    private readonly _onDidBuild = this.__register(new Emitter<ProseEditorState>({ onFire: () => this.__setDirty(false) }));
+    private readonly _onDidBuild = this.__register(new Emitter<ProseEditorState>({ onFire: () => this.setDirty(false) }));
     public readonly onDidBuild = this._onDidBuild.registerListener;
 
-    private readonly _onTransaction = this.__register(new Emitter<ProseTransaction>({ onFire: () => this.__setDirty(true) }));
+    private readonly _onTransaction = this.__register(new Emitter<ProseTransaction>({ onFire: () => this.setDirty(true) }));
     public readonly onTransaction = this._onTransaction.registerListener;
 
-    private readonly _onDidStateChange = this.__register(new Emitter<void>({ onFire: () => this.__setDirty(true) }));
+    private readonly _onDidStateChange = this.__register(new Emitter<void>({ onFire: () => this.setDirty(true) }));
     public readonly onDidStateChange = this._onDidStateChange.registerListener;
 
-    private readonly _onDidSave = this.__register(new Emitter<void>({ onFire: () => this.__setDirty(false) }));
+    private readonly _onDidSave = this.__register(new Emitter<void>({ onFire: () => this.setDirty(false) }));
     public readonly onDidSave = this._onDidSave.registerListener;
 
     private readonly _onDidSaveError = this.__register(new Emitter<unknown>());
@@ -52,7 +52,7 @@ export class EditorModel extends Disposable implements IEditorModel {
     private readonly _docSerializer: MarkdownSerializer; // Serializer that transforms the prosemirror document back to raw string.
 
     private _editorState?: ProseEditorState; // A reference to the prosemirror state.
-    private _dirty: boolean;                 // Indicates if the file has unsaved changes. Modify this through `this.__setDirty()`
+    private _dirty: boolean;                 // Indicates if the file has unsaved changes. Modify this through `this.setDirty()`
 
     // [constructor]
 
@@ -158,6 +158,14 @@ export class EditorModel extends Disposable implements IEditorModel {
         return -1; // TODO
     }
 
+    public setDirty(value: boolean): void {
+        if (this._dirty === value) {
+            return;
+        }
+        this._dirty = value;
+        this._onDidDirtyChange.fire(value);
+    }
+
     public save(): AsyncResult<void, Error> {
         if (this._dirty === false) {
             return AsyncResult.ok();
@@ -179,14 +187,6 @@ export class EditorModel extends Disposable implements IEditorModel {
     }
 
     // [private methods]
-
-    private __setDirty(value: boolean): void {
-        if (this._dirty === value) {
-            return;
-        }
-        this._dirty = value;
-        this._onDidDirtyChange.fire(value);
-    }
 
     public __onDidStateChange(event: IOnDidContentChangeEvent): void {
         const newState = event.view.state;
