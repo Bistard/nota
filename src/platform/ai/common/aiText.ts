@@ -45,7 +45,7 @@ export namespace AIText {
          * temporary failure, like a network error or a 5XX error from the server.
          * @default 2
          */
-        reamaxRetries?: number;
+        maxRetries?: number;
     
         /**
          * The maximum amount of time (in milliseconds) that the client should wait for a response
@@ -70,7 +70,7 @@ export namespace AIText {
     }
 
     /**
-     * A standardlized object of text response from LLM.
+     * A standardized object of text response from LLM.
      */
     export interface Response {
         /**
@@ -95,7 +95,7 @@ export namespace AIText {
         readonly content: string | nullable;
         
         /**
-         * Supported in deepseek-reasoner.
+         * Supported in DeepSeek-reasoner.
          */
         readonly reasoning_content: string | nullable;
     }
@@ -105,7 +105,7 @@ export const IAITextService = createService<IAITextService>('ai-text-service');
 export interface IAITextService extends Disposable, IService {
     init(): Promise<void>;
     switchModel(options: AI.Text.IModelOptions): Promise<void>;
-    updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, presisted?: boolean): Promise<void>;
+    updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, persisted?: boolean): Promise<void>;
     sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response>;
     sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void>;
 }

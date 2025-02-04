@@ -41,7 +41,7 @@ export class MainAITextService extends Disposable implements IAITextService {
         @IEncryptionService private readonly encryptionService: IEncryptionService,
     ) {
         super();
-        // Intialize when the browser window is ready.
+        // Initialize when the browser window is ready.
         Event.onceSafe(this.mainWindowService.onDidOpenWindow)(window => {
             this.__registerListeners(window);
         });
@@ -57,12 +57,12 @@ export class MainAITextService extends Disposable implements IAITextService {
         this._model = this.__constructModel(options);
     }
 
-    public async updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, presisted: boolean = true): Promise<void> {
+    public async updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, persisted: boolean = true): Promise<void> {
         const encrypted = await this.encryptionService.encrypt(newKey);
         const resolvedType = modelType || this._model?.type;
 
-        // if presisted and desired to change specific model APIKey
-        if (presisted && resolvedType) {
+        // if persisted and desired to change specific model APIKey
+        if (persisted && resolvedType) {
             const key = this.__getStatusAPIKey(resolvedType);
             this.statusService.set(key, encrypted).unwrap(); // we do not wait here
         }

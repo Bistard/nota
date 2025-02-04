@@ -49,8 +49,8 @@ export class MainAITextChannel extends Disposable implements IServerChannel {
         return this.mainAITextService.switchModel(options);
     }
 
-    private async __updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, presisted?: boolean): Promise<void> {
-        return this.mainAITextService.updateAPIKey(newKey, modelType, presisted);
+    private async __updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, persisted?: boolean): Promise<void> {
+        return this.mainAITextService.updateAPIKey(newKey, modelType, persisted);
     }
 
     private async __sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response> {
