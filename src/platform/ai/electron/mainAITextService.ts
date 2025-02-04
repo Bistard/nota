@@ -67,14 +67,14 @@ export class MainAITextService extends Disposable implements IAITextService {
         this.logService.debug('MainAITextService', `Initialized successfully.`);
     }
 
-    public async updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, persisted: boolean = true): Promise<void> {
+    public async updateAPIKey(newKey: string, modelType: AI.ModelName | null, persisted: boolean = true): Promise<void> {
         if (newKey === '') {
             return;
         }
         this.logService.debug('MainAITextService', `Updating API key (model: ${modelType})...`);
 
         const encrypted = await this.encryptionService.encrypt(newKey);
-        const resolvedType = modelType || this._model?.type;
+        const resolvedType = modelType || this._model?.name;
 
         // if persisted and desired to change specific model APIKey
         if (persisted && resolvedType) {
@@ -102,7 +102,7 @@ export class MainAITextService extends Disposable implements IAITextService {
             return;
         }
         
-        if (this._model.type === opts.type) {
+        if (this._model.name === opts.name) {
             return;
         }
         
@@ -143,7 +143,7 @@ export class MainAITextService extends Disposable implements IAITextService {
                     return;
                 }
                 const encrypted = await this.encryptionService.encrypt(this._model.apiKey);
-                const key = this.__getStatusAPIKey(this._model.type);
+                const key = this.__getStatusAPIKey(this._model.name);
                 return this.statusService.set(key, encrypted).unwrap();
             })();
             e.join(saveAPIKey);
@@ -156,8 +156,8 @@ export class MainAITextService extends Disposable implements IAITextService {
     }
 
     private async __constructOptions(): Promise<AI.Text.IModelOptions> {
-        const modelType = this.configurationService.get<AI.Text.ModelType>(WorkbenchConfiguration.AiTextModel);
-        const encrypted = this.statusService.get<string>(this.__getStatusAPIKey(modelType));
+        const modelName = this.configurationService.get<AI.ModelName>(WorkbenchConfiguration.AiTextModel);
+        const encrypted = this.statusService.get<string>(this.__getStatusAPIKey(modelName));
 
         const apiKey = encrypted 
             ? await this.encryptionService.decrypt(encrypted)
@@ -168,7 +168,7 @@ export class MainAITextService extends Disposable implements IAITextService {
         }
 
         return {
-            type: modelType,
+            name: modelName,
             apiKey: apiKey, 
         };
     }
@@ -178,10 +178,10 @@ export class MainAITextService extends Disposable implements IAITextService {
         // log options, make sure to exclude API keys.
         const logOptions: any = Object.assign({}, options);
         delete logOptions.apiKey;
-        this.logService.debug('[MainAITextService]', `Constructing (text) model (${options.type}) with options:`, logOptions);
+        this.logService.debug('[MainAITextService]', `Constructing (text) model (${options.name}) with options:`, logOptions);
         
         // model construction
-        const modelName = options.type;
+        const modelName = options.name;
         const modelCtor = this._registrant.getRegisteredModel(AI.Modality.Text, modelName);
         if (!modelCtor) {
             panic(new Error(`[MainAITextService] Cannot find proper (text) model with name (${modelName}) to construct.`));
@@ -197,7 +197,7 @@ export class MainAITextService extends Disposable implements IAITextService {
         this.release(this._model);
     }
 
-    private __getStatusAPIKey(modelType: AI.Text.ModelType): StatusKey {
+    private __getStatusAPIKey(modelType: AI.ModelName): StatusKey {
         return `${StatusKey.textAPIKey}-${modelType}` as StatusKey;
     }
 }

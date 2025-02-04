@@ -6,16 +6,17 @@ import { nullable } from "src/base/common/utilities/type";
 import { ChatCompletionCreateParamsNonStreaming } from "openai/resources";
 import { AsyncResult, Result } from "src/base/common/result";
 import { AIError } from "src/base/common/error";
+import { LLMModel } from "src/platform/ai/electron/llmModel";
 
 /**
  * @description Abstract base class for OpenAI-compatible text generation models.
  */
-export abstract class TextSharedOpenAIModel extends Disposable implements AI.Text.Model {
+export abstract class TextSharedOpenAIModel extends LLMModel implements AI.Text.Model {
     
     // [field]
 
     public readonly modality = AI.Modality.Text;
-    public readonly abstract type: AI.Text.ModelType;
+    public abstract override readonly name: AI.ModelName;
 
     // [constructor]
 
@@ -49,7 +50,7 @@ export abstract class TextSharedOpenAIModel extends Disposable implements AI.Tex
             );
             return textResponse;
         })
-        .mapErr(error => new AIError(this.type, error));
+        .mapErr(error => new AIError(this.name, error));
     }
 
     public sendRequestStream(options: OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): AsyncResult<void, AIError> {
@@ -67,7 +68,7 @@ export abstract class TextSharedOpenAIModel extends Disposable implements AI.Tex
                 onChunkReceived(textResponse);
             }
         })
-        .mapErr(error => new AIError(this.type, error));
+        .mapErr(error => new AIError(this.name, error));
     }
 
     public override dispose(): void {

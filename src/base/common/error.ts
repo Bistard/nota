@@ -328,8 +328,8 @@ export class AIError extends Error {
     
     // [fields]
 
-    /** Which LLM model type caused the error */
-    public readonly type: string | null;
+    /** Indicates the name of the LLM model caused the error */
+    public readonly modelName: string | null;
 
     /** Error category for quick classification */
     public readonly errorCategory: 
@@ -357,11 +357,11 @@ export class AIError extends Error {
 
     // [constructor]
 
-    constructor(type: string | null, rawError: unknown) {
+    constructor(modelName: string | null, rawError: unknown) {
         const { message, metadata } = AIError.__parseRawError(rawError);
         super(message);
 
-        this.type = type;
+        this.modelName = modelName;
         this.errorCategory = metadata.category;
         this.internal = metadata.internal;
         

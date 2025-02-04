@@ -51,7 +51,7 @@ export class MainAITextChannel extends Disposable implements IServerChannel {
         return this.mainAITextService.switchModel(options);
     }
 
-    private async __updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, persisted?: boolean): Promise<void> {
+    private async __updateAPIKey(newKey: string, modelType: AI.ModelName | null, persisted?: boolean): Promise<void> {
         return this.mainAITextService.updateAPIKey(newKey, modelType, persisted);
     }
 
@@ -107,7 +107,7 @@ export class BrowserAITextChannel extends Disposable implements IAITextService {
         await this._channel.callCommand(AITextCommand.switchModel, [options]);
     }
 
-    public async updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, persisted?: boolean): Promise<void> {
+    public async updateAPIKey(newKey: string, modelType: AI.ModelName | null, persisted?: boolean): Promise<void> {
         await this._channel.callCommand(AITextCommand.updateAPIKey, [newKey, modelType, persisted]);
     }
 

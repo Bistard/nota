@@ -10,13 +10,13 @@ export const textModelRegister = createRegister(
         // ChatGPT
         registrant.registerModel(
             AI.Modality.Text,
-            AI.Text.ModelType.ChatGPT,
+            AI.ModelName.ChatGPT,
             TextGPTModel,
         );
         // DeepSeek
         registrant.registerModel(
             AI.Modality.Text,
-            AI.Text.ModelType.DeepSeek,
+            AI.ModelName.DeepSeek,
             TextDeepSeekModel,
         );
     }

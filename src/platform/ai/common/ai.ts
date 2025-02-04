@@ -1,3 +1,4 @@
+import { Disposable } from "src/base/common/dispose";
 import * as AIText from "src/platform/ai/common/aiText";
 
 export namespace AI {
@@ -5,7 +6,7 @@ export namespace AI {
     /**
      * A name list of popular LLM models.
      */
-    export const enum ModelType {
+    export const enum ModelName {
         ChatGPT = 'ChatGPT',
         DeepSeek = 'DeepSeek',
     }
@@ -18,6 +19,14 @@ export namespace AI {
         Voice = 'voice',
         Image = 'image',
         Video = 'video',
+    }
+
+    export interface ILLMModel extends Disposable {
+        readonly modality: AI.Modality;
+        readonly name: AI.ModelName;
+
+        readonly apiKey: string;
+        setAPIKey(newKey: string): void;
     }
 
     export import Text = AIText.AIText;

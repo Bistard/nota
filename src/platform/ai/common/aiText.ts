@@ -13,14 +13,6 @@ import { AIError } from "src/base/common/error";
 export namespace AIText {
 
     /**
-     * The supported text-model in our application.
-     */
-    export const enum ModelType {
-        ChatGPT = 'ChatGPT',
-        DeepSeek = 'DeepSeek',
-    }
-
-    /**
      * // TODO
      */
     export type ModelIDs = 
@@ -33,9 +25,9 @@ export namespace AIText {
      */
     export interface IModelOptions extends OpenAI.ClientOptions {
         /**
-         * Indicates the type of constructing text model.
+         * Indicates the name of constructing text model.
          */
-        readonly type: ModelType;
+        readonly name: AI.ModelName;
     
         /**
          * The private key to connect to the server.
@@ -62,12 +54,8 @@ export namespace AIText {
     /**
      * The actual data model for handling text communication with LLM.
      */
-    export interface Model extends Disposable {
+    export interface Model extends AI.ILLMModel {
         readonly modality: AI.Modality.Text;
-        readonly type: AI.Text.ModelType;
-        readonly apiKey: string;
-        setAPIKey(newKey: string): void;
-
         sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): AsyncResult<AI.Text.Response, AIError>;
         sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): AsyncResult<void, AIError>;
     }
@@ -108,7 +96,7 @@ export const IAITextService = createService<IAITextService>('ai-text-service');
 export interface IAITextService extends Disposable, IService {
     init(): Promise<void>;
     switchModel(options: AI.Text.IModelOptions): Promise<void>;
-    updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, persisted?: boolean): Promise<void>;
+    updateAPIKey(newKey: string, name: AI.ModelName | null, persisted?: boolean): Promise<void>;
     sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): AsyncResult<AI.Text.Response, AIError>;
     sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): AsyncResult<void, AIError>;
 }

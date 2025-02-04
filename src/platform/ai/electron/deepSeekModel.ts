@@ -6,7 +6,7 @@ export class TextDeepSeekModel extends TextSharedOpenAIModel implements AI.Text.
     
     // [field]
 
-    public readonly type = AI.Text.ModelType.DeepSeek;
+    public readonly name = AI.ModelName.DeepSeek;
 
     // [constructor]
 
