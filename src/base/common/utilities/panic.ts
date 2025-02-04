@@ -41,7 +41,8 @@ export function isError(obj: any): obj is Error {
         return true;
     }
 
-    if (typeof obj === "object" && obj !== null) {
+    // not even object
+    if (typeof obj !== "object" || obj === null) {
         return false;
     }
 
