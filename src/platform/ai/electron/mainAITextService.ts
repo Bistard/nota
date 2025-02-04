@@ -4,16 +4,18 @@ import { AIError } from "src/base/common/error";
 import { Emitter, Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
 import { AsyncResult, err, ok, Result } from "src/base/common/result";
+import { panic } from "src/base/common/utilities/panic";
 import { isNullable } from "src/base/common/utilities/type";
 import { AI } from "src/platform/ai/common/ai";
 import { IAITextService } from "src/platform/ai/common/aiText";
-import { TextDeepSeekModel } from "src/platform/ai/electron/deepSeekModel";
-import { TextGPTModel } from "src/platform/ai/electron/GPTModel";
+import { IAIModelRegistrant } from "src/platform/ai/electron/aiModelRegistrant";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
 import { IEncryptionService } from "src/platform/encryption/common/encryptionService";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IpcChannel } from "src/platform/ipc/common/channel";
 import { IMainLifecycleService } from "src/platform/lifecycle/electron/mainLifecycleService";
+import { RegistrantType } from "src/platform/registrant/common/registrant";
+import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { StatusKey } from "src/platform/status/common/status";
 import { IMainStatusService } from "src/platform/status/electron/mainStatusService";
 import { IMainWindowService } from "src/platform/window/electron/mainWindowService";
@@ -29,6 +31,7 @@ export class MainAITextService extends Disposable implements IAITextService {
     private readonly _onDidError = this.__register(new Emitter<Error>());
     public readonly onDidError = this._onDidError.registerListener;
     
+    private readonly _registrant: IAIModelRegistrant;
     private _model?: AI.Text.Model;
 
     // [constructor]
@@ -41,8 +44,11 @@ export class MainAITextService extends Disposable implements IAITextService {
         @IMainWindowService private readonly mainWindowService: IMainWindowService,
         @IMainLifecycleService private readonly lifecycleService: IMainLifecycleService,
         @IEncryptionService private readonly encryptionService: IEncryptionService,
+        @IRegistrantService registrantService: IRegistrantService,
     ) {
         super();
+        this._registrant = registrantService.getRegistrant(RegistrantType.AIModel);
+
         // Initialize when the browser window is ready.
         Event.onceSafe(this.mainWindowService.onDidOpenWindow)(window => {
             this.__registerListeners(window);
@@ -172,21 +178,15 @@ export class MainAITextService extends Disposable implements IAITextService {
         // log options, make sure to exclude API keys.
         const logOptions: any = Object.assign({}, options);
         delete logOptions.apiKey;
-        this.logService.debug('[MainAITextService]', `Constructing model (${options.type}) with options:`, logOptions);
+        this.logService.debug('[MainAITextService]', `Constructing (text) model (${options.type}) with options:`, logOptions);
         
         // model construction
-        let model: AI.Text.Model;
-        switch (options.type) {
-            case AI.Text.ModelType.ChatGPT:
-                model = this.instantiationService.createInstance(TextGPTModel, options);
-                break;
-            case AI.Text.ModelType.DeepSeek:
-                model = this.instantiationService.createInstance(TextDeepSeekModel, options);
-                break;
-            default:
-                this.logService.warn('[MainAITextService]', `Unknown model type: ${options.type}. Use ${AI.Text.ModelType.DeepSeek} instead.`);
-                model = this.instantiationService.createInstance(TextDeepSeekModel, options);
+        const modelName = options.type;
+        const modelCtor = this._registrant.getRegisteredModel(AI.Modality.Text, modelName);
+        if (!modelCtor) {
+            panic(new Error(`[MainAITextService] Cannot find proper (text) model with name (${modelName}) to construct.`));
         }
+        const model = this.instantiationService.createInstance(modelCtor, options);
         return this.__register(model);
     }
 
