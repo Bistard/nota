@@ -14,6 +14,7 @@ export abstract class TextSharedOpenAIModel extends Disposable implements AI.Tex
     
     // [field]
 
+    public readonly modality = AI.Modality.Text;
     public readonly abstract type: AI.Text.ModelType;
 
     // [constructor]

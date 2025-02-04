@@ -63,6 +63,7 @@ export namespace AIText {
      * The actual data model for handling text communication with LLM.
      */
     export interface Model extends Disposable {
+        readonly modality: AI.Modality.Text;
         readonly type: AI.Text.ModelType;
         readonly apiKey: string;
         setAPIKey(newKey: string): void;

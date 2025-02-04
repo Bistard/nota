@@ -10,5 +10,15 @@ export namespace AI {
         DeepSeek = 'DeepSeek',
     }
 
+    /**
+     * A name list of different modalities.
+     */
+    export const enum Modality {
+        Text = 'text',
+        Voice = 'voice',
+        Image = 'image',
+        Video = 'video',
+    }
+
     export import Text = AIText.AIText;
 }
