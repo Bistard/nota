@@ -1,12 +1,14 @@
 import type * as OpenAI from "openai";
 import type { IAITextService } from "src/platform/ai/common/aiText";
 import { IpcChannel, type IChannel, type IServerChannel } from "src/platform/ipc/common/channel";
-import { panic } from "src/base/common/utilities/panic";
+import { isError, panic } from "src/base/common/utilities/panic";
 import { AI } from "src/platform/ai/common/ai";
 import { Emitter, Register } from "src/base/common/event";
 import { Disposable } from "src/base/common/dispose";
 import { IIpcService } from "src/platform/ipc/browser/ipcService";
 import { Blocker } from "src/base/common/utilities/async";
+import { AIError } from "src/base/common/error";
+import { AsyncResult, Result } from "src/base/common/result";
 
 const enum AITextCommand {
     switchModel = 'switchModel',
@@ -54,7 +56,7 @@ export class MainAITextChannel extends Disposable implements IServerChannel {
     }
 
     private async __sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response> {
-        return this.mainAITextService.sendRequest(options);
+        return this.mainAITextService.sendRequest(options).unwrap();
     }
 
     private __sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming): Register<AI.Text.Response> {
@@ -67,7 +69,10 @@ export class MainAITextChannel extends Disposable implements IServerChannel {
             if (response.primaryMessage.finishReason !== null) {
                 this.release(emitter);
             }
-        });
+        }).mapErr(error => {
+            this.release(emitter);
+            return error;
+        }).unwrap();
 
         return emitter.registerListener;
     }
@@ -100,15 +105,17 @@ export class BrowserAITextChannel extends Disposable implements IAITextService {
         await this._channel.callCommand(AITextCommand.switchModel, [options]);
     }
 
-    public async updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, presisted?: boolean): Promise<void> {
-        await this._channel.callCommand(AITextCommand.updateAPIKey, [newKey, modelType, presisted]);
+    public async updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, persisted?: boolean): Promise<void> {
+        await this._channel.callCommand(AITextCommand.updateAPIKey, [newKey, modelType, persisted]);
     }
 
-    public async sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response> {
-        return this._channel.callCommand(AITextCommand.sendRequest, [options]);
+    public sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): AsyncResult<AI.Text.Response, AIError> {
+        return Result.fromPromise(() => {
+            return this._channel.callCommand(AITextCommand.sendRequest, [options]);
+        });
     }
 
-    public async sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void> {
+    public sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): AsyncResult<void, AIError> {
         const blocker = new Blocker<void>();
         
         const listener = this._channel.registerListener<AI.Text.Response>(AITextCommand.sendRequestStream, [options]);
@@ -122,6 +129,6 @@ export class BrowserAITextChannel extends Disposable implements IAITextService {
             }
         }));
 
-        return blocker.waiting();
+        return Result.fromPromise(() => blocker.waiting());
     }
 }

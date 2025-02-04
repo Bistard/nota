@@ -4,6 +4,8 @@ import type { AI } from "src/platform/ai/common/ai";
 import { Disposable } from "src/base/common/dispose";
 import { createService, IService } from "src/platform/instantiation/common/decorator";
 import { nullable } from "src/base/common/utilities/type";
+import { AsyncResult } from "src/base/common/result";
+import { AIError } from "src/base/common/error";
 
 /**
  * // TODO: doc
@@ -65,8 +67,8 @@ export namespace AIText {
         readonly apiKey: string;
         setAPIKey(newKey: string): void;
 
-        sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response>;
-        sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void>;
+        sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): AsyncResult<AI.Text.Response, AIError>;
+        sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): AsyncResult<void, AIError>;
     }
 
     /**
@@ -106,6 +108,6 @@ export interface IAITextService extends Disposable, IService {
     init(): Promise<void>;
     switchModel(options: AI.Text.IModelOptions): Promise<void>;
     updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, persisted?: boolean): Promise<void>;
-    sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response>;
-    sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void>;
+    sendRequest(options: OpenAI.OpenAI.ChatCompletionCreateParamsNonStreaming): AsyncResult<AI.Text.Response, AIError>;
+    sendRequestStream(options: OpenAI.OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): AsyncResult<void, AIError>;
 }

@@ -1,8 +1,9 @@
 import OpenAI from "openai";
 import { Disposable } from "src/base/common/dispose";
+import { AIError } from "src/base/common/error";
 import { Emitter, Event } from "src/base/common/event";
 import { ILogService } from "src/base/common/logger";
-import { panic } from "src/base/common/utilities/panic";
+import { AsyncResult, err, ok, Result } from "src/base/common/result";
 import { isNullable } from "src/base/common/utilities/type";
 import { AI } from "src/platform/ai/common/ai";
 import { IAITextService } from "src/platform/ai/common/aiText";
@@ -60,26 +61,30 @@ export class MainAITextService extends Disposable implements IAITextService {
     }
 
     public async updateAPIKey(newKey: string, modelType: AI.Text.ModelType | null, persisted: boolean = true): Promise<void> {
+        this.logService.debug('MainAITextService', `Updating API key (model: ${modelType})...`);
+        
         const encrypted = await this.encryptionService.encrypt(newKey);
         const resolvedType = modelType || this._model?.type;
 
         // if persisted and desired to change specific model APIKey
         if (persisted && resolvedType) {
             const key = this.__getStatusAPIKey(resolvedType);
-            this.statusService.set(key, encrypted).unwrap(); // we do not wait here
+            await this.statusService.set(key, encrypted).unwrap();
         }
 
         // if any current model, we update its API Key in memory.
         if (this._model) {
             this._model.setAPIKey(newKey);
         }
+
+        this.logService.debug('MainAITextService', `Updated API key (model: ${resolvedType}).`);
     }
 
-    public getModel(): AI.Text.Model {
+    public getModel(): Result<AI.Text.Model, AIError> {
         if (!this._model) {
-            return panic('Text model is not initialized.');
+            return err(new AIError(null, 'Model not initialized'));
         }
-        return this._model;
+        return ok(this._model);
     }
 
     public async switchModel(opts: AI.Text.IModelOptions): Promise<void> {
@@ -95,18 +100,18 @@ export class MainAITextService extends Disposable implements IAITextService {
         this._model = this.__constructModel(opts);
     }
 
-    public async sendRequest(options: OpenAI.ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response> {
-        const model = this.getModel();
-        try {
-            return model.sendRequest(options);
-        } catch (error: any) {
-            panic(error);
-        }
+    public sendRequest(options: OpenAI.ChatCompletionCreateParamsNonStreaming): AsyncResult<AI.Text.Response, AIError> {
+        return this
+            .getModel()
+            .toAsync()
+            .andThen(model => model.sendRequest(options));
     }
 
-    public async sendRequestStream(options: OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): Promise<void> {
-        const model = this.getModel();
-        return model.sendRequestStream(options, onChunkReceived);
+    public sendRequestStream(options: OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): AsyncResult<void, AIError> {
+        return this
+            .getModel()
+            .toAsync()
+            .andThen(model => model.sendRequestStream(options, onChunkReceived));
     }
 
     // [private helper methods]
@@ -123,20 +128,14 @@ export class MainAITextService extends Disposable implements IAITextService {
          *  1. API Key
          */
         this.__register(this.lifecycleService.onWillQuit(e => {
-            const saveAPIKey = Promise.resolve()
-                .then(() => {
-                    if (isNullable(this._model?.apiKey)) {
-                        return;
-                    }
-                    return this.encryptionService.encrypt(this._model?.apiKey);
-                })
-                .then(encrypted => {
-                    if (!this._model) {
-                        return;
-                    }
-                    const key = this.__getStatusAPIKey(this._model.type);
-                    return this.statusService.set(key, encrypted).unwrap();
-                });
+            const saveAPIKey = (async () => {
+                if (!this._model) {
+                    return;
+                }
+                const encrypted = await this.encryptionService.encrypt(this._model.apiKey);
+                const key = this.__getStatusAPIKey(this._model.type);
+                return this.statusService.set(key, encrypted).unwrap();
+            })();
             e.join(saveAPIKey);
         }));
 
@@ -153,6 +152,8 @@ export class MainAITextService extends Disposable implements IAITextService {
         if (isNullable(encrypted) || encrypted === '') {
             this._onDidError.fire(new Error('No API Key provided.'));
         }
+
+        console.log('read from status api', encrypted);
         
         const apiKey = encrypted 
             ? await this.encryptionService.decrypt(encrypted)
@@ -168,7 +169,7 @@ export class MainAITextService extends Disposable implements IAITextService {
         
         // log options excludes API keys
         const logOptions: any = Object.assign({}, options);
-        logOptions.apiKey = undefined;
+        // logOptions.apiKey = undefined;
         this.logService.debug('[MainAITextService]', `Constructing model (${options.type}) with options:`, logOptions);
         
         // model construction

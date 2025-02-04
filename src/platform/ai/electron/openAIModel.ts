@@ -4,6 +4,8 @@ import { Disposable } from "src/base/common/dispose";
 import { panic } from "src/base/common/utilities/panic";
 import { nullable } from "src/base/common/utilities/type";
 import { ChatCompletionCreateParamsNonStreaming } from "openai/resources";
+import { AsyncResult, Result } from "src/base/common/result";
+import { AIError } from "src/base/common/error";
 
 /**
  * @description Abstract base class for OpenAI-compatible text generation models.
@@ -34,35 +36,37 @@ export abstract class TextSharedOpenAIModel extends Disposable implements AI.Tex
 
     // [public methods]
 
-    public async sendRequest(options: ChatCompletionCreateParamsNonStreaming): Promise<AI.Text.Response> {
-        const completion = await this.client.chat.completions.create(options);
-        const textResponse = this.__createResponse(
-            completion.id,
-            completion.model,
-            () => completion.choices,
-            choice => this.__createNonStreamingSingleMessage(choice),
-            () => completion.usage,
-        );
-        return textResponse;
+    public sendRequest(options: ChatCompletionCreateParamsNonStreaming): AsyncResult<AI.Text.Response, AIError> {
+        return Result.fromPromise(async () => {
+            const completion = await this.client.chat.completions.create(options);
+            const textResponse = this.__createResponse(
+                completion.id,
+                completion.model,
+                () => completion.choices,
+                choice => this.__createNonStreamingSingleMessage(choice),
+                () => completion.usage,
+            );
+            return textResponse;
+        })
+        .mapErr(error => new AIError(this.type, error));
     }
 
-    public async sendRequestStream(
-        options: OpenAI.ChatCompletionCreateParamsStreaming,
-        onChunkReceived: (chunk: AI.Text.Response) => void,
-    ): Promise<void>
-    {
-        const stream = await this.client.chat.completions.create(options);
-        for await (const chunk of stream) {
-            const textResponse = this.__createResponse(
-                chunk.id,
-                chunk.model,
-                () => chunk.choices,
-                choice => this.__createStreamingSingleMessage(choice),
-                () => chunk.usage,
-            );
+    public sendRequestStream(options: OpenAI.ChatCompletionCreateParamsStreaming, onChunkReceived: (chunk: AI.Text.Response) => void): AsyncResult<void, AIError> {
+        return Result.fromPromise(async () => {
+            const stream = await this.client.chat.completions.create(options);
+            for await (const chunk of stream) {
+                const textResponse = this.__createResponse(
+                    chunk.id,
+                    chunk.model,
+                    () => chunk.choices,
+                    choice => this.__createStreamingSingleMessage(choice),
+                    () => chunk.usage,
+                );
 
-            onChunkReceived(textResponse);
-        }
+                onChunkReceived(textResponse);
+            }
+        })
+        .mapErr(error => new AIError(this.type, error));
     }
 
     public override dispose(): void {
