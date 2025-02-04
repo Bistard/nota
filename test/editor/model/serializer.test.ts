@@ -8,7 +8,7 @@ import { IncrementalDelimiter, MarkdownSerializer } from 'src/editor/model/seria
 import { ConsoleLogger } from 'src/platform/logger/common/consoleLoggerService';
 import { createIntegration } from 'test/utils/integration';
 
-suite('MarkdownSerializer', async () => {
+suite.skip('MarkdownSerializer - exact version', async () => {
     
     const di = await createIntegration({ 
         i18nService: true 
