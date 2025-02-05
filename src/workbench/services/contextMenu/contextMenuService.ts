@@ -354,8 +354,12 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
         this._menu?.focus(-1);
     }
 
-    public onBeforeDestroy(): void {
-        // TEST
-        console.log('delegate: on before destroy');
+    public onBeforeDestroy(container: HTMLElement): void {
+        
+        // make sure the extra class is removed for later container to be reused.
+        const className = this._delegate.getExtraContextMenuClassName?.();
+        if (className) {
+            container.classList.remove(className);
+        }
     }
 }

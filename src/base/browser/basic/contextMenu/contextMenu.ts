@@ -93,8 +93,10 @@ export interface IContextMenuDelegate extends IContextMenuDelegateBase {
 
     /**
      * @description Invokes before the context menu gets destroyed (hidden).
+     * @param container The container contains all the rendered results by the
+     *                  delegate.
      */
-    onBeforeDestroy(): void;
+    onBeforeDestroy(container: HTMLElement): void;
 
     /**
      * @description Invokes when the context menu is focused.
@@ -244,7 +246,7 @@ export class ContextMenuView extends Disposable implements IContextMenu {
 
         // tells the delegate before actual hidden
         if (oldDelegate?.onBeforeDestroy) {
-            oldDelegate.onBeforeDestroy();
+            oldDelegate.onBeforeDestroy(this._element.raw);
         }
 
         // unrender
