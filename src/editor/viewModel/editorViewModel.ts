@@ -33,7 +33,6 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     // [public methods]
 
     public onDidViewContentChange(e: IOnDidContentChangeEvent): void {
-        console.log(e.transaction);
         this._model.setDirty(true);
         this._model.__onDidStateChange(e);
     }

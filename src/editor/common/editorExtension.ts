@@ -38,7 +38,7 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     public abstract readonly id: string;
 
     protected readonly _editorWidget: IEditorWidget;
-    private readonly _viewExtension: ProseExtension;
+    protected readonly _viewExtension: ProseExtension;
     
     /**
      * Will be defined when the editor is initialized for the first time.

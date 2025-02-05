@@ -1,4 +1,6 @@
-import { ProseContentMatch, ProseEditorState, ProseNode, ProseNodeType, ProseResolvedPos, ProseTransaction } from "src/editor/common/proseMirror";
+import { IDomBox, Position } from "src/base/common/utilities/size";
+import { isDefined } from "src/base/common/utilities/type";
+import { ProseContentMatch, ProseEditorState, ProseEditorView, ProseNode, ProseNodeType, ProseResolvedPos, ProseTransaction } from "src/editor/common/proseMirror";
 
 /**
  * @description Contains a list of helper functions that relates to ProseMirror.
@@ -24,6 +26,66 @@ import { ProseContentMatch, ProseEditorState, ProseNode, ProseNodeType, ProseRes
  * ```
  */
 export namespace ProseUtils {
+
+    // region - [view-related]
+
+    export namespace Cursor {
+        export function getPositionDoc(view: ProseEditorView): number | undefined {
+            const { state } = view;
+            const { $from } = state.selection;
+            if (!state.selection.empty) {
+                return undefined;
+            }
+            return $from.pos;
+        }
+    
+        export function getPositionDom(view: ProseEditorView): Position | undefined {
+            const position = getPositionDoc(view);
+            if (!isDefined(position)) {
+                return undefined;
+            }
+            const coordinate = view.coordsAtPos(position);
+            return new Position(coordinate.top, coordinate.left);
+        }
+    
+        export function getParentPositionDoc(view: ProseEditorView): number | undefined {
+            const { state } = view;
+            const { $from } = state.selection;
+            if (!state.selection.empty) {
+                return undefined;
+            }
+    
+            const parentPos = $from.before(1);
+            const parentNode = state.doc.nodeAt(parentPos);
+            if (!parentNode) {
+                return undefined;
+            }
+    
+            return parentPos;
+        }
+    
+        export function getParentPositionDom(view: ProseEditorView): IDomBox | undefined {
+            const parentPosition = getParentPositionDoc(view);
+            if (!isDefined(parentPosition)) {
+                return undefined;
+            }
+    
+            const dom = view.nodeDOM(parentPosition) as HTMLElement | null;
+            if (!dom) {
+                return undefined;
+            }
+    
+            const rect = dom.getBoundingClientRect();
+            return {
+                left: rect.left,
+                top: rect.top,
+                width: rect.width,
+                height: rect.height,
+            };
+        }
+    }
+    
+    // region - [state-related]
 
     /**
      * @description Get the entire document size.
