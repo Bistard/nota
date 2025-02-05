@@ -45,7 +45,7 @@ export namespace ProseUtils {
         return state.tr.insertText(text, docEnd);
     }
 
-    // [prose node related functions]
+    // region - [node-related]
 
     /**
      * @description Get the entire content size of the given node.

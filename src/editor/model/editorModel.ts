@@ -44,12 +44,13 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [fields]
 
-    private readonly _options: EditorOptionsType;        // The configuration of the editor
-    private readonly _source: URI;                       // The source file the model is about to read and parse.
-    private readonly _schema: EditorSchema;              // An object that defines how a view is organized.
-    private readonly _lexer: IMarkdownLexer;             // Responsible for parsing the raw text into tokens.
-    private readonly _docParser: IDocumentParser;        // Parser that parses the given token into a legal view based on the schema.
-    private readonly _docSerializer: MarkdownSerializer; // Serializer that transforms the prosemirror document back to raw string.
+    private readonly _options: EditorOptionsType;         // The configuration of the editor
+    private readonly _source: URI;                        // The source file the model is about to read and parse.
+    private readonly _schema: EditorSchema;               // An object that defines how a view is organized.
+    private readonly _lexer: IMarkdownLexer;              // Responsible for parsing the raw text into tokens.
+    private readonly _nodeProvider: DocumentNodeProvider; // Stores all the legal document node.
+    private readonly _docParser: IDocumentParser;         // Parser that parses the given token into a legal view based on the schema.
+    private readonly _docSerializer: MarkdownSerializer;  // Serializer that transforms the prosemirror document back to raw string.
 
     private _editorState?: ProseEditorState; // A reference to the prosemirror state.
     private _dirty: boolean;                 // Indicates if the file has unsaved changes. Modify this through `this.setDirty()`
@@ -66,15 +67,15 @@ export class EditorModel extends Disposable implements IEditorModel {
         super();
         this._source = source;
         this._options = options;
+        this._dirty = false;
+        
         this._lexer = new MarkdownLexer(this.__initLexerOptions(options));
 
-        const nodeProvider = DocumentNodeProvider.create(instantiationService).register();
-        this._schema = buildSchema(nodeProvider);
-        this._docParser = this.__register(new DocumentParser(this._schema, nodeProvider, /* options */));
+        this._nodeProvider = DocumentNodeProvider.create(instantiationService).register();
+        this._schema = buildSchema(this._nodeProvider);
+        this._docParser = this.__register(new DocumentParser(this._schema, this._nodeProvider, /* options */));
         this.__register(this._docParser.onLog(event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additional)));
-        this._docSerializer = new MarkdownSerializer(nodeProvider, { strict: true, escapeExtraCharacters: undefined, });
-
-        this._dirty = false;
+        this._docSerializer = new MarkdownSerializer(this._nodeProvider, { strict: true, escapeExtraCharacters: undefined, });
 
         logService.debug('EditorModel', 'Constructed');
     }
@@ -184,6 +185,10 @@ export class EditorModel extends Disposable implements IEditorModel {
                 this._onDidSaveError.fire(error);
                 return error;
             });
+    }
+
+    public getRegisteredDocumentNodes(): string[] {
+        return this._nodeProvider.getRegisteredNodes().map(each => each.name);
     }
 
     // [private methods]
