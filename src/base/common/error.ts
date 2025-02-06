@@ -2,7 +2,7 @@ import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Result, err, ok } from "src/base/common/result";
 import { mixin } from "src/base/common/utilities/object";
 import { errorToMessage, panic } from "src/base/common/utilities/panic";
-import { isPromise } from "src/base/common/utilities/type";
+import { isObject, isPromise, isString } from "src/base/common/utilities/type";
 
 type IErrorCallback = (error: any) => void;
 type IErrorListener = IErrorCallback;
@@ -319,3 +319,172 @@ export class Stacktrace {
         return this;
     }
 }
+
+/**
+ * A standardized Error for LLM operations, encapsulating both
+ * provider-specific errors (e.g. OpenAI) and internal errors.
+ */
+export class AIError extends Error {
+    
+    // [fields]
+
+    /** Indicates the name of the LLM model caused the error */
+    public readonly modelName: string | null;
+
+    /** Error category for quick classification */
+    public readonly errorCategory: 
+        | 'API'
+        | 'Network'
+        | 'Auth'
+        | 'Client'
+        | 'Internal'
+        | 'Unknown';
+
+    /** HTTP status code (if applicable) */
+    public readonly status?: number;
+
+    /** HTTP headers from the response (if applicable) */
+    public readonly headers?: Record<string, string>;
+
+    /** Original error object (if available) */
+    public readonly internal?: unknown;
+
+    /** Provider-specific error code (e.g. 'invalid_api_key') */
+    public readonly code?: string;
+
+    /** Request ID from response headers (if available) */
+    public readonly requestId?: string;
+
+    // [constructor]
+
+    constructor(modelName: string | null, rawError: unknown) {
+        const { message, metadata } = AIError.__parseRawError(rawError);
+        super(message);
+
+        this.modelName = modelName;
+        this.errorCategory = metadata.category;
+        this.internal = metadata.internal;
+        
+        // API Error metadata
+        this.status = metadata.status;
+        this.headers = metadata.headers;
+        this.code = metadata.code;
+        this.requestId = metadata.headers?.['x-request-id'];
+    }
+
+    // [static methods]
+
+    private static __parseRawError(raw: unknown): {
+        message: string;
+        metadata: __ErrorParseMetadata;
+    } {
+        
+        // raw string, simple return
+        if (isString(raw)) {
+            return { 
+                message: raw, 
+                metadata: { category: 'Unknown' } 
+            };
+        }
+
+        // non object, no can do here.
+        if (!isObject(raw)) {
+            return {
+                message: 'Unknown non-object error',
+                metadata: { 
+                    category: 'Unknown', 
+                    internal: raw 
+                }
+            };
+        }
+
+        // default metadata
+        const metadata: __ErrorParseMetadata = {
+            category: 'Unknown',
+            status: undefined,
+            headers: undefined,
+            code: undefined,
+            internal: raw
+        };
+
+        // obtain metadata
+        const status = Number(raw['status']) ?? undefined;
+        const headers = raw['headers'];
+        const code = this.__safeGetCode(raw);
+        const message = this.__getHumanMessage(raw, status, code);
+
+        // clean up
+        metadata.status = status;
+        metadata.headers = headers;
+        metadata.code = code;
+        metadata.category = this.__determineCategory(raw, status, code);
+
+        return { message, metadata };
+    }
+
+    private static __determineCategory(
+        raw: object,
+        status?: number,
+        code?: string
+    ): AIError['errorCategory'] {
+        
+        // Network errors (timeout, connection issues)
+        if (raw instanceof Error && [
+            'ETIMEDOUT', 
+            'ECONNREFUSED', 
+            'ENOTFOUND'
+        ].some(code => code === raw['code'])
+        ) {
+            return 'Network';
+        }
+
+        // API errors classification
+        if (status) {
+            if (status === 401) return 'Auth';
+            if (status === 429) return 'API';
+            if (status >= 400 && status < 500) return 'Client';
+            if (status >= 500) return 'Internal';
+        }
+
+        // OpenAI-style error codes
+        if (code) {
+            if (code.includes('invalid_api')) return 'Auth';
+            if (code.includes('rate_limit')) return 'API';
+        }
+
+        return 'Unknown';
+    }
+
+    private static __getHumanMessage(
+        raw: object,
+        status?: number,
+        code?: string
+    ): string {
+        const baseMessage = raw['message'] || 'Unknown error';
+        const parts: string[] = [];
+
+        if (status) parts.push(`Status: ${status}`);
+        if (code) parts.push(`Code: ${code}`);
+
+        return parts.length > 0 
+            ? `${baseMessage} (${parts.join(', ')})` 
+            : baseMessage;
+    }
+
+    private static __safeGetCode(raw: object): string | undefined {
+        const codeSources = [
+            (<any>raw).code,
+            (<any>raw).error?.code,
+            (<any>raw).body?.error?.code
+        ];
+        return codeSources.find(v => isString(v));
+    }
+}
+
+type __ErrorParseMetadata = {
+    category: AIError['errorCategory'];
+    status?: number;
+    headers?: Record<string, string>;
+    code?: string;
+    internal?: unknown;
+};

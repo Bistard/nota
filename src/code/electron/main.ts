@@ -34,6 +34,7 @@ import { DiagnosticsService } from 'src/platform/diagnostics/electron/diagnostic
 import { IDiagnosticsService } from 'src/platform/diagnostics/common/diagnostics';
 import { toBoolean } from 'src/base/common/utilities/type';
 import { Disposable, monitorDisposableLeak } from 'src/base/common/dispose';
+import { AIModelRegistrant } from 'src/platform/ai/electron/aiModelRegistrant';
 
 interface IMainProcess {
     start(argv: ICLIArguments): Promise<void>;
@@ -254,7 +255,7 @@ const main = new class extends class MainProcess extends Disposable implements I
          */
         registrant.registerRegistrant(service.createInstance(ConfigurationRegistrant));
         registrant.registerRegistrant(service.createInstance(ReviverRegistrant));
-
+        registrant.registerRegistrant(service.createInstance(AIModelRegistrant));
         registrant.init(service);
     }
 

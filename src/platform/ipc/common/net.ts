@@ -1,4 +1,4 @@
-import { Disposable, IDisposable, untrackDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, isDisposable, untrackDisposable } from "src/base/common/dispose";
 import { toIPCTransferableError } from "src/base/common/error";
 import { Emitter, Event, Register } from "src/base/common/event";
 import { BufferReader, BufferWriter, DataBuffer } from "src/base/common/files/buffer";
@@ -668,6 +668,10 @@ export class ServerBase extends Disposable implements IChannelServer {
 
     public registerChannel(name: string, channel: IServerChannel): void {
         this._channels.set(name, channel);
+        if (isDisposable(channel)) {
+            this.__register(channel);
+        }
+
         for (const connection of this._connections) {
             connection.channelServer.registerChannel(name, channel);
         }

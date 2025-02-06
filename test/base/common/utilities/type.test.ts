@@ -3,8 +3,10 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 import * as assert from 'assert';
+import { Register } from 'src/base/common/event';
 import { LinkedList } from 'src/base/common/structures/linkedList';
-import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, Comparator, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, AtMostNArray, Falsy, NonFalsy, ArrayType, Flatten, AtLeastNArray, isTruthy, isFalsy, TupleOf, ExactConstructor, toBoolean, ReplaceType, DeepPartial } from 'src/base/common/utilities/type';
+import { AlphabetInString, AlphabetInStringCap, AlphabetInStringLow, AnyOf, AreEqual, Comparator, ConcatArray, Constructor, DeepMutable, DeepReadonly, Dictionary, DightInString, IsArray, IsBoolean, IsNull, IsNumber, IsObject, IsString, IsTruthy, MapTypes, Mutable, Negate, NestedArray, NonUndefined, nullToUndefined, NumberDictionary, Pair, Pop, Promisify, Push, Single, SplitString, StringDictionary, Triple, ifOrDefault, isBoolean, isEmptyObject, isIterable, isNonNullable, isNullable, isNumber, isObject, isPrimitive, isPromise, checkTrue, checkFalse, IsAny, IsNever, Or, NonEmptyArray, AtMostNArray, Falsy, NonFalsy, ArrayType, Flatten, AtLeastNArray, isTruthy, isFalsy, TupleOf, ExactConstructor, toBoolean, ReplaceType, DeepPartial, AsyncOnly } from 'src/base/common/utilities/type';
+import { IService } from 'src/platform/instantiation/common/decorator';
 
 suite('type-test', () => {
 
@@ -674,6 +676,21 @@ suite('typescript-types-test', () => {
         type Promisified = Promisify<{ a: () => number; }>;
         const promisified: Promisified = { a: () => Promise.resolve(1) };
         // no counter example as assigning another value would be a compile error
+    });
+
+    test('AsyncOnly type', () => {
+        interface IOkService extends IService {
+            onData: Register<string>;
+            fn(): Promise<string>;
+        }
+        
+        interface IErrService extends IService {
+            onData: Register<string>;
+            fn(): string;
+        }
+        checkTrue<IsTruthy<AsyncOnly<IOkService>>>();
+        checkTrue<IsTruthy<AsyncOnly<IOkService>['fn'] extends () => Promise<any> ? true : false>>();
+        checkTrue<IsNever<AsyncOnly<IErrService>['fn']>>();
     });
 
     suite('ReplaceType utility type', () => {

@@ -37,6 +37,11 @@ import { MainInspectorService } from "src/platform/inspector/electron/mainInspec
 import { IMainInspectorService } from "src/platform/inspector/common/inspector";
 import { IS_MAC } from "src/base/common/platform";
 import { RecentOpenUtility } from "src/platform/app/common/recentOpen";
+import { IAITextService } from "src/platform/ai/common/aiText";
+import { MainAITextService } from "src/platform/ai/electron/mainAITextService";
+import { IEncryptionService } from "src/platform/encryption/common/encryptionService";
+import { MainEncryptionService } from "src/platform/encryption/electron/mainEncryptionService";
+import { MainAITextChannel } from "src/platform/ai/common/aiTextChannel";
 
 /**
  * An interface only for {@link ApplicationInstance}
@@ -141,6 +146,12 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         // main-inspector-service
         this.mainInstantiationService.store(IMainInspectorService, new ServiceDescriptor(MainInspectorService, []));
 
+        // main-encryption-service
+        this.mainInstantiationService.store(IEncryptionService, new ServiceDescriptor(MainEncryptionService, []));
+
+        // ai-text-service
+        this.mainInstantiationService.store(IAITextService, new ServiceDescriptor(MainAITextService, []));
+
         this.logService.debug('App', 'Application services constructed.');
         return this.mainInstantiationService;
     }
@@ -167,8 +178,15 @@ export class ApplicationInstance extends Disposable implements IApplicationInsta
         const dialogChannel = ProxyChannel.wrapService(dialogService);
         server.registerChannel(IpcChannel.Dialog, dialogChannel);
 
-        // ai-service-channel
+        // encryption-service-channel
+        const encryptionService = provider.getOrCreateService(IEncryptionService);
+        const encryptionChannel = ProxyChannel.wrapService(encryptionService);
+        server.registerChannel(IpcChannel.Encryption, encryptionChannel);
 
+        // ai-service-channel
+        const aiTextService = provider.getOrCreateService(IAITextService);
+        const aiTextChannel = new MainAITextChannel(aiTextService);
+        server.registerChannel(IpcChannel.AIText, aiTextChannel);
 
         this.logService.debug('App', 'IPC channels registered successfully.');
     }

@@ -7,4 +7,5 @@ export const enum StatusKey {
     MachineIdKey = 'machineID',
     WindowZoomLevel = 'windowZoomLevel',
     OpenRecent = 'openRecent',
+    textAPIKey = 'textAPIKey',
 }

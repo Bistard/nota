@@ -1,10 +1,9 @@
 import type { Constructor, Pair } from "src/base/common/utilities/type";
-import { EditorPaneView } from "src/workbench/services/editorPane/editorPaneView";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { EditorPaneModel } from "src/workbench/services/editorPane/editorPaneModel";
 import { IRegistrant, RegistrantType } from "src/platform/registrant/common/registrant";
 import { registerRichTextEditor } from "src/workbench/contrib/richTextEditor/editorPane.register";
-import { IService } from "src/platform/instantiation/common/decorator";
+import { EditorPaneDescriptor } from "src/workbench/services/editorPane/editorPaneDescriptor";
 
 /**
  * {@link IEditorPaneRegistrant} is a central part of the editor pane system, 
@@ -48,13 +47,6 @@ export interface IEditorPaneRegistrant extends IRegistrant<RegistrantType.Editor
 
     getAllEditors(): readonly EditorPaneDescriptor[];
     getAllEditorsPair(): readonly Pair<EditorPaneDescriptor, Constructor<EditorPaneModel>[]>[];
-}
-
-export class EditorPaneDescriptor<TServices extends IService[] = any[]> {
-
-    constructor(
-        public readonly ctor: Constructor<EditorPaneView, [...services: TServices]>,
-    ) {}
 }
 
 export class EditorPaneRegistrant implements IEditorPaneRegistrant {

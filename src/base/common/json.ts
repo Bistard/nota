@@ -145,7 +145,7 @@ interface IJsonSchemaForString extends IJsonSchemaBase<'string'> {
     /** The maximum length of the string. */
     maxLength?: number;
 
-    /** The predefined format of the string. Example: 'email', 'phone number', 'post address' etc. */
+    /** The predefined format of the string (written Regular Expression). Example: 'email', 'phone number', 'post address' etc. */
     format?: string;
 
     /** Regular expression to match the valid string. */

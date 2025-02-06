@@ -1,3 +1,4 @@
+import type { Register } from "src/base/common/event";
 
 /**
  * Represents all the falsy value in JavaScript.
@@ -444,6 +445,21 @@ export type Promisify<T> = {
         : (...args: Parameters<T[K]>) => Promise<R>)
     : T[K]
 };
+
+/**
+ * Ensure all functions in an object all return {@link Promise} (event register
+ * are ignored).
+ */
+export type AsyncOnly<T> = {
+    [K in keyof T]: 
+      T[K] extends Register<any> 
+        ? T[K] // keep event-register
+        : T[K] extends (...args: any[]) => infer R 
+            ? R extends Promise<any> 
+                ? T[K] // only allow async function
+                : never // no sync function
+            : T[K]; // non-functional remain the same
+  };
 
 /**
  * Split string into a tuple by a deliminator.

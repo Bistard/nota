@@ -70,7 +70,7 @@ export class BrowserInstance extends Disposable implements IBrowserService {
 
         // alert error from main process
         onMainProcess(IpcChannel.rendererAlertError, error => {
-            ErrorHandler.onUnexpectedError(error);
+            this.commandService.executeCommand(AllCommands.alertError, 'MainProcess', error);
         });
 
         // execute command request from main process

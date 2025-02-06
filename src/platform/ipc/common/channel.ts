@@ -16,6 +16,8 @@ export const enum IpcChannel {
     Host = 'nota:host',
     Dialog = 'nota:dialog',
     Menu = 'nota:menu',
+    Encryption = 'nota:encryption',
+    AIText = 'nota:aiText',
 
     // main process direct communication to renderer process
     rendererAlertError = 'nota:rendererAlertError',
@@ -64,6 +66,9 @@ export type ChannelType = IpcChannel | string;
 export interface IServerChannel {
     callCommand<T>(id: string, command: string, arg?: any[]): Promise<T>;
     registerListener<T>(id: string, event: string, arg?: any[]): Register<T>;
+    
+    // server channel might also has memory needs to be released
+    dispose?(): void;
 }
 
 /**
