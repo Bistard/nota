@@ -4,11 +4,11 @@ import type { CommandRegistrant } from "src/platform/command/common/commandRegis
 import type { ReviverRegistrant } from "src/platform/ipc/common/revive";
 import type { MenuRegistrant } from "src/platform/menu/browser/menuRegistrant";
 import { ILogService } from "src/base/common/logger";
-import { executeOnce } from "src/base/common/utilities/function";
 import { ConfigurationRegistrant } from "src/platform/configuration/common/configurationRegistrant";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { EditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
+import { AIModelRegistrant } from "src/platform/ai/electron/aiModelRegistrant";
 
 /**
  * An enumeration representing the different types of registrants.
@@ -26,6 +26,7 @@ export const enum RegistrantType {
     Color = 'Color',
     Menu = 'Menu',
     EditorPane = 'EditorPane',
+    AIModel = 'AIModel',
 }
 
 /**
@@ -64,6 +65,7 @@ type RegistrantTypeMapping = {
     [RegistrantType.Color]        : ColorRegistrant;
     [RegistrantType.Menu]         : MenuRegistrant;
     [RegistrantType.EditorPane]   : EditorPaneRegistrant;
+    [RegistrantType.AIModel]      : AIModelRegistrant;
 };
 
 /**

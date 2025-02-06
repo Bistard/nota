@@ -1,3 +1,4 @@
+import type { Register } from "src/base/common/event";
 
 /**
  * Represents all the falsy value in JavaScript.
@@ -446,6 +447,21 @@ export type Promisify<T> = {
 };
 
 /**
+ * Ensure all functions in an object all return {@link Promise} (event register
+ * are ignored).
+ */
+export type AsyncOnly<T> = {
+    [K in keyof T]: 
+      T[K] extends Register<any> 
+        ? T[K] // keep event-register
+        : T[K] extends (...args: any[]) => infer R 
+            ? R extends Promise<any> 
+                ? T[K] // only allow async function
+                : never // no sync function
+            : T[K]; // non-functional remain the same
+  };
+
+/**
  * Split string into a tuple by a deliminator.
  */
 export type SplitString<S extends string, D extends string> =
@@ -551,6 +567,16 @@ export function toBoolean(value: any): boolean {
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function isFunction(obj: any): obj is Function {
     return typeof obj === 'function';
+}
+
+/**
+ * This is a safe version for checking if the obj is {@link HTMLElement}.
+ */
+export function isHTMLElement(obj: any): obj is HTMLElement {
+    if (typeof HTMLElement === 'object') {
+        return obj instanceof HTMLElement;
+    }
+    return false;
 }
 
 /**

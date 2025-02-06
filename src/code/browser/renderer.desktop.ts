@@ -68,6 +68,9 @@ import { I18nService, II18nService } from "src/platform/i18n/browser/i18nService
 import { IRecentOpenService, RecentOpenService } from "src/platform/app/browser/recentOpenService";
 import { EditorPaneRegistrant } from "src/workbench/services/editorPane/editorPaneRegistrant";
 import { INotificationService } from "src/workbench/services/notification/notification";
+import { IEncryptionService } from "src/platform/encryption/common/encryptionService";
+import { BrowserAITextChannel } from "src/platform/ai/common/aiTextChannel";
+import { IAITextService } from "src/platform/ai/common/aiText";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -208,6 +211,14 @@ const renderer = new class extends class RendererInstance extends Disposable {
             URI.join(environmentService.appRootPath, 'assets', 'locale'),
         );
         instantiationService.store(II18nService, i18nService);
+
+        // encryption-service
+        const encryptionService = ProxyChannel.unwrapChannel<IEncryptionService>(ipcService.getChannel(IpcChannel.Encryption));
+        instantiationService.store(IEncryptionService, encryptionService);
+
+        // ai-text-service
+        const aiTextService = new BrowserAITextChannel(ipcService);
+        instantiationService.store(IAITextService, aiTextService);
 
         // singleton initializations
         logService.debug('renderer', 'Registering singleton services descriptors...');
