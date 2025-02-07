@@ -30,6 +30,19 @@ export namespace ProseUtils {
     // region - [view-related]
 
     export namespace Cursor {
+        
+        /**
+         * @description If the current cursor is on an empty text block.
+         */
+        export function isOnEmpty(state: ProseEditorState): boolean {
+            const { selection } = state;
+            if (!selection.empty) {
+                return false;
+            }
+            const parent = selection.$from.parent;
+            return parent.isTextblock && parent.textContent === '';
+        }
+
         export function getPositionDoc(view: ProseEditorView): number | undefined {
             const { state } = view;
             const { $from } = state.selection;
@@ -84,7 +97,7 @@ export namespace ProseUtils {
             };
         }
     }
-    
+
     // region - [state-related]
 
     /**
