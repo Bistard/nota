@@ -39,8 +39,7 @@ export class EditorBlockPlaceHolderExtension extends EditorExtension implements 
             return null;
         }
         
-        const { $from } = state.selection;
-        const blockPos = $from.start($from.depth) - 1;
+        const blockPos = ProseUtils.Cursor.getPositionDocBlock(state);
         const blockNode = state.doc.nodeAt(blockPos);
         if (!blockNode) {
             return null;

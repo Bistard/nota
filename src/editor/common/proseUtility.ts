@@ -32,6 +32,14 @@ export namespace ProseUtils {
     export namespace Cursor {
         
         /**
+         * @description Determines if the current selection is empty, which 
+         * means the selection behaves like a single cursor.
+         */
+        export function isCursor(state: ProseEditorState): boolean {
+            return state.selection.empty;
+        }
+
+        /**
          * @description If the current cursor is on an empty text block.
          */
         export function isOnEmpty(state: ProseEditorState): boolean {
@@ -43,8 +51,13 @@ export namespace ProseUtils {
             return parent.isTextblock && parent.textContent === '';
         }
 
-        export function getPositionDoc(view: ProseEditorView): number | undefined {
-            const { state } = view;
+        export function getPositionDocBlock(state: ProseEditorState): number {
+            const { $from } = state.selection;
+            const blockPos = $from.start($from.depth) - 1;
+            return blockPos;
+        }
+
+        export function getPositionDoc(state: ProseEditorState): number | undefined {
             const { $from } = state.selection;
             if (!state.selection.empty) {
                 return undefined;
@@ -53,7 +66,7 @@ export namespace ProseUtils {
         }
     
         export function getPositionDom(view: ProseEditorView): Position | undefined {
-            const position = getPositionDoc(view);
+            const position = getPositionDoc(view.state);
             if (!isDefined(position)) {
                 return undefined;
             }
@@ -61,8 +74,7 @@ export namespace ProseUtils {
             return new Position(coordinate.top, coordinate.left);
         }
     
-        export function getParentPositionDoc(view: ProseEditorView): number | undefined {
-            const { state } = view;
+        export function getParentPositionDoc(state: ProseEditorState): number | undefined {
             const { $from } = state.selection;
             if (!state.selection.empty) {
                 return undefined;
@@ -78,7 +90,7 @@ export namespace ProseUtils {
         }
     
         export function getParentPositionDom(view: ProseEditorView): IDomBox | undefined {
-            const parentPosition = getParentPositionDoc(view);
+            const parentPosition = getParentPositionDoc(view.state);
             if (!isDefined(parentPosition)) {
                 return undefined;
             }
