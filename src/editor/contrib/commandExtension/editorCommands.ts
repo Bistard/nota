@@ -172,18 +172,6 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
         [getPlatformShortcut('Ctrl+A', 'Meta+A')]
     );
     
-    extension.registerCommand(__buildEditorCommand(
-            {
-                id: 'editor-select-parent',
-                when: whenEditorReadonly,
-            },
-            [
-                EditorCommands.SelectParent
-            ]
-        ), 
-        [getPlatformShortcut('Ctrl+Shift+A', 'Meta+Shift+A')]
-    );
-
     // @fix Doesn't work with CM, guess bcz CM is focused but PM is not.
     extension.registerCommand(__buildEditorCommand(
             {
@@ -283,10 +271,36 @@ export namespace EditorCommands {
     export class SelectAll extends EditorCommandBase {
 
         public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+            if (!dispatch) {
+                return false;
+            }
+
+            // case 1: empty selection, only select that parent block first.
+            if (ProseUtils.Cursor.isCursor(state)) {
+                this.__selectParent(state, dispatch);
+                return true;
+            }
+
+            // case 2: partial selection, within the same parent, select that block.
+            const { $from, $to } = state.selection;
+            const inSameBlock = $from.depth === $to.depth && $from.before() + $to.before() && $from.depth > 1;
+            if (inSameBlock) {
+                this.__selectParent(state, dispatch);
+                return true;
+            }
+
+            // case 3: complex selection, select everything as normal.
             const allSelect = new ProseAllSelection(state.doc);
             const tr = state.tr.setSelection(allSelect);
-            dispatch?.(tr);
+            dispatch(tr);
             return true;
+        }
+
+        private __selectParent(state: ProseEditorState, dispatch: (tr: ProseTransaction) => void): void {
+            const currBlockPos = ProseUtils.Cursor.getPositionDocBlock(state);
+            const newSelection = ProseNodeSelection.create(state.doc, currBlockPos);
+            const tr = state.tr.setSelection(newSelection);
+            dispatch(tr.scrollIntoView());
         }
     }
 
@@ -974,34 +988,6 @@ export namespace EditorCommands {
         }
     }
     
-    export class SelectParent extends EditorCommandBase {
-
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
-            const from = state.selection.$from;
-            const ancestorDepth = from.getCommonAncestorDepth(state.selection.to);
-
-            /**
-             * No shared ancestor of the endpoints of the selections. 0 is 
-             * returned to represent the root is the only ancestor. We select
-             * the entire document.
-             */
-            if (ancestorDepth === 0) {
-                const commandService = provider.getOrCreateService(ICommandService);
-                return commandService.executeCommand('editor-select-all', editor, state, dispatch);
-            }
-            
-            if (dispatch) {
-                // This is the position where the selection of the parent node will start.
-                const pos = from.before(ancestorDepth);
-                const newSelection = ProseNodeSelection.create(state.doc, pos);
-                const tr = state.tr.setSelection(newSelection);
-                dispatch(tr.scrollIntoView());
-            }
-
-            return true;
-        }
-    }
-
     export class FileSave extends EditorCommandBase {
 
         public run(provider: IServiceProvider, editor: IEditorWidget): boolean {
