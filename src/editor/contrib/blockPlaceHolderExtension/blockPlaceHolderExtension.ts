@@ -11,6 +11,10 @@ interface IEditorBlockPlaceHolderExtension extends IEditorExtension {
     readonly id: EditorExtensionIDs.BlockPlaceHolder;
 }
 
+/**
+ * @description A simple extension that renders a placeholder whenever the 
+ * current cursor is on an empty block.
+ */
 export class EditorBlockPlaceHolderExtension extends EditorExtension implements IEditorBlockPlaceHolderExtension {
 
     // [fields]
@@ -36,15 +40,15 @@ export class EditorBlockPlaceHolderExtension extends EditorExtension implements 
         }
         
         const { $from } = state.selection;
-        const deco = ProseDecoration.widget($from.pos, () => {
-            const span = document.createElement('span');
-            span.className = 'slash-command-placeholder';
-            span.textContent = this.i18nService.localize('emptyBlockPlaceHolder', "Start typing, or press '@' for AI, '/' for commands...");
-            return span;
-        }, {
-            side: -1,
-            key: 'slash-command-placeholder',
-            ignoreSelection: true,
+        const blockPos = $from.start($from.depth) - 1;
+        const blockNode = state.doc.nodeAt(blockPos);
+        if (!blockNode) {
+            return null;
+        }
+
+        const deco = ProseDecoration.node(blockPos, blockPos + blockNode.nodeSize, {
+            class: 'empty-block',
+            ['placeholder-text']: this.i18nService.localize('emptyBlockPlaceHolder', "Start typing, or press '@' for AI, '/' for commands..."),
         });
         return ProseDecorationSet.create(state.doc, [deco]);
     }
