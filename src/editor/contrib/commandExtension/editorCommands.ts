@@ -276,6 +276,11 @@ export namespace EditorCommands {
             }
             const { selection } = state;
 
+            // case 0: If already fully selected, do nothing.
+            if (ProseUtils.Selection.isFullSelection(state)) {
+                return true;
+            }
+
             // case 1: empty selection, only select that parent block first.
             if (ProseUtils.Cursor.isCursor(selection)) {
                 this.__selectParent(state, selection, dispatch);
@@ -284,7 +289,7 @@ export namespace EditorCommands {
 
             // case 2: partial selection, within the same parent, select that block.
             const { $from, $to } = state.selection;
-            const inSameBlock = $from.before() === $to.before() && $from.depth >= 1;
+            const inSameBlock = $from.sameParent($to);
             if (inSameBlock) {
                 this.__selectParent(state, selection, dispatch);
                 return true;
@@ -298,10 +303,20 @@ export namespace EditorCommands {
         }
 
         private __selectParent(state: ProseEditorState, selection: ProseSelection, dispatch: (tr: ProseTransaction) => void): void {
-            const currBlockPos = selection.$from.before();
-            const newSelection = ProseNodeSelection.create(state.doc, currBlockPos);
+            const currBlockPos = selection.$from.start() - 1;
+            const shouldAllSelect = currBlockPos < 0;
+            
+            const newSelection = shouldAllSelect
+                ? new ProseAllSelection(state.doc)
+                : ProseNodeSelection.create(state.doc, currBlockPos);
             const tr = state.tr.setSelection(newSelection);
-            dispatch(tr.scrollIntoView());
+            
+            // only scroll when partial selection
+            if (shouldAllSelect === false) {
+                tr.scrollIntoView();
+            }
+            
+            dispatch(tr);
         }
     }
 
