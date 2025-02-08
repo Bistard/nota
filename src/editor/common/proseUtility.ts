@@ -25,7 +25,7 @@ import { ProseSelection, ProseCursor, ProseEditorState, ProseNode, ProseTransact
  *  <blockquote> <p> T w o  <img>  </p>  </blockquote>
  * ```
  */
-export namespace ProseUtils {
+export namespace ProseTools {
 
     export namespace Cursor {
         export const isCursor = __isCursor;
@@ -102,7 +102,7 @@ function __setCursorAt(state: ProseEditorState, position: number): ProseTransact
 
 function __isFullSelection(state: ProseEditorState): boolean {
     const { selection } = state;
-    return selection instanceof ProseAllSelection || selection.from === 1 && selection.to === ProseUtils.Node.getDocumentSize(state);
+    return selection instanceof ProseAllSelection || selection.from === 1 && selection.to === ProseTools.Node.getDocumentSize(state);
 }
 
 function __isValid(state: ProseEditorState, position: number): boolean {

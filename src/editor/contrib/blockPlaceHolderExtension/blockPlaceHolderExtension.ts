@@ -1,6 +1,6 @@
 import "src/editor/contrib/blockPlaceHolderExtension/blockPlaceHolder.scss";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
-import { ProseUtils } from "src/editor/common/proseUtility";
+import { ProseTools } from "src/editor/common/proseUtility";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { ProseDecoration, ProseDecorationSet, ProseDecorationSource, ProseEditorState, ProseEditorView } from "src/editor/common/proseMirror";
@@ -35,12 +35,12 @@ export class EditorBlockPlaceHolderExtension extends EditorExtension implements 
      */
     protected override onDecoration(state: ProseEditorState): ProseDecorationSource | null {
         const { selection } = state;
-        const isCursor = ProseUtils.Cursor.isCursor(selection);
+        const isCursor = ProseTools.Cursor.isCursor(selection);
         if (!isCursor) {
             return null;
         }
 
-        const isEmptyBlock = ProseUtils.Cursor.isOnEmpty(selection);
+        const isEmptyBlock = ProseTools.Cursor.isOnEmpty(selection);
         if (!isEmptyBlock) {
             return null;
         }

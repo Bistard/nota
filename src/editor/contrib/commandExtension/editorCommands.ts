@@ -4,7 +4,7 @@ import { ReplaceAroundStep, canJoin, canSplit, liftTarget, replaceStep } from "p
 import { ILogService } from "src/base/common/logger";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection, ProseContentMatch, ProseMarkType, ProseAttrs, ProseSelectionRange, ProseNodeType, ProseResolvedPos, ProseCursor } from "src/editor/common/proseMirror";
-import { ProseUtils } from "src/editor/common/proseUtility";
+import { ProseTools } from "src/editor/common/proseUtility";
 import { EditorSchema } from "src/editor/model/schema";
 import { Command, ICommandSchema, buildChainCommand } from "src/platform/command/common/command";
 import { ICommandService } from "src/platform/command/common/commandService";
@@ -277,12 +277,12 @@ export namespace EditorCommands {
             const { selection } = state;
 
             // case 0: If already fully selected, do nothing.
-            if (ProseUtils.Selection.isFullSelection(state)) {
+            if (ProseTools.Selection.isFullSelection(state)) {
                 return true;
             }
 
             // case 1: empty selection, only select that parent block first.
-            if (ProseUtils.Cursor.isCursor(selection)) {
+            if (ProseTools.Cursor.isCursor(selection)) {
                 this.__selectParent(state, selection, dispatch);
                 return true;
             }
@@ -361,7 +361,7 @@ export namespace EditorCommands {
             }
 
             // Determine the default block type at the current position.
-            const defaultBlockType = ProseUtils.Node.getNextValidDefaultNodeTypeAt($to.parent, $to.indexAfter());
+            const defaultBlockType = ProseTools.Node.getNextValidDefaultNodeTypeAt($to.parent, $to.indexAfter());
 
             // Check if the determined block type is valid and is a textblock.
             if (!defaultBlockType || !defaultBlockType.isTextblock) {
@@ -468,7 +468,7 @@ export namespace EditorCommands {
                  * after the selection (from).
                  */
                 const match = $from.node(-1).contentMatchAt($from.indexAfter(-1));
-                const defaultType = $from.depth === 0 ? null : ProseUtils.Node.getNextValidDefaultNodeType(match);
+                const defaultType = $from.depth === 0 ? null : ProseTools.Node.getNextValidDefaultNodeType(match);
                 let types = isAtEnd && defaultType ? [{ type: defaultType }] : undefined;
                 let ifCanSplitAtPosition = canSplit(tr.doc, tr.mapping.map($from.pos), 1, types);
 
@@ -848,7 +848,7 @@ export namespace EditorCommands {
                      * If the cursor is positioned within a word, this allows 
                      * the entire word to be toggled with the specified mark.
                      */
-                    const wordBound = ProseUtils.Text.getWordBound(state.selection.$from);
+                    const wordBound = ProseTools.Text.getWordBound(state.selection.$from);
                     if (wordBound) {
                         const { from, to } = wordBound;
                         const tr = state.tr;

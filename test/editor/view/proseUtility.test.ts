@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { ProseUtils } from 'src/editor/common/proseUtility';
+import { ProseTools } from 'src/editor/common/proseUtility';
 import { ProseUtilsTest } from 'test/editor/view/editorHelpers';
 
 const { doc, p, image, blockquote } = ProseUtilsTest.defaultNodes;
@@ -12,7 +12,7 @@ suite('proseUtility-test', () => {
      */
     test('getDocumentSize 1', () => {
         const { state, view } = ProseUtilsTest.buildEditor(doc(p('One')));
-        assert.strictEqual(ProseUtils.Node.getDocumentSize(state), 5);
+        assert.strictEqual(ProseTools.Node.getDocumentSize(state), 5);
         view.destroy();
     });
     
@@ -28,7 +28,7 @@ suite('proseUtility-test', () => {
             )
         ));
         
-        assert.strictEqual(ProseUtils.Node.getDocumentSize(state), 13);
+        assert.strictEqual(ProseTools.Node.getDocumentSize(state), 13);
         
         view.destroy();
     });
@@ -39,12 +39,12 @@ suite('proseUtility-test', () => {
      */
     test('getNodeAt & getNodeSize', () => {
         const { state, view } = ProseUtilsTest.buildEditor(doc(p('One')));
-        assert.strictEqual(ProseUtils.Node.getDocumentSize(state), 5);
+        assert.strictEqual(ProseTools.Node.getDocumentSize(state), 5);
 
-        const node = ProseUtils.Position.getNodeAt(state, 1);
+        const node = ProseTools.Position.getNodeAt(state, 1);
 
         assert.strictEqual(node.type.name, 'paragraph'); // type name
-        assert.strictEqual(ProseUtils.Node.getNodeSize(node), 5); // size of 'p'
+        assert.strictEqual(ProseTools.Node.getNodeSize(node), 5); // size of 'p'
 
         view.destroy();
     });
@@ -64,8 +64,8 @@ suite('EditorResolvedPosition', () => {
             )
         ));
         
-        assert.strictEqual(ProseUtils.Node.getDocumentSize(state), 13);
-        const pos = ProseUtils.Position.resolve(state, 7);
+        assert.strictEqual(ProseTools.Node.getDocumentSize(state), 13);
+        const pos = ProseTools.Position.resolve(state, 7);
         
         assert.strictEqual(pos.getCurrNode().type.name, 'paragraph');
         assert.strictEqual(pos.getParentNodeAt(pos.depth)!.type.name, 'paragraph');
