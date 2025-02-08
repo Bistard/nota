@@ -102,7 +102,7 @@ function __setCursorAt(state: ProseEditorState, position: number): ProseTransact
 
 function __isFullSelection(state: ProseEditorState): boolean {
     const { selection } = state;
-    return selection instanceof ProseAllSelection || selection.from === 1 && selection.to === ProseTools.Node.getDocumentSize(state);
+    return selection instanceof ProseAllSelection || selection.from === 0 && selection.to === ProseTools.Node.getDocumentSize(state);
 }
 
 function __isValid(state: ProseEditorState, position: number): boolean {
