@@ -208,7 +208,7 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
      * @description Render the contents of a given node as block nodes.
      */
     public serializeBlock(parent: ProseNode): void {
-        for (const { node: child, index } of ProseUtils.iterateChild(parent)) {
+        for (const { node: child, index } of ProseUtils.Node.iterateChild(parent)) {
             this.__serializeBlock(child, parent, index);
         }
     }
@@ -232,7 +232,7 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
         const active: ProseMark[] = [];
         const trailing = ref('');
 
-        for (const { node: child, offset, index } of ProseUtils.iterateChild(parent)) {
+        for (const { node: child, offset, index } of ProseUtils.Node.iterateChild(parent)) {
             this.__serializeInline(child, offset, index, parent, active, trailing);
         }
         this.__serializeInline(null, 0, parent.childCount, parent, active, trailing);
@@ -252,7 +252,7 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
         this._inTightList = isTight;
 
         // serialize child
-        for (const { node: child, index } of ProseUtils.iterateChild(node)) {
+        for (const { node: child, index } of ProseUtils.Node.iterateChild(node)) {
             if (index > 0 && isTight) {
                 this.__flushCloseBlock(1);
             }

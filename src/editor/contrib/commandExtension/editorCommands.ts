@@ -346,7 +346,7 @@ export namespace EditorCommands {
             }
 
             // Determine the default block type at the current position.
-            const defaultBlockType = ProseUtils.getNextValidDefaultNodeTypeAt($to.parent, $to.indexAfter());
+            const defaultBlockType = ProseUtils.Node.getNextValidDefaultNodeTypeAt($to.parent, $to.indexAfter());
 
             // Check if the determined block type is valid and is a textblock.
             if (!defaultBlockType || !defaultBlockType.isTextblock) {
@@ -453,7 +453,7 @@ export namespace EditorCommands {
                  * after the selection (from).
                  */
                 const match = $from.node(-1).contentMatchAt($from.indexAfter(-1));
-                const defaultType = $from.depth === 0 ? null : ProseUtils.getNextValidDefaultNodeType(match);
+                const defaultType = $from.depth === 0 ? null : ProseUtils.Node.getNextValidDefaultNodeType(match);
                 let types = isAtEnd && defaultType ? [{ type: defaultType }] : undefined;
                 let ifCanSplitAtPosition = canSplit(tr.doc, tr.mapping.map($from.pos), 1, types);
 
@@ -833,7 +833,7 @@ export namespace EditorCommands {
                      * If the cursor is positioned within a word, this allows 
                      * the entire word to be toggled with the specified mark.
                      */
-                    const wordBound = ProseUtils.getWordBound(state.selection.$from);
+                    const wordBound = ProseUtils.Text.getWordBound(state.selection.$from);
                     if (wordBound) {
                         const { from, to } = wordBound;
                         const tr = state.tr;

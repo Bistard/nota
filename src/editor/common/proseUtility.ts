@@ -53,20 +53,16 @@ export namespace ProseUtils {
         export const isTextBlock = __isTextBlock;
         export const isInline = __isInline;
         export const isLeaf = __isLeaf;
+        export const iterateChild = __iterateChild;
+
+        export const getNextValidDefaultNodeTypeAt = __getNextValidDefaultNodeTypeAt;
+        export const getNextValidDefaultNodeType = __getNextValidDefaultNodeType;
     }
 
     export namespace Text {
         export const getWordBound = __getWordBound;
+        export const appendTextToEnd = __appendTextToEnd;
     }
-
-    // region - [others]
-
-    export const getResolvedPositionAt = __getResolvedPositionAt;
-    export const appendTextToEnd = __appendTextToEnd;
-
-    export const iterateChild = __iterateChild;
-    export const getNextValidDefaultNodeTypeAt = __getNextValidDefaultNodeTypeAt;
-    export const getNextValidDefaultNodeType = __getNextValidDefaultNodeType;
 }
 
 // +-----------------------------------------+
@@ -167,6 +163,31 @@ function __isLeaf(node: ProseNode): boolean {
     return node.isLeaf;
 }
 
+function *__iterateChild(node: ProseNode): IterableIterator<{ node: ProseNode, offset: number, index: number }> {
+    const fragment = node.content;
+    let offset = 0;
+    for (let i = 0; i < fragment.childCount; i++) {
+        const child = fragment.maybeChild(i)!;
+        yield { node: child, offset: offset, index: i };
+        offset += child.nodeSize;
+    }
+}
+
+function __getNextValidDefaultNodeTypeAt(node: ProseNode, position: number): ProseNodeType | null {
+    const match = node.contentMatchAt(position);
+    return __getNextValidDefaultNodeType(match);
+}
+
+function __getNextValidDefaultNodeType(match: ProseContentMatch): ProseNodeType | null {
+    for (let i = 0; i < match.edgeCount; i++) {
+        const { type } = match.edge(i);
+        if (type.isTextblock && !type.hasRequiredAttrs()) {
+            return type;
+        }
+    }
+    return null;
+}
+
 /**
  * @description Gets the boundaries of the word at the given position.
  * @param pos The resolved position in the document.
@@ -202,36 +223,7 @@ function __getWordBound(pos: ProseResolvedPos): { from: number; to: number } | n
     return { from, to };
 }
 
-function __getResolvedPositionAt(state: ProseEditorState, position: number): ProseResolvedPos {
-    return state.doc.resolve(position);
-}
-
 function __appendTextToEnd(state: ProseEditorState, text: string): ProseTransaction {
     const docEnd = state.doc.content.size;
     return state.tr.insertText(text, docEnd);
-}
-
-function *__iterateChild(node: ProseNode): IterableIterator<{ node: ProseNode, offset: number, index: number }> {
-    const fragment = node.content;
-    let offset = 0;
-    for (let i = 0; i < fragment.childCount; i++) {
-        const child = fragment.maybeChild(i)!;
-        yield { node: child, offset: offset, index: i };
-        offset += child.nodeSize;
-    }
-}
-
-function __getNextValidDefaultNodeTypeAt(node: ProseNode, position: number): ProseNodeType | null {
-    const match = node.contentMatchAt(position);
-    return __getNextValidDefaultNodeType(match);
-}
-
-function __getNextValidDefaultNodeType(match: ProseContentMatch): ProseNodeType | null {
-    for (let i = 0; i < match.edgeCount; i++) {
-        const { type } = match.edge(i);
-        if (type.isTextblock && !type.hasRequiredAttrs()) {
-            return type;
-        }
-    }
-    return null;
 }

@@ -124,7 +124,7 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
             this._view.state.doc, 
             node => node.type.name,
             node => node.childCount > 0,
-            node => [...ProseUtils.iterateChild(node)].map(item => item.node)
+            node => [...ProseUtils.Node.iterateChild(node)].map(item => item.node)
         );
     }
 
