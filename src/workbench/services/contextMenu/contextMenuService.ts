@@ -320,28 +320,6 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
             );
         });
 
-        // mousedown destroy event
-        menuDisposables.register(addDisposableListener(window, EventType.mousedown, (e) => {
-            if (e.defaultPrevented) {
-                return;
-            }
-
-            /**
-             * We are likely creating a context menu, let the context
-             * menu service to destroy it.
-             */
-            if (DomEventHandler.isRightClick(e)) {
-                return;
-            }
-
-            // clicking the child element will not destroy the view.
-            if (DomUtility.Elements.isAncestor(container, <HTMLElement | undefined>e.target)) {
-                return;
-            }
-
-            contextMenu.destroy();
-        }));
-
         // running action events
         menuDisposables.register(menu.onBeforeRun(this._onBeforeActionRun, undefined, this));
         menuDisposables.register(menu.onDidRun(this._onDidActionRun, undefined, this));
