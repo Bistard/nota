@@ -45,7 +45,7 @@ export interface IMenu extends IActionList<MenuAction, IMenuItem> {
     /**
      * Fires when the menu is blurred.
      */
-    readonly onDidBlur: Register<void>;
+    readonly onDidBlur: Register<FocusEvent>;
 
     /**
      * Fires when the menu is closed.
@@ -124,7 +124,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
 
     // [events]
 
-    private readonly _onDidBlur = this.__register(new Emitter<void>());
+    private readonly _onDidBlur = this.__register(new Emitter<FocusEvent>());
     public readonly onDidBlur = this._onDidBlur.registerListener;
 
     private readonly _onDidClose = this.__register(new Emitter<void>());
@@ -245,7 +245,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
         }));
 
         // Blur event
-        this.__register(this._focusTracker.onDidBlur(() => {
+        this.__register(this._focusTracker.onDidBlur(e => {
             const activeNode = DomUtility.Elements.getActiveElement();
             
             /**
@@ -258,7 +258,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
             }
 
             this._currFocusedIndex = -1;
-            this._onDidBlur.fire();
+            this._onDidBlur.fire(e);
         }));
 
         // Keydown event
@@ -415,7 +415,7 @@ export abstract class MenuDecorator extends Disposable implements IMenu {
     public readonly onDidInsert: Register<IMenuItem[]>;
     public readonly onBeforeRun: Register<IMenuActionRunEvent>;
     public readonly onDidRun: Register<IMenuActionRunEvent>;
-    public readonly onDidBlur: Register<void>;
+    public readonly onDidBlur: Register<FocusEvent>;
     public readonly onDidClose: Register<void>;
 
     // [constructor]

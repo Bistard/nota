@@ -66,6 +66,11 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
             getExtraContextMenuClassName: () => 'editor-slash-command',
             primaryAlignment: AnchorPrimaryAxisAlignment.Vertical,
             verticalPosition: AnchorVerticalPosition.Below,
+
+            onDestroy: (cause) => {
+                const onlyPreventBlur = cause === 'blur';
+                return onlyPreventBlur;
+            },
         }, parentElement);
     }
 
