@@ -280,7 +280,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
                     break;
                 }
                 case KeyCode.UpArrow: {
-                    this.__focusPrevious();
+                    this.__focusPrev();
                     break;
                 }
                 case KeyCode.DownArrow: {
@@ -317,7 +317,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
         }));
     }
 
-    private __focusPrevious(): void {
+    private __focusPrev(): void {
         this.__focusByOffset(-1);
     }
 
