@@ -39,6 +39,12 @@ interface IShowContextMenuDelegateBase extends IContextMenuDelegateBase {
      * named 'context-menu'.
      */
     getExtraContextMenuClassName?(): string;
+
+    /**
+     * @description If provided, fires when the context menu is about to be 
+     * closed, the client may return a `true` to prevent the destroy.
+     */
+    onDestroy?(): boolean;
 }
 
 export interface IShowContextMenuDelegate extends IShowContextMenuDelegateBase {
@@ -278,7 +284,7 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
     }
 
     public render(container: HTMLElement): IDisposable {
-        const menuDisposables = new DisposableBucket();
+        const lifecycle = new DisposableBucket();
         const delegate = this._delegate;
         const contextMenu = this._contextMenu;
 
@@ -288,7 +294,7 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
         }
 
         // menu construction
-        this._menu = menuDisposables.register(
+        this._menu = lifecycle.register(
             new MenuWithSubmenu(
                 new Menu(container, {
                     contextProvider: () => delegate.getContext(),
@@ -305,26 +311,32 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
          * automatically.
          */
         if (DEBUG_MODE) {
-            return menuDisposables;
+            return lifecycle;
         }
 
         // context menu destroy event
         [
             menu.onDidBlur,
             menu.onDidClose,
-            menuDisposables.register(new DomEmitter(window, EventType.blur)).registerListener,
+            lifecycle.register(new DomEmitter(window, EventType.blur)).registerListener,
         ]
-        .forEach(onEvent => {
-            menuDisposables.register(
-                onEvent.call(menu, () => contextMenu.destroy())
+        .forEach(event => {
+            lifecycle.register(
+                event(() => {
+                    const prevent = delegate.onDestroy?.();
+                    if (prevent) {
+                        return;
+                    }
+                    contextMenu.destroy();
+                })
             );
         });
 
         // running action events
-        menuDisposables.register(menu.onBeforeRun(this._onBeforeActionRun, undefined, this));
-        menuDisposables.register(menu.onDidRun(this._onDidActionRun, undefined, this));
+        lifecycle.register(menu.onBeforeRun(this._onBeforeActionRun, undefined, this));
+        lifecycle.register(menu.onDidRun(this._onDidActionRun, undefined, this));
 
-        return menuDisposables;
+        return lifecycle;
     }
 
     public onFocus(): void {
