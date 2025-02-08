@@ -1,11 +1,17 @@
 import 'src/editor/view/media/editor/editorBase.scss';
+import 'src/editor/view/media/editor/richTextView.scss';
 import { ProseEditorState, ProseEditorView } from "src/editor/common/proseMirror";
 import { ViewContext } from "src/editor/view/editorView";
 import { EditorViewProxy, IEditorViewProxy } from "src/editor/view/editorViewProxy";
 import { IEditorExtension } from 'src/editor/common/editorExtension';
 
-export interface IEditorBase extends IEditorViewProxy {
+/**
+ * An interface only for {@link RichTextView}.
+ */
+export interface IRichTextView extends IEditorViewProxy {
     
+    // [fields]
+
     /**
      * The container that contains all the editor-related components.
      */
@@ -18,7 +24,7 @@ export interface IEditorBase extends IEditorViewProxy {
     readonly overlayContainer: HTMLElement;
 }
 
-export abstract class EditorBase extends EditorViewProxy implements IEditorBase {
+export class RichTextView extends EditorViewProxy implements IRichTextView {
 
     // [fields]
 
@@ -35,7 +41,7 @@ export abstract class EditorBase extends EditorViewProxy implements IEditorBase 
         editorState: ProseEditorState,
         extensions: IEditorExtension[],
     ) {
-        overlayContainer.classList.add('editor-base');
+        overlayContainer.classList.add('editor-base', 'rich-text');
 
         // binding the view part of the extension to the proseMirror
         const viewExtensionInfo = extensions.map(extension => ({ id: extension.id, extension: extension.getViewExtension() }));
