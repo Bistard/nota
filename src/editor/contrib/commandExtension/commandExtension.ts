@@ -71,7 +71,7 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
             }
 
             /**
-             * Whenever a command is executed, we need to invoke `markAsExecuted`
+             * Whenever a command is executed, we need to invoke `preventDefault`
              * to tell prosemirror to prevent default behavior of the browser.
              * 
              * @see https://discuss.prosemirror.net/t/question-allselection-weird-behaviours-when-the-document-contains-a-non-text-node-at-the-end/7749/3
@@ -82,7 +82,7 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
                     onError: () => false,
                     onThen: (anyExecuted) => {
                         if (anyExecuted) {
-                            event.markAsExecuted();
+                            event.preventDefault();
                         }
                     }
                 }

@@ -46,12 +46,12 @@ export interface IOnKeydownEvent {
 
     /**
      * Whenever a command is executed by any listeners, we need to invoke 
-     * `markAsExecuted` to tell prosemirror to prevent default behavior of the 
+     * `preventDefault` to tell prosemirror to prevent default behavior of the 
      * browser.
      * 
      * @see https://discuss.prosemirror.net/t/question-allselection-weird-behaviours-when-the-document-contains-a-non-text-node-at-the-end/7749/3
      */
-    markAsExecuted: () => void;
+    preventDefault: () => void;
 }
 
 export interface IOnFocusEvent {
@@ -494,7 +494,7 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
             this._onKeydown.fire({
                 view: view,
                 event: createStandardKeyboardEvent(event),
-                markAsExecuted: () => { anyExecuted = true; },
+                preventDefault: () => { anyExecuted = true; },
             });
 
             return anyExecuted;

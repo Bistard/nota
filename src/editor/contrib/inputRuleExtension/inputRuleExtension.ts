@@ -129,7 +129,7 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
             if (e.event.key === KeyCode.Enter) {
                 const handled = this.__handleEnter(e.view);
                 if (handled) {
-                    e.markAsExecuted();
+                    e.preventDefault();
                 }
             }
         }));
