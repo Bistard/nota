@@ -387,7 +387,6 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
         ]
         .forEach(event => {
             const listener = event((e: void | FocusEvent) => {
-                console.log(e);
                 const isBlur = e ? 'blur' : 'esc';
                 const prevent = delegate.onDestroy?.(isBlur);
                 if (prevent) {
