@@ -5,6 +5,8 @@ import { createStandardKeyboardEvent, IStandardKeyboardEvent } from "src/base/co
 import { memoize } from "src/base/common/memoization";
 import { ProseDirectEditorProperty, ProseEditorProperty, ProseEditorView, ProseNode, ProseResolvedPos, ProseSlice, ProseTransaction } from "src/editor/common/proseMirror";
 
+// region - interface
+
 type __TransactionEventBase = {
     readonly view: ProseEditorView;
     readonly transaction: ProseTransaction;
@@ -50,6 +52,11 @@ export interface IOnKeydownEvent {
      * @see https://discuss.prosemirror.net/t/question-allselection-weird-behaviours-when-the-document-contains-a-non-text-node-at-the-end/7749/3
      */
     markAsExecuted: () => void;
+}
+
+export interface IOnFocusEvent {
+    readonly view: ProseEditorView;
+    readonly event: FocusEvent;
 }
 
 export interface IOnKeypressEvent {
@@ -127,6 +134,8 @@ export interface IEditorDragEvent extends IEditorMouseEvent {
     readonly dataTransfer?: DataTransfer;
 }
 
+// region - ProseEventBroadcaster
+
 /**
  * An interface only for {@link ProseEventBroadcaster}.
  */
@@ -135,12 +144,12 @@ export interface IProseEventBroadcaster extends IDisposable {
     /** 
 	 * Fires when the component is either blurred.
 	 */
-    readonly onDidBlur: Register<void>;
+    readonly onDidBlur: Register<IOnFocusEvent>;
     
     /** 
 	 * Fires when the component is either focused.
 	 */
-    readonly onDidFocus: Register<void>;
+    readonly onDidFocus: Register<IOnFocusEvent>;
 
     /**
      * Fires before next rendering on DOM tree. The client has a chance to 
@@ -263,6 +272,8 @@ export interface IProseEventBroadcaster extends IDisposable {
     readonly onWheel: Register<WheelEvent>;
 }
 
+// region - implementation
+
 /**
  * @class Given either a prosemirror view, or a property object from an 
  * extension, the broadcaster will bind all the event emitter from prosemirror 
@@ -291,10 +302,10 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
 
     // [event]
 
-    private readonly _onDidBlur = this.__register(new Emitter<void>());
+    private readonly _onDidBlur = this.__register(new Emitter<IOnFocusEvent>());
     public readonly onDidBlur = this._onDidBlur.registerListener;
     
-    private readonly _onDidFocus = this.__register(new Emitter<void>());
+    private readonly _onDidFocus = this.__register(new Emitter<IOnFocusEvent>());
     public readonly onDidFocus = this._onDidFocus.registerListener;
 
     private readonly _onBeforeRender = this.__register(new Emitter<IOnBeforeRenderEvent>());
@@ -409,8 +420,8 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
         // dom event listeners
         property.handleDOMEvents = {
             ...property.handleDOMEvents,
-            focus: () => this._onDidFocus.fire(),
-            blur: () => this._onDidBlur.fire(),
+            focus: (view, event) => this._onDidFocus.fire({ view, event }),
+            blur: (view, event) => this._onDidBlur.fire({ view, event }),
         };
 
         // on before click
@@ -547,6 +558,8 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
         };
     }
 }
+
+// region - private
 
 function __standardizeMouseEvent(e: MouseEvent, view: ProseEditorView): IEditorMouseEvent {
     const pos = view.posAtCoords({
