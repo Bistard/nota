@@ -5,6 +5,8 @@ import { fillMapFromArray } from "src/base/common/structures/map";
 import { ProseTools } from "src/editor/common/proseUtility";
 import { printNaryTreeLike } from "src/base/common/utilities/string";
 
+// region - interface
+
 export interface IEditorViewProxy extends IProseEventBroadcaster {
 
     /**
@@ -51,15 +53,15 @@ export interface IEditorViewProxy extends IProseEventBroadcaster {
     printDocumentTree(): void;
 }
 
+// region - EditorViewProxy
+
 export class EditorViewProxy extends ProseEventBroadcaster implements IEditorViewProxy {
 
     // [fields]
 
     protected readonly _ctx: ViewContext;
     
-    /**
-     * Mapping from ID to view extensions.
-     */
+    /** Mapping from ID to view extensions. */
     protected readonly _extensionMap: Map<string, ProseExtension>;
 
     // [constructor]
@@ -141,4 +143,6 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
             plugins: extensions,
         });
     }
+
+    // [private helper methods]
 }

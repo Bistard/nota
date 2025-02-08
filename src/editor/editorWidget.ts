@@ -14,13 +14,15 @@ import { EditorView } from "src/editor/view/editorView";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IContextKey } from "src/platform/context/common/contextKey";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
-import { IEditorDragEvent, IEditorMouseEvent, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidContentChangeEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
+import { IEditorDragEvent, IEditorMouseEvent, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidContentChangeEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnFocusEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
 import { EditorExtension } from "src/editor/common/editorExtension";
 import { assert, errorToMessage } from "src/base/common/utilities/panic";
 import { AsyncResult, err, ok, Result } from "src/base/common/result";
 import { EditorDragState } from "src/editor/common/cursorDrop";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 import { IEditorViewModel } from "src/editor/common/viewModel";
+
+// region - [interface]
 
 /**
  * An interface only for {@link EditorWidget}.
@@ -107,6 +109,12 @@ export interface IEditorWidget extends
     
     getContextKey<T>(name: string): IContextKey<T> | undefined;
     updateContext(name: string, value: any): boolean;
+
+    /**
+     * @description Let the world ends. Destroy EVERYTHING.
+     * @note same as {@link dispose()}.
+     */
+    destroy(): void;
 }
 
 /**
@@ -158,10 +166,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     // region - [view events]
 
-    private readonly _onDidBlur = this.__register(new RelayEmitter<void>());
+    private readonly _onDidBlur = this.__register(new RelayEmitter<IOnFocusEvent>());
     public readonly onDidBlur = this._onDidBlur.registerListener;
     
-    private readonly _onDidFocus = this.__register(new RelayEmitter<void>());
+    private readonly _onDidFocus = this.__register(new RelayEmitter<IOnFocusEvent>());
     public readonly onDidFocus = this._onDidFocus.registerListener;
 
     private readonly _onDidRenderModeChange = this.__register(new RelayEmitter<EditorType>());
@@ -299,7 +307,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     get readonly(): boolean { return !this._options.getOptions().writable.value; }
     get renderMode(): EditorType | null { return null; } // TODO
 
-    // region - [public methods]
+    // region - [public]
 
     public async open(source: URI): Promise<Result<void, Error>> {
         const currSource = this._model?.source;
@@ -378,7 +386,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         return this._contextHub.updateContext(name, value);
     }
 
-    // region - [editor-model methods]
+    // region - [model]
 
     get source(): URI { return this.__assertModel().source; }
     get dirty(): boolean { return assert(this._model).dirty; }
@@ -391,7 +399,11 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         return this.__assertModel().deleteAt(textOffset, length);
     }
 
-    // region - [private helper methods]
+    public destroy(): void {
+        return this.dispose();
+    }
+
+    // region - [private]
 
     private __detachData(): void {
         this.release(this._editorData);
@@ -474,6 +486,8 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     }
 }
 
+// region - private
+
 class EditorData extends Disposable {
 
     constructor(
@@ -491,6 +505,8 @@ class EditorData extends Disposable {
         }
     }
 }
+
+// region - EditorContextHub
 
 /**
  * @class Once the class is constructed, the {@link IContextKey} relates to 
@@ -555,6 +571,8 @@ class EditorContextHub extends Disposable {
     }
 }
 
+// region - EditorExtension
+
 class EditorExtensionController extends Disposable {
 
     // [fields]
@@ -600,6 +618,8 @@ class EditorExtensionController extends Disposable {
         }
     }
 }
+
+// region - EditorOption
 
 class EditorOptionController {
 

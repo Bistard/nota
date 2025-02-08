@@ -3,11 +3,11 @@ import { Disposable } from "src/base/common/dispose";
 import { defaultLog, ILogEvent, ILogService } from "src/base/common/logger";
 import { EditorWindow, IEditorView } from "src/editor/common/view";
 import { EditorOptionsType } from "src/editor/common/editorConfiguration";
-import { RichtextEditor } from 'src/editor/view/richtextEditor';
 import { IEditorExtension } from 'src/editor/common/editorExtension';
 import { IEditorModel } from 'src/editor/common/model';
 import { ProseEditorState } from 'src/editor/common/proseMirror';
 import { IEditorViewModel } from 'src/editor/common/viewModel';
+import { RichTextView } from 'src/editor/view/richTextView';
 
 export class ViewContext {
     constructor(
@@ -95,7 +95,7 @@ export class EditorView extends Disposable implements IEditorView {
         // the centre that integrates the editor-related functionalities
         const editorElement = document.createElement('div');
         editorElement.className = 'editor-container';
-        this._view = this.__register(new RichtextEditor(editorElement, this._container, context, initState, extensions));
+        this._view = this.__register(new RichTextView(editorElement, this._container, context, initState, extensions));
         
         // forward: start listening events from model
         this.__registerEventFromModel();
