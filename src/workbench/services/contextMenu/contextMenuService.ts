@@ -320,25 +320,36 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
             return lifecycle;
         }
 
-        // context menu destroy event
+        // context menu: before destroy event
+        lifecycle.register(
+            contextMenu.onDestroy(() => {
+                this._menu = undefined;
+    
+                // make sure the extra class is removed for later container to be reused.
+                const className = this._delegate.getExtraContextMenuClassName?.();
+                if (className) {
+                    contextMenu.element.classList.remove(className);
+                }
+            })
+        );
+
+        // context menu: destroy event
         [
             menu.onDidBlur,
             menu.onDidClose,
             lifecycle.register(new DomEmitter(window, EventType.blur)).registerListener,
         ]
         .forEach(event => {
-            
-            lifecycle.register(
-                event((e: void | FocusEvent) => {
-                    console.log(e);
-                    const isBlur = e ? 'blur' : 'esc';
-                    const prevent = delegate.onDestroy?.(isBlur);
-                    if (prevent) {
-                        return;
-                    }
-                    contextMenu.destroy();
-                })
-            );
+            const listener = event((e: void | FocusEvent) => {
+                console.log(e);
+                const isBlur = e ? 'blur' : 'esc';
+                const prevent = delegate.onDestroy?.(isBlur);
+                if (prevent) {
+                    return;
+                }
+                contextMenu.destroy();
+            });
+            lifecycle.register(listener);
         });
 
         // running action events

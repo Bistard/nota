@@ -3,6 +3,7 @@ import { DomUtility } from "src/base/browser/basic/dom";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { AnchorAbstractPosition, AnchorMode, calcViewPositionAlongAxis, IAnchorBox } from "src/base/browser/basic/view";
 import { Disposable, LooseDisposableBucket, IDisposable } from "src/base/common/dispose";
+import { Emitter, Register } from "src/base/common/event";
 import { Range } from "src/base/common/structures/range";
 import { IDomBox, IPosition } from "src/base/common/utilities/size";
 
@@ -94,13 +95,6 @@ export interface IContextMenuDelegate extends IContextMenuDelegateBase {
     render(container: HTMLElement): IDisposable | undefined;
 
     /**
-     * @description Invokes before the context menu gets destroyed (hidden).
-     * @param container The container contains all the rendered results by the
-     *                  delegate.
-     */
-    onBeforeDestroy(container: HTMLElement): void;
-
-    /**
      * @description Invokes when the context menu is focused.
      */
     onFocus?(): void;
@@ -110,7 +104,17 @@ export interface IContextMenuDelegate extends IContextMenuDelegateBase {
  * An interface only for {@link ContextMenuView}.
  */
 export interface IContextMenu extends IDisposable {
-    
+
+    /**
+     * The entire wrapper element of the context menu.
+     */
+    readonly element: HTMLElement;
+
+    /**
+     * Fires before the context menu is about to destroy.
+     */
+    readonly onDestroy: Register<void>;
+
     /**
      * @description Place the context menu under the given container.
      * @param container The container that contains the context menu.
@@ -158,6 +162,11 @@ export class ContextMenuView extends Disposable implements IContextMenu {
 
     public static readonly CLASS_NAME = 'context-menu';
 
+    // [event]
+
+    private readonly _onDestroy = this.__register(new Emitter<void>());
+    public readonly onDestroy = this._onDestroy.registerListener;
+
     // [fields]
 
     /** The HTMLElement that contains the whole context menu view */
@@ -183,6 +192,10 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         DomUtility.Modifiers.hide(this._element.raw);
         this.setContainer(container);
     }
+
+    // [getter]
+
+    get element() { return this._element.raw; }
 
     // [public methods]
 
@@ -234,10 +247,8 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         const oldDelegate = this._currDelegate;
         this._currDelegate = undefined;
 
-        // tells the delegate before actual hidden
-        if (oldDelegate?.onBeforeDestroy) {
-            oldDelegate.onBeforeDestroy(this._element.raw);
-        }
+        // tells the client before actual destroy
+        this._onDestroy.fire();
 
         // unrender
         this._currRenderContentLifecycle.dispose();
@@ -260,7 +271,6 @@ export class ContextMenuView extends Disposable implements IContextMenu {
     }
 
     private __layout(delegate: IContextMenuDelegate): void {
-        
         if (!this.visible()) {
             return;
         }
