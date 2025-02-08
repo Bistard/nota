@@ -170,8 +170,8 @@ declare module 'prosemirror-model' {
         before(depth?: number | null): number;
 
         /**
-         * @description The exact same API as {@link getParentNodeAt}. Except making
-         * depth = this.depth.
+         * @description The exact same API as {@link getParentNodeAt}. Except 
+         * making `depth = this.depth`.
          * @note Wrapper of `this.node()`.
          */
         getCurrNode(): ProseNode;
