@@ -34,12 +34,18 @@ export class EditorBlockPlaceHolderExtension extends EditorExtension implements 
      * @note Place-holder rendering.
      */
     protected override onDecoration(state: ProseEditorState): ProseDecorationSource | null {
-        const isEmptyBlock = ProseUtils.Cursor.isOnEmpty(state);
+        const { selection } = state;
+        const isCursor = ProseUtils.Cursor.isCursor(selection);
+        if (!isCursor) {
+            return null;
+        }
+
+        const isEmptyBlock = ProseUtils.Cursor.isOnEmpty(selection);
         if (!isEmptyBlock) {
             return null;
         }
         
-        const blockPos = ProseUtils.Cursor.getPositionDocBlock(state);
+        const blockPos = selection.$from.before();
         const blockNode = state.doc.nodeAt(blockPos);
         if (!blockNode) {
             return null;

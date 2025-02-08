@@ -1,4 +1,5 @@
 import { Node as ProseNode, ResolvedPos } from "prosemirror-model";
+import { Selection } from "prosemirror-state";
 
 export {
     Step as ProseStep,
@@ -18,6 +19,8 @@ export {
     TextSelection as ProseTextSelection,
     SelectionRange as ProseSelectionRange,
 } from "prosemirror-state";
+
+export type ProseCursor = Selection & { empty: true; };
 
 export { 
     EditorView as ProseEditorView, 

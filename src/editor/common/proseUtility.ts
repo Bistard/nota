@@ -1,6 +1,6 @@
 import { IDomBox, Position } from "src/base/common/utilities/size";
 import { isDefined } from "src/base/common/utilities/type";
-import { ProseContentMatch, ProseEditorState, ProseEditorView, ProseNode, ProseNodeType, ProseResolvedPos, ProseTransaction } from "src/editor/common/proseMirror";
+import { ProseContentMatch, ProseCursor, ProseEditorState, ProseEditorView, ProseNode, ProseNodeType, ProseResolvedPos, ProseSelection, ProseTransaction } from "src/editor/common/proseMirror";
 
 /**
  * @description Contains a list of helper functions that relates to ProseMirror.
@@ -35,78 +35,68 @@ export namespace ProseUtils {
          * @description Determines if the current selection is empty, which 
          * means the selection behaves like a single cursor.
          */
-        export function isCursor(state: ProseEditorState): boolean {
-            return state.selection.empty;
+        export function isCursor(selection: ProseSelection): selection is ProseCursor {
+            return selection.empty;
         }
 
         /**
          * @description If the current cursor is on an empty text block.
          */
-        export function isOnEmpty(state: ProseEditorState): boolean {
-            const { selection } = state;
-            if (!selection.empty) {
-                return false;
-            }
+        export function isOnEmpty(selection: ProseCursor): boolean {
             const parent = selection.$from.parent;
             return parent.isTextblock && parent.textContent === '';
         }
 
-        export function getPositionDocBlock(state: ProseEditorState): number {
-            const { $from } = state.selection;
-            const blockPos = $from.start($from.depth) - 1;
-            return blockPos;
-        }
-
-        export function getPositionDoc(state: ProseEditorState): number | undefined {
-            const { $from } = state.selection;
-            if (!state.selection.empty) {
-                return undefined;
-            }
+        export function getPositionDoc(selection: ProseCursor): number | undefined {
+            const { $from } = selection;
             return $from.pos;
         }
     
-        export function getPositionDom(view: ProseEditorView): Position | undefined {
-            const position = getPositionDoc(view.state);
-            if (!isDefined(position)) {
-                return undefined;
-            }
-            const coordinate = view.coordsAtPos(position);
-            return new Position(coordinate.top, coordinate.left);
-        }
+        // export function getPositionDom(view: ProseEditorView): Position | undefined {
+        //     const position = getPositionDoc(view.state.selection);
+        //     if (!isDefined(position)) {
+        //         return undefined;
+        //     }
+        //     const coordinate = view.coordsAtPos(position);
+        //     return new Position(coordinate.top, coordinate.left);
+        // }
     
-        export function getParentPositionDoc(state: ProseEditorState): number | undefined {
-            const { $from } = state.selection;
-            if (!state.selection.empty) {
+        export function getParentPositionDoc(selection: ProseCursor): number | undefined {
+            const { $from } = selection;
+            if (!selection.empty) {
                 return undefined;
             }
     
             const parentPos = $from.before(1);
-            const parentNode = state.doc.nodeAt(parentPos);
-            if (!parentNode) {
-                return undefined;
-            }
-    
             return parentPos;
         }
     
-        export function getParentPositionDom(view: ProseEditorView): IDomBox | undefined {
-            const parentPosition = getParentPositionDoc(view.state);
-            if (!isDefined(parentPosition)) {
-                return undefined;
-            }
+        // export function getParentPositionDom(view: ProseEditorView): IDomBox | undefined {
+        //     const parentPosition = getParentPositionDoc(view.state.selection);
+        //     if (!isDefined(parentPosition)) {
+        //         return undefined;
+        //     }
     
-            const dom = view.nodeDOM(parentPosition) as HTMLElement | null;
-            if (!dom) {
-                return undefined;
-            }
+        //     const dom = view.nodeDOM(parentPosition) as HTMLElement | null;
+        //     if (!dom) {
+        //         return undefined;
+        //     }
     
-            const rect = dom.getBoundingClientRect();
-            return {
-                left: rect.left,
-                top: rect.top,
-                width: rect.width,
-                height: rect.height,
-            };
+        //     const rect = dom.getBoundingClientRect();
+        //     return {
+        //         left: rect.left,
+        //         top: rect.top,
+        //         width: rect.width,
+        //         height: rect.height,
+        //     };
+        // }
+    }
+
+    export namespace Position {
+        export function getPositionDocBlock(selection: ProseCursor): number {
+            const { $from } = selection;
+            const blockPos = $from.start($from.depth) - 1;
+            return blockPos;
         }
     }
 

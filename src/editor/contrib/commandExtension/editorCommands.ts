@@ -3,7 +3,7 @@ import type { IEditorWidget } from "src/editor/editorWidget";
 import { ReplaceAroundStep, canJoin, canSplit, liftTarget, replaceStep } from "prosemirror-transform";
 import { ILogService } from "src/base/common/logger";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
-import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection, ProseContentMatch, ProseMarkType, ProseAttrs, ProseSelectionRange, ProseNodeType, ProseResolvedPos } from "src/editor/common/proseMirror";
+import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection, ProseContentMatch, ProseMarkType, ProseAttrs, ProseSelectionRange, ProseNodeType, ProseResolvedPos, ProseCursor } from "src/editor/common/proseMirror";
 import { ProseUtils } from "src/editor/common/proseUtility";
 import { EditorSchema } from "src/editor/model/schema";
 import { Command, ICommandSchema, buildChainCommand } from "src/platform/command/common/command";
@@ -274,18 +274,19 @@ export namespace EditorCommands {
             if (!dispatch) {
                 return false;
             }
+            const { selection } = state;
 
             // case 1: empty selection, only select that parent block first.
-            if (ProseUtils.Cursor.isCursor(state)) {
-                this.__selectParent(state, dispatch);
+            if (ProseUtils.Cursor.isCursor(selection)) {
+                this.__selectParent(state, selection, dispatch);
                 return true;
             }
 
             // case 2: partial selection, within the same parent, select that block.
             const { $from, $to } = state.selection;
-            const inSameBlock = $from.depth === $to.depth && $from.before() + $to.before() && $from.depth > 1;
+            const inSameBlock = $from.before() === $to.before() && $from.depth >= 1;
             if (inSameBlock) {
-                this.__selectParent(state, dispatch);
+                this.__selectParent(state, selection, dispatch);
                 return true;
             }
 
@@ -296,8 +297,8 @@ export namespace EditorCommands {
             return true;
         }
 
-        private __selectParent(state: ProseEditorState, dispatch: (tr: ProseTransaction) => void): void {
-            const currBlockPos = ProseUtils.Cursor.getPositionDocBlock(state);
+        private __selectParent(state: ProseEditorState, selection: ProseSelection, dispatch: (tr: ProseTransaction) => void): void {
+            const currBlockPos = selection.$from.before();
             const newSelection = ProseNodeSelection.create(state.doc, currBlockPos);
             const tr = state.tr.setSelection(newSelection);
             dispatch(tr.scrollIntoView());
