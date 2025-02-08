@@ -244,7 +244,6 @@ export class ContextMenuView extends Disposable implements IContextMenu {
     }
 
     public destroy(): void {
-        const oldDelegate = this._currDelegate;
         this._currDelegate = undefined;
 
         // tells the client before actual destroy

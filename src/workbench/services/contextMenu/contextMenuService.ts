@@ -13,6 +13,7 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { IContextService } from "src/platform/context/common/contextService";
 import { INotificationService } from "src/workbench/services/notification/notification";
+import { memoize } from "src/base/common/memoization";
 
 // region - [interface]
 
@@ -91,9 +92,36 @@ export interface IContextMenuService extends IService {
     showContextMenuCustom(delegate: IShowContextMenuCustomDelegate, container?: HTMLElement): void;
 
     /**
-     * @description Destroy the current context menu if existed.
+     * Indicates if any context menu is currently presented, also provides a 
+     * list of functions to manipulate with it.
+     * 
+     * @note The following functions will do nothing if no context menu is 
+     * presented.
      */
-    destroyContextMenu(): void;
+    readonly contextMenu: {
+        /**
+         * @description Destroy the current context menu.
+         */
+        destroy(): void;
+
+        /**
+         * @description Programmatically focus the previous item. If currently no 
+         * focused item, focus the first item.
+         */
+        focusPrev(): void;
+
+        /**
+         * @description Programmatically focus the next item. If currently no 
+         * focused item, focus the first item.
+         */
+        focusNext(): void;
+
+        /**
+         * @description Programmatically focus the item at the given index. If index
+         * is invalid, focus nothing but only the entire menu.
+         */
+        focusAt(index: number): void;
+    };
 }
 
 // region - [service]
@@ -111,6 +139,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
 
     // singleton
     private readonly _contextMenu: IContextMenu;
+    private _internalDelegate?: __ContextMenuDelegate;
 
     // The current container of the context menu.
     private readonly _currContainer?: HTMLElement;
@@ -129,6 +158,27 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         this._defaultContainer = this.layoutService.parentContainer;
         this._currContainer = this._defaultContainer;
         this._contextMenu = this.__register(new ContextMenuView(this._currContainer));
+        
+        // cleanup everything a context menu is destroyed.
+        this._internalDelegate = undefined;
+        this.__register(this._contextMenu.onDestroy(() => {
+            this._internalDelegate = undefined;
+        }));
+    }
+
+    // [getter]
+
+    @memoize
+    get contextMenu() {
+        const ensureExist = (cb: (...args: any[]) => void) => {
+            return (...args: any[]) => this._contextMenu.visible() && cb(...args);
+        };
+        return {
+            destroy: ensureExist(() => this._contextMenu.destroy()),
+            focusPrev: ensureExist(() => this._internalDelegate?.focusPrev()),
+            focusNext: ensureExist(() => this._internalDelegate?.focusNext()),
+            focusAt: ensureExist((index: number) => this._internalDelegate?.focusAt(index)),
+        };
     }
 
     // [public methods]
@@ -155,19 +205,15 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
             this._contextMenu.setContainer(focusElement);
         }
 
-        // show context menu
-        this._contextMenu.show(
-            new __ContextMenuDelegate(
-                delegate,
-                this._contextMenu,
-                this.__onBeforeActionRun.bind(this),
-                this.__onDidActionRun.bind(this)
-            ),
+        this._internalDelegate = new __ContextMenuDelegate(
+            delegate,
+            this._contextMenu,
+            this.__onBeforeActionRun.bind(this),
+            this.__onDidActionRun.bind(this),
         );
-    }
 
-    public destroyContextMenu(): void {
-        this._contextMenu.destroy();
+        // show context menu
+        this._contextMenu.show(this._internalDelegate);
     }
 
     // [private methods]
@@ -364,12 +410,15 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
         this._menu?.focus(-1);
     }
 
-    public onBeforeDestroy(container: HTMLElement): void {
-        
-        // make sure the extra class is removed for later container to be reused.
-        const className = this._delegate.getExtraContextMenuClassName?.();
-        if (className) {
-            container.classList.remove(className);
-        }
+    public focusPrev(): void {
+        this._menu?.focusPrev();
+    }
+    
+    public focusNext(): void {
+        this._menu?.focusNext();
+    }
+
+    public focusAt(index: number): void {
+        this._menu?.focus(index);
     }
 }

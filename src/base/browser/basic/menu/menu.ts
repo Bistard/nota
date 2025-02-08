@@ -71,6 +71,18 @@ export interface IMenu extends IActionList<MenuAction, IMenuItem> {
     focus(index?: number): void;
 
     /**
+     * @description Programmatically focus the previous item. If currently no 
+     * focused item, focus the first item.
+     */
+    focusPrev(): void;
+
+    /**
+     * @description Programmatically focus the next item. If currently no 
+     * focused item, focus the first item.
+     */
+    focusNext(): void;
+
+    /**
      * @description If the menu has any focused item.
      */
     anyFocused(): boolean;
@@ -209,6 +221,14 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
         return this._currFocusedIndex;
     }
 
+    public focusPrev(): void {
+        this.__focusByOffset(-1);
+    }
+
+    public focusNext(): void {
+        this.__focusByOffset(1);
+    }
+
     public override dispose(): void {
         super.dispose();
     }
@@ -284,11 +304,11 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
                     break;
                 }
                 case KeyCode.UpArrow: {
-                    this.__focusPrev();
+                    this.focusPrev();
                     break;
                 }
                 case KeyCode.DownArrow: {
-                    this.__focusNext();
+                    this.focusNext();
                     break;
                 }
                 default:
@@ -319,14 +339,6 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
                 event.stopPropagation();
             }
         }));
-    }
-
-    private __focusPrev(): void {
-        this.__focusByOffset(-1);
-    }
-
-    private __focusNext(): void {
-        this.__focusByOffset(1);
     }
 
     private __focusByOffset(offset: -1 | 1): void {
@@ -469,6 +481,14 @@ export abstract class MenuDecorator extends Disposable implements IMenu {
 
     public getCurrFocusIndex(): number {
         return this._menu.getCurrFocusIndex();
+    }
+
+    public focusPrev(): void {
+        return this._menu.focusPrev();
+    }
+    
+    public focusNext(): void {
+        return this._menu.focusNext();
     }
 
     public run(index: number): void;
