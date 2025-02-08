@@ -13,6 +13,8 @@ import { Disposable, LooseDisposableBucket } from "src/base/common/dispose";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { panic } from "src/base/common/utilities/panic";
 
+// region - interface
+
 export interface IMenuActionRunEvent extends IActionRunEvent {
     readonly action: IMenuAction;
 }
@@ -96,6 +98,8 @@ export interface IMenuOptions extends IActionListOptions<IMenuAction, IMenuItem>
      */
     readonly triggerKeys?: KeyCode[];
 }
+
+// region - BaseMenu
 
 /**
  * @class A {@link BaseMenu} is build on top of {@link ActionList}, provides a 
@@ -378,9 +382,10 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
     }
 }
 
+// region - Menu
+
 /**
- * @class A basic implementation over {@link BaseMenu}. It only provides two
- * concrete item implementations.
+ * @class A basic implementation over {@link BaseMenu}.
  */
 export class Menu extends BaseMenu {
 
@@ -403,6 +408,8 @@ export class Menu extends BaseMenu {
         });
     }
 }
+
+// region - MenuDecorator
 
 export abstract class MenuDecorator extends Disposable implements IMenu {
 
@@ -504,6 +511,8 @@ export abstract class MenuDecorator extends Disposable implements IMenu {
         return this._menu.size();
     }
 }
+
+// region - MenuWithSubmenu
 
 /**
  * @class With additional to {@link Menu}, the class supports to construct a

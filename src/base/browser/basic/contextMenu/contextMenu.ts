@@ -6,6 +6,8 @@ import { Disposable, LooseDisposableBucket, IDisposable } from "src/base/common/
 import { Range } from "src/base/common/structures/range";
 import { IDomBox, IPosition } from "src/base/common/utilities/size";
 
+// region - interface
+
 export interface IAnchor {
     readonly x: number;
     readonly y: number;
@@ -135,16 +137,19 @@ export interface IContextMenu extends IDisposable {
     visible(): boolean;
 }
 
+// region - ContextMenuView
+
 /**
  * @class A {@link ContextMenuView} can be placed under a given container for 
  * later rendering. The rendering implementation of a {@link ContextMenuView} is 
- * abstracted out as a {@link IContextMenuDelegate}. Usually is rendered based 
- * on {@link IMenu}.
+ * entirely abstracted out as a {@link IContextMenuDelegate}. Usually is 
+ * rendered based on {@link IMenu}.
  * 
+ * @note A {@link ContextMenuView} encapsulates how to calculate the position of
+ *       such a view.
  * @note When showing a {@link ContextMenuView}, the position of the view will 
- * be adjusted due to the anchor position and the viewport size to ensure the 
- * view is properly fit in and overlap avoided.
- * 
+ *       be adjusted due to the anchor position and the viewport size to ensure 
+ *       the view is properly fit in and overlap avoided.
  * @note The default position type is 'absolute'.
  */
 export class ContextMenuView extends Disposable implements IContextMenu {

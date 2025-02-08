@@ -1,5 +1,5 @@
 import { ContextMenuView, IAnchor, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
-import { addDisposableListener, DomEmitter, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
+import { DomEmitter, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { IMenu, IMenuActionRunEvent, Menu, MenuWithSubmenu } from "src/base/browser/basic/menu/menu";
 import { CheckMenuAction, IMenuAction, MenuItemType, MenuSeparatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { Disposable, DisposableBucket, IDisposable } from "src/base/common/dispose";
@@ -13,6 +13,8 @@ import { ICommandService } from "src/platform/command/common/commandService";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { IContextService } from "src/platform/context/common/contextService";
 import { INotificationService } from "src/workbench/services/notification/notification";
+
+// region - [interface]
 
 export const IContextMenuService = createService<IContextMenuService>('context-menu-service');
 
@@ -93,6 +95,8 @@ export interface IContextMenuService extends IService {
      */
     destroyContextMenu(): void;
 }
+
+// region - [service]
 
 /**
  * @class A context menu service provides functionality to pop up a context menu
@@ -251,6 +255,8 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         return finalActions;
     }
 }
+
+// region - [private]
 
 class __ContextMenuDelegate implements IContextMenuDelegate {
 
