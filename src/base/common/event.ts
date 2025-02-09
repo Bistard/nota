@@ -1,5 +1,5 @@
 import type { IO } from "src/base/common/utilities/functional";
-import { LinkedList } from "src/base/common/structures/linkedList";
+import { LinkedList, ListNode } from "src/base/common/structures/linkedList";
 import { Disposable, DisposableBucket, IDisposable, LooseDisposableBucket, toDisposable, untrackDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { panic } from "src/base/common/utilities/panic";
@@ -18,6 +18,8 @@ import { panic } from "src/base/common/utilities/panic";
  *  - {@link Event}
  ******************************************************************************/
 
+// region - types
+
 /** 
  * @readonly A listener is a callback function that once the callback is invoked,
  * the required event type will be returned as a parameter.
@@ -35,8 +37,9 @@ export type GetEventType<R> = R extends Register<infer T> ? T : never;
  * the event type T.
  * @param listener The `listener` to be registered.
  * @param disposables The `disposables` is used to store all the `listener`s as 
- * disposables after registrations.
- * @param thisObject The object to be used as the `this` object.
+ *                    disposables after registrations.
+ * @param thisObject The object to be used as the `this` object when executing
+ *                   the listener.
  */
 export type Register<T> = {
 	(listener: Listener<T>, disposables?: IDisposable[], thisObject?: any): IDisposable;
@@ -139,66 +142,86 @@ export interface IEmitterOptions {
     readonly onDidFire?: IO<void>;
 }
 
+// region - AbstractEmitter
+
 /**
- * @class An event emitter binds to a specific event T. All the listeners who is 
- * listening to the event T will be notified once the event occurs.
+ * @description This abstract class serves as a flexible foundation for creating 
+ * various kinds of event emitters.
  * 
- * To listen to this event T, use this.registerListener(listener) where `listener` 
- * is essentially a callback function.
+ * 1. **Why abstract the methods?**
+ *  - One derived emitter might store its listeners in a linked list, another 
+ *    in a set, and yet another in a tree-based structure—each approach would 
+ *    have its own way to insert, remove, and iterate listeners.
+ *  - By defining these methods as abstract, we can ensure that derived 
+ *    classes provide **their own handling**.
  * 
- * To trigger the event occurs and notifies all the listeners, use this.fire(event) 
- * where `event` has the type T.
- * 
- * @throws The unexpected caught by `fire()` error will be caught by {@link ErrorHandler.onUnexpectedError}.
+ * 2. **What are those template types?**
+ *  - `TEvent`: The type of the event that will be fired (e.g., a string, object, etc.).
+ *  - `TRegister`: The specific function signature for registering a listener.
+ *  - `TListener`: (internal usage) The type of an actual listener.
+ *  - `TListenerContainer`: (internal usage) The data structure that holds the listeners (e.g., array, map, linked list).
+ *  - `TListenerNode`: (internal usage) A helper type representing the individual node or element within `TListenerContainer`. 
  */
-export class Emitter<T> extends Disposable implements IEmitter<T> {
-    
+abstract class AbstractEmitter<
+    TEvent,
+    TRegister extends (...args: any[]) => IDisposable, 
+    TListener, 
+    TListenerContainer extends { size(): number, empty(): boolean, }, 
+    TListenerNode,
+> extends Disposable {
+
     // [field]
 
-    /** stores all the listeners to this event. */
-    protected _listeners: LinkedList<__Listener<T>> = new LinkedList();
+    protected readonly _listeners: TListenerContainer;
+    protected _register?: TRegister;
+    protected _opts?: IEmitterOptions;
 
-    /** sing function closures here. */
-    private _register?: Register<T>;
+    // [constructor]
 
-    /** stores all the options. */
-    private _opts?: IEmitterOptions;
-
-    // constructor
-
-    constructor(opts?: IEmitterOptions) {
+    constructor(options?: IEmitterOptions) {
         super();
-        this._opts = opts;
+        this._opts = options;
+        this._listeners = this.__initStructure();
     }
 
-    // [method]
-	
-    get registerListener(): Register<T> {
-        
-        // cannot register to a disposed emitter
+    // [abstract]
+
+    protected abstract __fire(listeners: TListenerContainer, event: TEvent): void;
+    protected abstract __constructListener(...args: Parameters<TRegister>): TListener;
+    
+    protected abstract __initStructure(): TListenerContainer;
+    protected abstract __clearStructure(listeners: TListenerContainer): void;
+    protected abstract __addIntoStructure(listeners: TListenerContainer, listener: TListener): TListenerNode;
+    protected abstract __delFromStructure(listeners: TListenerContainer, node: TListenerNode): void;
+
+    // [public]
+
+    get registerListener(): TRegister {
         if (this.isDisposed()) {
             panic('emitter is already disposed, cannot register a new listener.');
         }
 
-        this._register ??= (listener: Listener<T>, disposables?: IDisposable[], thisObject?: any) => {
-
+        this._register ??= <any>((...args: Parameters<TRegister>) => {
+            
             // before first add callback
             if (this._opts?.onFirstListenerAdd && this._listeners.empty()) {
                 this._opts.onFirstListenerAdd();
             }
 
             // register the listener (callback)
-            const listenerWrapper = new __Listener(listener, thisObject, this._opts);
+            const listener = this.__constructListener(...args);
+            
             this._opts?.onListenerWillAdd?.();
-            const node = this._listeners.push_back(listenerWrapper);
+            const node = this.__addIntoStructure(this._listeners, listener);
             this._opts?.onListenerDidAdd?.();
-            let listenerRemoved = false;
-            let listenerRemoving = false;
-
+            
             // after first add callback
             if (this._opts?.onFirstListenerDidAdd && this._listeners.size() === 1) {
                 this._opts.onFirstListenerDidAdd();
             }
+
+            let listenerRemoved = false;
+            let listenerRemoving = false;
 
             // returns a disposable in order to decide when to stop listening (unregister)
             const unRegister = toDisposable(() => {
@@ -206,7 +229,7 @@ export class Emitter<T> extends Disposable implements IEmitter<T> {
                     listenerRemoving = true;
 
                     this._opts?.onListenerWillRemove?.();
-                    this._listeners.remove(node);
+                    this.__delFromStructure(this._listeners, node);
                     this._opts?.onListenerDidRemove?.();
             
                     // last remove callback
@@ -219,40 +242,85 @@ export class Emitter<T> extends Disposable implements IEmitter<T> {
                 }
             });
 
-            if (disposables) {
-                disposables.push(unRegister);
-            }
+            // FIX
+            // if (disposables) {
+            //     disposables.push(unRegister);
+            // }
 
             return unRegister;
-        };
-        
-		return this._register;
+        });
+
+        return this._register!;
     }
 
-    public fire(event: T): void {
-        this._opts?.onFire?.();
+    // [public methods]
 
-        for (const listener of this._listeners) {
+    public hasListeners(): boolean {
+        return this._listeners.size() > 0;
+    }
+
+    public fire(event: TEvent): void {
+        if (this._listeners.empty()) {
+            return;
+        }
+        this._opts?.onFire?.();
+        this.__fire(this._listeners, event);
+        this._opts?.onDidFire?.();
+	}
+
+    public override dispose(): void {
+        super.dispose();
+        this.__clearStructure(this._listeners);
+        this._opts?.onLastListenerDidRemove?.();
+	}
+}
+
+// region - Emitter
+
+/**
+ * @class An event emitter binds to a specific event T. All the listeners who is 
+ * listening to the event T will be notified once the event occurs.
+ * 
+ * To listen to this event T, use this.registerListener(listener) where `listener` 
+ * is essentially a callback function.
+ * 
+ * To trigger the event occurs and notifies all the listeners, use this.fire(event) 
+ * where `event` has the type T.
+ * 
+ * @throws The unexpected caught by `fire()` error will be caught by {@link ErrorHandler.onUnexpectedError}.
+ */
+export class Emitter<T> extends AbstractEmitter<T, Register<T>, __Listener<T>, LinkedList<__Listener<T>>, ListNode<__Listener<T>>> implements IEmitter<T> {
+    
+    // [method]
+
+    protected override __fire(listeners: LinkedList<__Listener<T>>, event: T): void {
+        for (const listener of listeners) {
             try {
                 listener.fire(event);
             } catch (error) {
                 ErrorHandler.onUnexpectedError(error);
             }
         }
+    }
 
-        this._opts?.onDidFire?.();
-	}
-
-    public override dispose(): void {
-        super.dispose();
-		this._listeners.clear();
-        this._opts?.onLastListenerDidRemove?.();
-	}
-
-    public hasListeners(): boolean {
-        return this._listeners.size() > 0;
+    protected override __constructListener(listener: Listener<T>, disposables?: IDisposable[] | undefined, thisObject?: any): __Listener<T> {
+        return new __Listener(listener, thisObject, this._opts);
+    }
+    protected override __initStructure(): LinkedList<__Listener<T>> {
+        return new LinkedList();
+    }
+    protected override __clearStructure(listeners: LinkedList<__Listener<T>>): void {
+        listeners.clear();
+    }
+    protected override __addIntoStructure(listeners: LinkedList<__Listener<T>>, listener: __Listener<T>): ListNode<__Listener<T>> {
+        return listeners.push_back(listener);
+    }
+    protected override __delFromStructure(listeners: LinkedList<__Listener<T>>, node: ListNode<__Listener<T>>): void {
+        listeners.remove(node);
     }
 }
+
+// region - PauseableEmitter
 
 /**
  * @class An {@link Emitter} that is pauseable and resumable. Note that 
@@ -286,6 +354,8 @@ export class PauseableEmitter<T> extends Emitter<T> {
     }
 
 }
+
+// region - DelayableEmitter
 
 /**
  * @class An {@link Emitter} that works the same as {@link PauseableEmitter},
@@ -345,6 +415,8 @@ export class DelayableEmitter<T> extends Emitter<T> {
 
 }
 
+// region - SignalEmitter
+
 /**
  * @class A {@link SignalEmitter} consumes a series of {@link Register} and
  * fires a new type of event under a provided logic processing.
@@ -352,7 +424,7 @@ export class DelayableEmitter<T> extends Emitter<T> {
  * The {@link SignalEmitter} consumes a series of event with type T, and fires 
  * the event with type E.
  */
-export class SignalEmitter<T, E> extends Emitter<E> { 
+export class SignalEmitter<T, E> extends Emitter<E> {
 
     private logicHandler: (event: T) => E;
 
@@ -373,6 +445,8 @@ export class SignalEmitter<T, E> extends Emitter<E> {
         );
     }
 }
+
+// region - AsyncEmitter
 
 /**
  * @class Same as {@link Emitter<T>} with extra method `fireAsync()`.
@@ -400,6 +474,8 @@ export class AsyncEmitter<T> extends Emitter<T> {
         return super.registerListener;
     }
 }
+
+// region - RelayEmitter
 
 /**
  * @class A {@link RelayEmitter} works like a event pipe and the input may be 
@@ -460,6 +536,8 @@ export class RelayEmitter<T> extends Disposable {
     }
 }
 
+// region - NodeEventEmitter
+
 export interface INodeEventEmitter {
     on(eventName: string | symbol, listener: IO<void>): any;
     removeListener(eventName: string | symbol, listener: IO<void>): any;
@@ -504,6 +582,8 @@ export const enum Priority {
     Normal,
     High
 }
+
+// region - 'Event' Namespace
 
 /**
  * @description A series helper functions that relates to {@link Emitter} and 
