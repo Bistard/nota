@@ -136,7 +136,9 @@ export interface IEmitterOptions {
 
     // [emitter]
 
+    /** {@link onFire} will be invoked even there is no listeners. */
     readonly onFire?: IO<void>;
+    /** {@link onDidFire} will be invoked even there is no listeners. */
     readonly onDidFire?: IO<void>;
 }
 
@@ -253,11 +255,12 @@ abstract class AbstractEmitter<
     }
 
     public fire(event: TEvent): void {
-        if (this._listeners.empty()) {
-            return;
-        }
         this._opts?.onFire?.();
-        this.__fire(this._listeners, event);
+        
+        if (this._listeners.empty() === false) {
+            this.__fire(this._listeners, event);
+        }
+        
         this._opts?.onDidFire?.();
 	}
 
