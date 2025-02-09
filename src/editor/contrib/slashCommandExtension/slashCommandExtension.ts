@@ -8,6 +8,9 @@ import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { IOnTextInputEvent } from "src/editor/view/proseEventBroadcaster";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
+import { DisposableBucket } from "src/base/common/dispose";
+import { KeyCode } from "src/base/common/keyboard";
+import { ProseEditorView } from "src/editor/common/proseMirror";
 
 interface IEditorSlashCommandExtension extends IEditorExtension {
     
@@ -19,6 +22,9 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
     // [fields]
 
     public override readonly id = EditorExtensionIDs.SlashCommand;
+
+    /** ongoing lifecycles when the slash command is on. */
+    private _ongoingBucket?: DisposableBucket;
 
     constructor(
         editorWidget: IEditorWidget,
@@ -47,8 +53,15 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
             return;
         }
 
+        // show slash command
         const position = view.coordsAtPos(selection.$from.pos);
         this.__showSlashCommand(position);
+
+        // re-focus back to editor, not the slash command.
+        view.focus();
+
+        // 
+        this.__registerKeyboardHandlers(view);
     }
 
     private __showSlashCommand(position?: IPosition): void {
@@ -67,11 +80,73 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
             primaryAlignment: AnchorPrimaryAxisAlignment.Vertical,
             verticalPosition: AnchorVerticalPosition.Below,
 
-            onDestroy: (cause) => {
-                const onlyPreventBlur = cause === 'blur';
-                return onlyPreventBlur;
+            /**
+             * We need to capture the blur event to prevent auto destroy. We 
+             * will handle destruction by ourselves.
+             */
+            onBeforeDestroy: (cause) => {
+                const shouldPrevent = cause === 'blur';
+                return shouldPrevent;
+            },
+            // clean up
+            onDestroy: () => {
+                this.__releaseKeyboardHandlers();
             },
         }, parentElement);
+    }
+
+    private __registerKeyboardHandlers(view: ProseEditorView): void {
+        this.release(this._ongoingBucket);
+        this._ongoingBucket = this.__register(new DisposableBucket());
+
+        this._ongoingBucket.register(this.onKeydown(e => {
+            const captureKey = [
+                KeyCode.UpArrow, 
+                KeyCode.DownArrow,
+                KeyCode.LeftArrow, 
+                KeyCode.RightArrow,
+                
+                KeyCode.Escape,
+                KeyCode.Enter,
+            ];
+            
+            // do nothing if non-capture key pressed.
+            if (!captureKey.includes(e.event.key)) {
+                return;
+            }
+            
+            // captured the keydown event, we handle it by ourselves.
+            e.preventDefault();
+
+            // escape: destroy the slash command
+            if (e.event.key === KeyCode.Escape) {
+                this.contextMenuService.contextMenu.destroy();
+                view.focus();
+                return;
+            }
+
+            // handle arrow keys
+            else if (e.event.key === KeyCode.UpArrow) {
+                this.contextMenuService.contextMenu.focusPrev();
+            } else if (e.event.key === KeyCode.DownArrow) {
+                this.contextMenuService.contextMenu.focusNext();
+            } 
+            // TODO: special handle on right/left arrow
+            // else if () {
+
+            // }
+
+            // TODO: KeyCode.Enter
+
+            // make sure to re-focus back to editor
+            view.focus();
+        }));
+
+        // todo: when back to empty block, also destroy the slash command
+    }
+
+    private __releaseKeyboardHandlers(): void {
+        this.release(this._ongoingBucket);
     }
 
     private __obtainSlashCommandContent(): IMenuAction[] {
