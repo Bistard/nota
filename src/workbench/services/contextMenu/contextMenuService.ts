@@ -123,10 +123,25 @@ export interface IContextMenuService extends IService {
         focusNext(): void;
 
         /**
-         * @description Programmatically focus the item at the given index. If index
-         * is invalid, focus nothing but only the entire menu.
+         * @description Programmatically focus the item at the given index. If 
+         * index is invalid, focus nothing but only the entire menu.
          */
         focusAt(index: number): void;
+
+        /**
+         * @description Programmatically run the current focused item.
+         */
+        runFocus(): void;
+
+        /**
+         * @description If the menu has any focused item.
+         */
+        hasFocus(): boolean;
+
+        /**
+         * @description The index of the current focused item, -1 means none.
+         */
+        getFocus(): number;
     };
 }
 
@@ -176,14 +191,22 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
 
     @memoize
     get contextMenu() {
-        const ensureExist = (cb: (...args: any[]) => void) => {
-            return (...args: any[]) => this._contextMenu.visible() && cb(...args);
+        const ensureExist = (cb: (...args: any[]) => any) => {
+            return (...args: any[]) => {
+                if (this._contextMenu.visible()) {
+                    return cb(...args);
+                }
+                return undefined;
+            };
         };
         return {
             destroy: ensureExist(() => this._contextMenu.destroy()),
             focusPrev: ensureExist(() => this._internalDelegate?.focusPrev()),
             focusNext: ensureExist(() => this._internalDelegate?.focusNext()),
             focusAt: ensureExist((index: number) => this._internalDelegate?.focusAt(index)),
+            runFocus: ensureExist(() => this._internalDelegate?.runFocus()),
+            hasFocus: ensureExist(() => this._internalDelegate?.hasFocus()),
+            getFocus: ensureExist(() => this._internalDelegate?.getFocus()),
         };
     }
 
@@ -409,6 +432,18 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
         lifecycle.register(menu.onDidRun(this._onDidActionRun, undefined, this));
 
         return lifecycle;
+    }
+
+    public runFocus(): void {
+        this._menu?.run(this._menu.getCurrFocusIndex());
+    }
+
+    public hasFocus(): boolean {
+        return this._menu?.anyFocused() ?? false;
+    }
+
+    public getFocus(): number {
+        return this._menu?.getCurrFocusIndex() ?? -1;
     }
 
     public onFocus(): void {

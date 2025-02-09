@@ -135,18 +135,29 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
             // else if () {
 
             // }
-
-            // TODO: KeyCode.Enter
-
+            // enter
+            else if (e.event.key === KeyCode.Enter) {
+                const hasFocus = this.contextMenuService.contextMenu.hasFocus();
+                if (!hasFocus) {
+                    this.contextMenuService.contextMenu.destroy();
+                    view.focus();
+                    return;
+                }
+                this.contextMenuService.contextMenu.runFocus();
+            }
+            
             // make sure to re-focus back to editor
             view.focus();
         }));
 
         // todo: when back to empty block, also destroy the slash command
+
+        // todo: every contextMenu onFocus, need refocus editor
     }
 
     private __releaseKeyboardHandlers(): void {
         this.release(this._ongoingBucket);
+        this._ongoingBucket = undefined;
     }
 
     private __obtainSlashCommandContent(): IMenuAction[] {
@@ -157,7 +168,8 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
             enabled: true,
             id: name,
             callback: () => {
-                console.log('invoked');
+                // todo: insert actual block
+                console.log('block inserted');
             },
         }));
     }
