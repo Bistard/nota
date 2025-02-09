@@ -47,7 +47,13 @@ interface IShowContextMenuDelegateBase extends IContextMenuDelegateBase {
      * @description If provided, fires when the context menu is about to be 
      * closed, the client may return a `true` to prevent the destroy.
      */
-    onDestroy?(cause: 'blur' | 'esc'): boolean;
+    onBeforeDestroy?(cause: 'blur' | 'esc'): boolean;
+
+    /**
+     * @description If provided, fires when the context menu decides to be 
+     * closed, the client may have a chance to do some prework.
+     */
+    onDestroy?(): void;
 }
 
 export interface IShowContextMenuDelegate extends IShowContextMenuDelegateBase {
@@ -369,6 +375,7 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
         // context menu: before destroy event
         lifecycle.register(
             contextMenu.onDestroy(() => {
+                delegate.onDestroy?.();
                 this._menu = undefined;
     
                 // make sure the extra class is removed for later container to be reused.
@@ -388,7 +395,7 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
         .forEach(event => {
             const listener = event((e: void | FocusEvent) => {
                 const isBlur = e ? 'blur' : 'esc';
-                const prevent = delegate.onDestroy?.(isBlur);
+                const prevent = delegate.onBeforeDestroy?.(isBlur);
                 if (prevent) {
                     return;
                 }
