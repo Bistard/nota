@@ -428,8 +428,8 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
         });
 
         // running action events
-        lifecycle.register(menu.onBeforeRun(this._onBeforeActionRun, undefined, this));
-        lifecycle.register(menu.onDidRun(this._onDidActionRun, undefined, this));
+        lifecycle.register(menu.onBeforeRun(this._onBeforeActionRun, this));
+        lifecycle.register(menu.onDidRun(this._onDidActionRun, this));
 
         return lifecycle;
     }

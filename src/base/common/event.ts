@@ -36,17 +36,15 @@ export type GetEventType<R> = R extends Register<infer T> ? T : never;
  * @readonly A register is essentially a function that registers a listener to 
  * the event type T.
  * @param listener The `listener` to be registered.
- * @param disposables The `disposables` is used to store all the `listener`s as 
- *                    disposables after registrations.
  * @param thisObject The object to be used as the `this` object when executing
  *                   the listener.
  */
 export type Register<T> = {
-	(listener: Listener<T>, disposables?: IDisposable[], thisObject?: any): IDisposable;
+	(listener: Listener<T>, thisObject?: any): IDisposable;
 };
 
 export type AsyncRegister<T> = {
-    (listener: AsyncListener<T>, disposables?: IDisposable[], thisObject?: any): IDisposable;
+    (listener: AsyncListener<T>, thisObject?: any): IDisposable;
 };
 
 export interface IEmitter<T> {
@@ -242,11 +240,6 @@ abstract class AbstractEmitter<
                 }
             });
 
-            // FIX
-            // if (disposables) {
-            //     disposables.push(unRegister);
-            // }
-
             return unRegister;
         });
 
@@ -303,7 +296,7 @@ export class Emitter<T> extends AbstractEmitter<T, Register<T>, __Listener<T>, L
         }
     }
 
-    protected override __constructListener(listener: Listener<T>, disposables?: IDisposable[] | undefined, thisObject?: any): __Listener<T> {
+    protected override __constructListener(listener: Listener<T>, thisObject?: any): __Listener<T> {
         return new __Listener(listener, thisObject, this._opts);
     }
     protected override __initStructure(): LinkedList<__Listener<T>> {
@@ -601,8 +594,8 @@ export namespace Event {
      * @returns The new event register.
      */
     export function map<T, E>(register: Register<T>, to: (e: T) => E): Register<E> {
-        const newRegister = (listener: Listener<E>, disposables?: IDisposable[], thisArgs: any = null): IDisposable => {
-            return register((e) => listener(to(e)), disposables, thisArgs);
+        const newRegister = (listener: Listener<E>, thisArgs: any = null): IDisposable => {
+            return register((e) => listener(to(e)), thisArgs);
         };
         return newRegister;
     }
@@ -615,8 +608,8 @@ export namespace Event {
      * @returns The new event register.
      */
     export function each<T>(register: Register<T>, each: (e: T) => T): Register<T> {
-        const newRegister = (listener: Listener<T>, disposables?: IDisposable[], thisArgs: any = null): IDisposable => {
-            return register((e) => listener(each(e)), disposables, thisArgs);
+        const newRegister = (listener: Listener<T>, thisArgs: any = null): IDisposable => {
+            return register((e) => listener(each(e)), thisArgs);
         };
         return newRegister;
     }
@@ -631,10 +624,10 @@ export namespace Event {
      * single register with a union of their event types.
      */
     export function any<R extends Register<any>[]>(registers: [...R]): Register<GetEventType<R[number]>> {
-        const newRegister = (listener: Listener<GetEventType<R[number]>>, disposables?: IDisposable[], thisArgs: any = null) => {
+        const newRegister = (listener: Listener<GetEventType<R[number]>>, thisArgs: any = null) => {
             const parent = new DisposableBucket();
             registers.map(register => {
-                const disposable = register(listener, disposables, thisArgs);
+                const disposable = register(listener, thisArgs);
                 parent.register(disposable);
                 return disposable;
             });
@@ -650,12 +643,12 @@ export namespace Event {
      * @param fn The filter function.
      */
     export function filter<T>(register: Register<T>, fn: (e: T) => boolean): Register<T> {
-        const newRegister = (listener: Listener<T>, disposables?: IDisposable[], thisArgs: any = null) => {
+        const newRegister = (listener: Listener<T>, thisArgs: any = null) => {
             return register(e => {
                 if (fn(e)) {
                     listener.call(thisArgs, e);
                 }
-            }, disposables, thisArgs);
+            }, thisArgs);
         };
         return newRegister;
     }
@@ -667,7 +660,7 @@ export namespace Event {
      * @returns A new event register that only fire once.
      */
     export function once<T>(register: Register<T>): Register<T> {
-        return (listener: Listener<T>, disposables?: IDisposable[], thisObject: any = null) => {
+        return (listener: Listener<T>, thisObject: any = null) => {
             let fired = false;
             const oldListener = register((event) => {
                 if (fired) {
@@ -677,7 +670,7 @@ export namespace Event {
                 fired = true;
                 return listener.call(thisObject, event);
 
-            }, disposables, thisObject);
+            }, thisObject);
 
             if (fired) {
                 oldListener.dispose();
@@ -693,9 +686,9 @@ export namespace Event {
      * disposed.
      */
     export function onceSafe<T>(register: Register<T>): Register<T> {
-        return (listener: Listener<T>, disposables?: IDisposable[], thisObject: any = null) => {
+        return (listener: Listener<T>, thisObject: any = null) => {
             return untrackDisposable(
-                Event.once(register)(listener, disposables, thisObject)
+                Event.once(register)(listener, thisObject)
             );
         };
     }

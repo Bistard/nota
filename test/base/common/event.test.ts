@@ -312,7 +312,7 @@ suite('event-test', () => {
         const object = new NameClass('chris');
         const thisObject = new NameClass('replaced');
 
-        const registration1 = emitter.registerListener(object.getName, undefined, thisObject);
+        const registration1 = emitter.registerListener(object.getName, thisObject);
 
         emitter.fire();
 
@@ -361,36 +361,6 @@ suite('event-test', () => {
         registration2.dispose();
         emitter.fire(undefined);
         assert.strictEqual(counter, 3);
-    });
-
-    test('emitter - multiple listeners disposables', () => {
-        let counter = 0;
-        const callback = (e: undefined) => {
-            counter++;
-        };
-
-        const emitter = new Emitter<undefined>();
-        const disposables: IDisposable[] = [];
-
-        const registration1 = emitter.registerListener(callback, disposables);
-        const registration2 = emitter.registerListener(callback, disposables);
-
-        emitter.fire(undefined);
-        assert.strictEqual(counter, 2);
-
-        while (disposables.length) {
-            const disposable = disposables.pop();
-            disposable?.dispose();
-        }
-
-        emitter.fire(undefined);
-        assert.strictEqual(counter, 2);
-
-        // no operations
-        registration1.dispose();
-        registration2.dispose();
-        emitter.fire(undefined);
-        assert.strictEqual(counter, 2);
     });
 
     test('emitter - dispose emitter', () => {
@@ -627,7 +597,7 @@ suite('event-test', () => {
         const object = new NameClass('chris');
         const thisObject = new NameClass('replaced');
 
-        const registration1 = emitter.registerListener(object.getName, undefined, thisObject);
+        const registration1 = emitter.registerListener(object.getName, thisObject);
 
         await emitter.fireAsync();
 
