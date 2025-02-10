@@ -529,7 +529,7 @@ export class AsyncEmitter<T> extends Emitter<T> {
  *       {@link EventStrategy.FIFO}, which cannot accept {@link PriorityEmitter}
  *       as input. You must set to {@link EventStrategy.Priority} instead.
  */
-export class RelayEmitter<T, S extends EventStrategy = EventStrategy> extends Disposable {
+export class RelayEmitter<T, S extends EventStrategy = EventStrategy.FIFO> extends Disposable {
     
     // [static]
 
@@ -649,7 +649,7 @@ export class NodeEventEmitter<T> extends Disposable {
  *
  * @note LAZY: only start listening when there is one listener presents.
  */
-export class DomEmitter<T extends keyof DomEventMap, S extends EventStrategy = EventStrategy> extends Disposable {
+export class DomEmitter<T extends keyof DomEventMap, S extends EventStrategy = EventStrategy.FIFO> extends Disposable {
 
     // [static]
 
