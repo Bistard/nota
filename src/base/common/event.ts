@@ -1,8 +1,10 @@
 import type { IO } from "src/base/common/utilities/functional";
 import { LinkedList, ListNode } from "src/base/common/structures/linkedList";
-import { Disposable, DisposableBucket, IDisposable, LooseDisposableBucket, toDisposable, untrackDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableBucket, IDisposable, isDisposable, LooseDisposableBucket, toDisposable, untrackDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { panic } from "src/base/common/utilities/panic";
+import { PriorityQueue } from "src/base/common/structures/priorityQueue";
+import { nullable } from "src/base/common/utilities/type";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -14,7 +16,7 @@ import { panic } from "src/base/common/utilities/panic";
  *  - {@link AsyncEmitter}
  *  - {@link RelayEmitter}
  *  - {@link NodeEventEmitter}
- * 
+ *  - {@link PriorityEmitter}
  *  - {@link Event}
  ******************************************************************************/
 
@@ -26,6 +28,7 @@ import { panic } from "src/base/common/utilities/panic";
  */
 export type Listener<E> = (e: E) => any;
 export type AsyncListener<E> = (e: E) => Promise<any>;
+export type PriorityListener<E> = (e: E) => boolean | void | nullable;
 
 /**
  * Retrieve the event type T from the {@link Register}.
@@ -33,8 +36,8 @@ export type AsyncListener<E> = (e: E) => Promise<any>;
 export type GetEventType<R> = R extends Register<infer T> ? T : never;
 
 /**
- * @readonly A register is essentially a function that registers a listener to 
- * the event type T.
+ * @description A register is essentially a function that registers a listener 
+ * to the event type T.
  * @param listener The `listener` to be registered.
  * @param thisObject The object to be used as the `this` object when executing
  *                   the listener.
@@ -43,10 +46,25 @@ export type Register<T> = {
 	(listener: Listener<T>, thisObject?: any): IDisposable;
 };
 
+/**
+ * @description Two Differences compared with normal {@link Register<T>}:
+ *  1. The first paramter is a number indicates the priority of the listener.
+ *     The higher the number, the higher the priority.
+ *     1.1 If `null` provided, defaults to {@link Priority['Normal']}
+ *  2. The listener may return a boolean to indicates if the event is handled.
+ *     If `true` returned, the emitter will stop propagation to other listeners.
+ */
+export type PriorityRegister<T> = {
+    (priority: number | null, listener: PriorityListener<T>, thisObject?: any): IDisposable;
+};
+
 export type AsyncRegister<T> = {
     (listener: AsyncListener<T>, thisObject?: any): IDisposable;
 };
 
+/**
+ * A common emitter interface.
+ */
 export interface IEmitter<T> {
     /**
      * @description For the purpose of registering new listener.
@@ -93,7 +111,7 @@ class __Listener<T> {
     constructor(
         public readonly callback: Listener<T>, 
         public readonly thisObject: any,
-        private readonly _options?: IEmitterOptions,
+        protected readonly _options?: IEmitterOptions,
     ) {}
 
     public fire(e: T): void {
@@ -182,6 +200,9 @@ abstract class AbstractEmitter<
         super();
         this._opts = options;
         this._listeners = this.__initStructure();
+        if (isDisposable(this._listeners)) {
+            this.__register(this._listeners);
+        }
     }
 
     // [abstract]
@@ -573,10 +594,83 @@ export class NodeEventEmitter<T> extends Disposable {
     }
 }
 
+// region - PriorityEmitter
+
 export const enum Priority {
-    Low,
-    Normal,
-    High
+    Low = 0,
+    Normal = 100,
+    High = 200,
+}
+
+/**
+ * // TODO
+ */
+export class PriorityEmitter<T> extends AbstractEmitter<T, PriorityRegister<T>, __PriorityListener<T>, PriorityQueue<__PriorityListener<T>>, __PriorityListener<T>> {
+
+    // [method]
+
+    protected override __fire(listeners: PriorityQueue<__PriorityListener<T>>, event: T): void {
+        for (const listener of listeners) {
+            try {
+                const handled = listener.fire(event);
+                if (handled === true) {
+                    break;
+                }
+            } catch (error) {
+                ErrorHandler.onUnexpectedError(error);
+            }
+        }
+    }
+
+    protected override __constructListener(priority: number | null, listener: PriorityListener<T>, thisObject?: any): __PriorityListener<T> {
+        return new __PriorityListener(priority ?? Priority.Normal, listener, thisObject, this._opts);
+    }
+
+    protected override __initStructure(): PriorityQueue<__PriorityListener<T>> {
+        return new PriorityQueue<__PriorityListener<T>>(
+            // higher number, higher priority
+            (a, b) => b.priority - a.priority
+        );
+    }
+
+    protected override __clearStructure(listeners: PriorityQueue<__PriorityListener<T>>): void {
+        listeners.clear();
+    }
+
+    protected override __addIntoStructure(listeners: PriorityQueue<__PriorityListener<T>>, listener: __PriorityListener<T>): __PriorityListener<T> {
+        listeners.enqueue(listener);
+        return listener;
+    }
+
+    protected override __delFromStructure(listeners: PriorityQueue<__PriorityListener<T>>, node: __PriorityListener<T>): void {
+        listeners.remove(node);
+    }
+}
+
+class __PriorityListener<T> extends __Listener<T> {
+    
+    declare public callback: PriorityListener<T>;
+    
+    constructor(
+        public readonly priority: number,
+        callback: PriorityListener<T>,
+        thisObject: any,
+        options?: IEmitterOptions,
+    ) {
+        super(callback, thisObject, options);
+    }
+
+    public override fire(e: T): boolean | nullable | void {
+        try {
+            this._options?.onListenerRun?.();
+            const handled = this.callback.call(this.thisObject, e);
+            this._options?.onListenerDidRun?.();
+            return handled;
+        } catch (err) {
+            const onErr = this._options?.onListenerError ?? ErrorHandler.onUnexpectedError;
+            onErr(err);
+        }
+    }
 }
 
 // region - 'Event' Namespace

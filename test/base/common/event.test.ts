@@ -1,7 +1,6 @@
 import * as assert from 'assert';
-import { IDisposable } from 'src/base/common/dispose';
 import { ErrorHandler } from 'src/base/common/error';
-import { AsyncEmitter, DelayableEmitter, Emitter, Event, IEmitterOptions, PauseableEmitter, RelayEmitter, SignalEmitter } from 'src/base/common/event';
+import { AsyncEmitter, DelayableEmitter, Emitter, Event, IEmitterOptions, PauseableEmitter, Priority, PriorityEmitter, RelayEmitter, SignalEmitter } from 'src/base/common/event';
 import { Blocker, repeat } from 'src/base/common/utilities/async';
 import { FakeAsync } from 'test/utils/fakeAsync';
 
@@ -629,6 +628,88 @@ suite('event-test', () => {
         
         input2.fire(-5);
         assert.strictEqual(total, 0);
+    });
+
+    suite('PriorityEmitter', () => {
+        test('should register and fire events in priority order', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListener(Priority.Low, (e) => {result.push(`Low: ${e}`);});
+            emitter.registerListener(Priority.Normal, (e) => {result.push(`Normal: ${e}`);});
+            emitter.registerListener(Priority.High, (e) => {result.push(`High: ${e}`);});
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['High: test', 'Normal: test', 'Low: test']);
+        });
+    
+        test('should stop propagation if a high-priority listener returns true', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListener(Priority.Low, (e) => {result.push(`Low: ${e}`);});
+            emitter.registerListener(Priority.Normal, (e) => {result.push(`Normal: ${e}`);});
+            emitter.registerListener(Priority.High, (e) => {
+                result.push(`High: ${e}`);
+                return true;
+            });
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['High: test']);
+        });
+    
+        test('should allow multiple listeners with the same priority', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListener(Priority.Normal, (e) => {result.push(`Listener 1: ${e}`);});
+            emitter.registerListener(Priority.Normal, (e) => {result.push(`Listener 2: ${e}`);});
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['Listener 1: test', 'Listener 2: test']);
+        });
+    
+        test('should remove a registered listener', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            const disposable = emitter.registerListener(Priority.Normal, (e) => {result.push(`Listener: ${e}`);});
+    
+            emitter.fire('test1');
+            disposable.dispose();
+            emitter.fire('test2');
+    
+            assert.deepStrictEqual(result, ['Listener: test1']);
+        });
+    
+        test('should handle errors thrown by listeners and continue execution', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListener(Priority.Normal, () => {
+                throw new Error('Listener error');
+            });
+            emitter.registerListener(Priority.Low, (e) => {result.push(`Listener: ${e}`);});
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['Listener: test']);
+        });
+    
+        test('should handle listeners with default priority when null is passed', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListener(null, (e) => {result.push(`Default: ${e}`);});
+            emitter.registerListener(Priority.High, (e) => {result.push(`High: ${e}`);});
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['High: test', 'Default: test']);
+        });
     });
 
     test('Event.map()', () => {
