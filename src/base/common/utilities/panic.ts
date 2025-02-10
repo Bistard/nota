@@ -1,4 +1,3 @@
-import { IpcErrorTag } from "src/base/common/error";
 import type { ArrayToUnion } from "src/base/common/utilities/type";
 
 /**
@@ -229,6 +228,13 @@ export function errorToMessage(error: any, verbose: boolean = true): string {
 
     return `${UNKNOWN_MESSAGE}: ${__stringifySafe(error)}`;
 }
+
+// region - private
+
+/**
+ * Give client a chance to distinguish between the real Error.
+ */
+export const IpcErrorTag = '__$ipcTransferable';
 
 const UNKNOWN_MESSAGE = 'An unknown error occurred. Please consult the log for more details.';
 function __stackToMessage(stack: any): string {
