@@ -11,6 +11,7 @@ import { IContextMenuService } from "src/workbench/services/contextMenu/contextM
 import { DisposableBucket } from "src/base/common/dispose";
 import { KeyCode } from "src/base/common/keyboard";
 import { ProseEditorView } from "src/editor/common/proseMirror";
+import { Priority } from "src/base/common/event";
 
 interface IEditorSlashCommandExtension extends IEditorExtension {
     
@@ -33,7 +34,9 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
         super(editorWidget);
 
         // slash-command rendering
-        this.__register(this.onTextInput(e => this.__tryShowSlashCommand(e)));
+        this.__register(this.onTextInput(e => {
+            this.__tryShowSlashCommand(e);
+        }));
     }
 
     // [private methods]
@@ -60,7 +63,7 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
         // re-focus back to editor, not the slash command.
         view.focus();
 
-        // 
+        // slash command shown, we capture certain key press.
         this.__registerKeyboardHandlers(view);
     }
 
@@ -75,7 +78,7 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
         this.contextMenuService.showContextMenuCustom({
             getActions: () => this.__obtainSlashCommandContent(),
             getContext: () => undefined,
-            getAnchor: () => ({ x, y }),
+            getAnchor: () => ({ x, y }), // FIX: use element
             getExtraContextMenuClassName: () => 'editor-slash-command',
             primaryAlignment: AnchorPrimaryAxisAlignment.Vertical,
             verticalPosition: AnchorVerticalPosition.Below,
@@ -99,6 +102,7 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
         this.release(this._ongoingBucket);
         this._ongoingBucket = this.__register(new DisposableBucket());
 
+        /** Registered with {@link Priority.High} */
         this._ongoingBucket.register(this.onKeydown(e => {
             const captureKey = [
                 KeyCode.UpArrow, 
@@ -117,12 +121,14 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
             
             // captured the keydown event, we handle it by ourselves.
             e.preventDefault();
+            e.event.preventDefault();
+            console.log('captured');
 
             // escape: destroy the slash command
             if (e.event.key === KeyCode.Escape) {
                 this.contextMenuService.contextMenu.destroy();
                 view.focus();
-                return;
+                return true;
             }
 
             // handle arrow keys
@@ -141,14 +147,17 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
                 if (!hasFocus) {
                     this.contextMenuService.contextMenu.destroy();
                     view.focus();
-                    return;
+                    return false; // do not handle it since no focusing item
                 }
                 this.contextMenuService.contextMenu.runFocus();
             }
             
             // make sure to re-focus back to editor
             view.focus();
-        }));
+            
+            // tell the editor we handled this event, stop propagation.
+            return true;
+        }, undefined, Priority.High));
 
         // todo: when back to empty block, also destroy the slash command
 
@@ -169,7 +178,6 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
             id: name,
             callback: () => {
                 // todo: insert actual block
-                console.log('block inserted');
             },
         }));
     }
