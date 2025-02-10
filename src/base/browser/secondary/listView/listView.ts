@@ -4,7 +4,8 @@ import { IListViewRenderer, ListItemRenderer, PipelineRenderer, RendererType } f
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { IScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { DomEmitter, DomUtility, EventType } from "src/base/browser/basic/dom";
+import { DomUtility, EventType } from "src/base/browser/basic/dom";
+import { DomEmitter } from "src/base/common/event";
 import { Emitter, Register } from "src/base/common/event";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/structures/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";

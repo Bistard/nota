@@ -5,6 +5,7 @@ import { ErrorHandler } from "src/base/common/error";
 import { panic } from "src/base/common/utilities/panic";
 import { PriorityQueue } from "src/base/common/structures/priorityQueue";
 import { nullable } from "src/base/common/utilities/type";
+import { DomEventMap } from "src/base/browser/basic/dom";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -16,6 +17,7 @@ import { nullable } from "src/base/common/utilities/type";
  *  - {@link AsyncEmitter}
  *  - {@link RelayEmitter}
  *  - {@link NodeEventEmitter}
+ *  - {@link DomEmitter}
  *  - {@link PriorityEmitter}
  *  - {@link Event}
  ******************************************************************************/
@@ -631,6 +633,35 @@ export class NodeEventEmitter<T> extends Disposable {
         return this._emitter.registerListener;
     }
 }
+
+// region - DomEmitter
+
+/**
+ * @class A Simple class for register callback on a given HTMLElement using an
+ * {@link Emitter} instead of using raw *addEventListener()* method.
+ *
+ * @note LAZY: only start listening when there is one listener presents.
+ */
+
+export class DomEmitter<T extends keyof DomEventMap> extends Disposable {
+
+	private readonly emitter: Emitter<DomEventMap[T]>;
+
+	constructor(element: EventTarget, type: T, useCapture: boolean = false) {
+		super();
+		const fn = (e: any) => this.emitter.fire(e);
+		// LAZY
+		this.emitter = this.__register(new Emitter({
+			onFirstListenerAdd: () => element.addEventListener(type, fn, useCapture),
+			onLastListenerDidRemove: () => element.removeEventListener(type, fn, useCapture),
+		}));
+	}
+
+	get registerListener(): Register<DomEventMap[T]> {
+		return this.emitter.registerListener;
+	}
+}
+
 
 // region - PriorityEmitter
 

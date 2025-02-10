@@ -1,5 +1,6 @@
 import { ContextMenuView, IAnchor, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
-import { DomEmitter, DomUtility, EventType } from "src/base/browser/basic/dom";
+import { DomUtility, EventType } from "src/base/browser/basic/dom";
+import { DomEmitter } from "src/base/common/event";
 import { IMenu, IMenuActionRunEvent, Menu, MenuWithSubmenu } from "src/base/browser/basic/menu/menu";
 import { CheckMenuAction, IMenuAction, MenuItemType, MenuSeparatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { Disposable, DisposableBucket, IDisposable } from "src/base/common/dispose";

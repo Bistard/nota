@@ -1,4 +1,5 @@
-import { DomEmitter, EventType } from "src/base/browser/basic/dom";
+import { EventType } from "src/base/browser/basic/dom";
+import { DomEmitter } from "src/base/common/event";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { Emitter, Event, PriorityEmitter, PriorityRegister, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent } from "src/base/common/keyboard";
