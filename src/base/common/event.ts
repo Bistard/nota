@@ -4,7 +4,7 @@ import { Disposable, DisposableBucket, IDisposable, isDisposable, LooseDisposabl
 import { ErrorHandler } from "src/base/common/error";
 import { panic } from "src/base/common/utilities/panic";
 import { PriorityQueue } from "src/base/common/structures/priorityQueue";
-import { nullable } from "src/base/common/utilities/type";
+import { isNumber, nullable } from "src/base/common/utilities/type";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -603,11 +603,51 @@ export const enum Priority {
 }
 
 /**
- * // TODO
+ * @class A priority-based event emitter that executes listeners in descending 
+ * order of priority (higher priority values first).
+ * 
+ * @design
+ * 1. Dual Registrations:
+ *   - Standard: `registerListener(listener, thisObject?)`
+ *   - Priority: `registerListenerPriority(priority, listener, thisObject?)`
+ * 2. Prevent Propagation Mechanism:
+ *   - Listeners can return `true` to indicate that the event has been handled. 
+ *     When a listener returns `true`, the emitter stops executing remaining 
+ *     listeners.
+ *   - Listeners registerd via `registerListener` or `registerListenerPriority`
+ *     all have this feature.
+ * 
+ * @example
+ * const emitter = new PriorityEmitter<string>();
+ * 
+ * // Standard registration (default priority: Priority.Normal)
+ * emitter.registerListener((msg) => console.log('Default:', msg));
+ * 
+ * // Priority registration
+ * emitter.registerListenerPriority(Priority.High, (msg) => {
+ *   console.log('Urgent:', msg);
+ *   return true; // Stop propagation
+ * });
  */
-export class PriorityEmitter<T> extends AbstractEmitter<T, PriorityRegister<T>, __PriorityListener<T>, PriorityQueue<__PriorityListener<T>>, __PriorityListener<T>> {
+export class PriorityEmitter<T> extends AbstractEmitter<T, Register<T>, __PriorityListener<T>, PriorityQueue<__PriorityListener<T>>, __PriorityListener<T>> implements IEmitter<T> {
 
-    // [method]
+    // [methods]
+
+    get registerListenerPriority(): PriorityRegister<T> {
+        /**
+         * @hacky
+         * Since {@link registerListener} and {@link registerListenerPriority}
+         * different only in terms of function parameters. We may just return 
+         * the same function, and dynamically check the arguments inside 
+         * {@link __constructListener}.
+         * 
+         * This might slightlyyyyyyyyyyy affect the performance, but i think it 
+         * worth at this point.
+         */
+        return this.registerListener as any;
+    }
+
+    // [override]
 
     protected override __fire(listeners: PriorityQueue<__PriorityListener<T>>, event: T): void {
         for (const listener of listeners) {
@@ -622,8 +662,12 @@ export class PriorityEmitter<T> extends AbstractEmitter<T, PriorityRegister<T>, 
         }
     }
 
-    protected override __constructListener(priority: number | null, listener: PriorityListener<T>, thisObject?: any): __PriorityListener<T> {
-        return new __PriorityListener(priority ?? Priority.Normal, listener, thisObject, this._opts);
+    protected override __constructListener(arg1: any, arg2: any, arg3?: any): __PriorityListener<T> {
+        const isPriority = isNumber(arg1) || arg1 === null;
+        const priority   = isPriority ? (arg1 ?? Priority.Normal) : Priority.Normal;
+        const listener   = isPriority ? arg2 : arg1;
+        const thisObject = isPriority ? arg3 : arg2;
+        return new __PriorityListener(priority, listener, thisObject, this._opts);
     }
 
     protected override __initStructure(): PriorityQueue<__PriorityListener<T>> {

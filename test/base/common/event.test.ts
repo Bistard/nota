@@ -630,14 +630,67 @@ suite('event-test', () => {
         assert.strictEqual(total, 0);
     });
 
-    suite('PriorityEmitter', () => {
+    suite('PriorityEmitter - registerListener', () => {
+        test('should register and fire events in default priority order', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListener((e) => result.push(`Listener 1: ${e}`));
+            emitter.registerListener((e) => result.push(`Listener 2: ${e}`));
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['Listener 1: test', 'Listener 2: test']);
+        });
+    
+        test('should allow removing a registered listener', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            const disposable = emitter.registerListener((e) => result.push(`Listener: ${e}`));
+    
+            emitter.fire('test1');
+            disposable.dispose();
+            emitter.fire('test2');
+    
+            assert.deepStrictEqual(result, ['Listener: test1']);
+        });
+    
+        test('should continue firing even if one listener throws an error', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListener(() => {
+                throw new Error('Listener error');
+            });
+            emitter.registerListener((e) => result.push(`Listener: ${e}`));
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['Listener: test']);
+        });
+    
+        test('should not interfere with registerListenerPriority behavior', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListener((e) => result.push(`Normal: ${e}`));
+            emitter.registerListenerPriority(Priority.High, (e) => { result.push(`High: ${e}`); });
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['High: test', 'Normal: test']);
+        });
+    });
+
+    suite('PriorityEmitter - registerListenerPriority', () => {
         test('should register and fire events in priority order', () => {
             const emitter = new PriorityEmitter<string>();
             const result: string[] = [];
     
-            emitter.registerListener(Priority.Low, (e) => {result.push(`Low: ${e}`);});
-            emitter.registerListener(Priority.Normal, (e) => {result.push(`Normal: ${e}`);});
-            emitter.registerListener(Priority.High, (e) => {result.push(`High: ${e}`);});
+            emitter.registerListenerPriority(Priority.Low, (e) => {result.push(`Low: ${e}`);});
+            emitter.registerListenerPriority(Priority.Normal, (e) => {result.push(`Normal: ${e}`);});
+            emitter.registerListenerPriority(Priority.High, (e) => {result.push(`High: ${e}`);});
     
             emitter.fire('test');
     
@@ -648,9 +701,9 @@ suite('event-test', () => {
             const emitter = new PriorityEmitter<string>();
             const result: string[] = [];
     
-            emitter.registerListener(Priority.Low, (e) => {result.push(`Low: ${e}`);});
-            emitter.registerListener(Priority.Normal, (e) => {result.push(`Normal: ${e}`);});
-            emitter.registerListener(Priority.High, (e) => {
+            emitter.registerListenerPriority(Priority.Low, (e) => {result.push(`Low: ${e}`);});
+            emitter.registerListenerPriority(Priority.Normal, (e) => {result.push(`Normal: ${e}`);});
+            emitter.registerListenerPriority(Priority.High, (e) => {
                 result.push(`High: ${e}`);
                 return true;
             });
@@ -664,8 +717,8 @@ suite('event-test', () => {
             const emitter = new PriorityEmitter<string>();
             const result: string[] = [];
     
-            emitter.registerListener(Priority.Normal, (e) => {result.push(`Listener 1: ${e}`);});
-            emitter.registerListener(Priority.Normal, (e) => {result.push(`Listener 2: ${e}`);});
+            emitter.registerListenerPriority(Priority.Normal, (e) => {result.push(`Listener 1: ${e}`);});
+            emitter.registerListenerPriority(Priority.Normal, (e) => {result.push(`Listener 2: ${e}`);});
     
             emitter.fire('test');
     
@@ -676,7 +729,7 @@ suite('event-test', () => {
             const emitter = new PriorityEmitter<string>();
             const result: string[] = [];
     
-            const disposable = emitter.registerListener(Priority.Normal, (e) => {result.push(`Listener: ${e}`);});
+            const disposable = emitter.registerListenerPriority(Priority.Normal, (e) => {result.push(`Listener: ${e}`);});
     
             emitter.fire('test1');
             disposable.dispose();
@@ -689,10 +742,10 @@ suite('event-test', () => {
             const emitter = new PriorityEmitter<string>();
             const result: string[] = [];
     
-            emitter.registerListener(Priority.Normal, () => {
+            emitter.registerListenerPriority(Priority.Normal, () => {
                 throw new Error('Listener error');
             });
-            emitter.registerListener(Priority.Low, (e) => {result.push(`Listener: ${e}`);});
+            emitter.registerListenerPriority(Priority.Low, (e) => {result.push(`Listener: ${e}`);});
     
             emitter.fire('test');
     
@@ -703,8 +756,8 @@ suite('event-test', () => {
             const emitter = new PriorityEmitter<string>();
             const result: string[] = [];
     
-            emitter.registerListener(null, (e) => {result.push(`Default: ${e}`);});
-            emitter.registerListener(Priority.High, (e) => {result.push(`High: ${e}`);});
+            emitter.registerListenerPriority(null, (e) => {result.push(`Default: ${e}`);});
+            emitter.registerListenerPriority(Priority.High, (e) => {result.push(`High: ${e}`);});
     
             emitter.fire('test');
     
