@@ -1,4 +1,4 @@
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, untrackDisposable } from "src/base/common/dispose";
 import { IIterable } from "src/base/common/utilities/iterable";
 import { Comparator } from "src/base/common/utilities/type";
 
@@ -144,7 +144,7 @@ export class PriorityQueue<T> extends Disposable implements IPriorityQueue<T> {
         const copyCount = this._count;
         const copyComparator = this.__comparator;
 
-        const copyQueue = new PriorityQueue<T>(copyComparator);
+        const copyQueue = untrackDisposable(new PriorityQueue<T>(copyComparator));
         copyQueue._heap = copy;
         copyQueue._count = copyCount;
         
