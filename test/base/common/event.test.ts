@@ -675,7 +675,7 @@ suite('event-test', () => {
             const result: string[] = [];
     
             emitter.registerListener((e) => result.push(`Normal: ${e}`));
-            emitter.registerListenerPriority(Priority.High, (e) => { result.push(`High: ${e}`); });
+            emitter.registerListenerPriority((e) => { result.push(`High: ${e}`); }, Priority.High);
     
             emitter.fire('test');
     
@@ -688,9 +688,9 @@ suite('event-test', () => {
             const emitter = new PriorityEmitter<string>();
             const result: string[] = [];
     
-            emitter.registerListenerPriority(Priority.Low, (e) => {result.push(`Low: ${e}`);});
-            emitter.registerListenerPriority(Priority.Normal, (e) => {result.push(`Normal: ${e}`);});
-            emitter.registerListenerPriority(Priority.High, (e) => {result.push(`High: ${e}`);});
+            emitter.registerListenerPriority((e) => {result.push(`Low: ${e}`);}, Priority.Low);
+            emitter.registerListenerPriority((e) => {result.push(`Normal: ${e}`);}, Priority.Normal);
+            emitter.registerListenerPriority((e) => {result.push(`High: ${e}`);}, Priority.High);
     
             emitter.fire('test');
     
@@ -701,12 +701,12 @@ suite('event-test', () => {
             const emitter = new PriorityEmitter<string>();
             const result: string[] = [];
     
-            emitter.registerListenerPriority(Priority.Low, (e) => {result.push(`Low: ${e}`);});
-            emitter.registerListenerPriority(Priority.Normal, (e) => {result.push(`Normal: ${e}`);});
-            emitter.registerListenerPriority(Priority.High, (e) => {
+            emitter.registerListenerPriority((e) => {result.push(`Low: ${e}`);}, Priority.Low);
+            emitter.registerListenerPriority((e) => {result.push(`Normal: ${e}`);}, Priority.Normal);
+            emitter.registerListenerPriority((e) => {
                 result.push(`High: ${e}`);
                 return true;
-            });
+            }, Priority.High);
     
             emitter.fire('test');
     
@@ -717,8 +717,8 @@ suite('event-test', () => {
             const emitter = new PriorityEmitter<string>();
             const result: string[] = [];
     
-            emitter.registerListenerPriority(Priority.Normal, (e) => {result.push(`Listener 1: ${e}`);});
-            emitter.registerListenerPriority(Priority.Normal, (e) => {result.push(`Listener 2: ${e}`);});
+            emitter.registerListenerPriority((e) => {result.push(`Listener 1: ${e}`);}, Priority.Normal);
+            emitter.registerListenerPriority((e) => {result.push(`Listener 2: ${e}`);}, Priority.Normal);
     
             emitter.fire('test');
     
@@ -729,7 +729,7 @@ suite('event-test', () => {
             const emitter = new PriorityEmitter<string>();
             const result: string[] = [];
     
-            const disposable = emitter.registerListenerPriority(Priority.Normal, (e) => {result.push(`Listener: ${e}`);});
+            const disposable = emitter.registerListenerPriority((e) => {result.push(`Listener: ${e}`);}, Priority.Normal);
     
             emitter.fire('test1');
             disposable.dispose();
@@ -742,10 +742,10 @@ suite('event-test', () => {
             const emitter = new PriorityEmitter<string>();
             const result: string[] = [];
     
-            emitter.registerListenerPriority(Priority.Normal, () => {
+            emitter.registerListenerPriority(() => {
                 throw new Error('Listener error');
-            });
-            emitter.registerListenerPriority(Priority.Low, (e) => {result.push(`Listener: ${e}`);});
+            }, Priority.Normal);
+            emitter.registerListenerPriority((e) => {result.push(`Listener: ${e}`);}, Priority.Low);
     
             emitter.fire('test');
     
@@ -756,8 +756,8 @@ suite('event-test', () => {
             const emitter = new PriorityEmitter<string>();
             const result: string[] = [];
     
-            emitter.registerListenerPriority(null, (e) => {result.push(`Default: ${e}`);});
-            emitter.registerListenerPriority(Priority.High, (e) => {result.push(`High: ${e}`);});
+            emitter.registerListenerPriority((e) => {result.push(`Default: ${e}`);});
+            emitter.registerListenerPriority((e) => {result.push(`High: ${e}`);}, Priority.High);
     
             emitter.fire('test');
     

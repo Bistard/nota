@@ -4,7 +4,7 @@ import { Disposable, DisposableBucket, IDisposable, isDisposable, LooseDisposabl
 import { ErrorHandler } from "src/base/common/error";
 import { panic } from "src/base/common/utilities/panic";
 import { PriorityQueue } from "src/base/common/structures/priorityQueue";
-import { isNumber, nullable } from "src/base/common/utilities/type";
+import { nullable } from "src/base/common/utilities/type";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -49,13 +49,13 @@ export type Register<T> = {
 /**
  * @description Two Differences compared with normal {@link Register<T>}:
  *  1. The first paramter is a number indicates the priority of the listener.
- *     The higher the number, the higher the priority.
- *     1.1 If `null` provided, defaults to {@link Priority['Normal']}
+ *     The higher the number, the higher the priority. If not provided, defaults 
+ *     to {@link Priority['Normal']}
  *  2. The listener may return a boolean to indicates if the event is handled.
  *     If `true` returned, the emitter will stop propagation to other listeners.
  */
 export type PriorityRegister<T> = {
-    (priority: number | null, listener: PriorityListener<T>, thisObject?: any): IDisposable;
+    (listener: PriorityListener<T>, thisObject?: any, priority?: number): IDisposable;
 };
 
 export type AsyncRegister<T> = {
@@ -637,12 +637,9 @@ export class PriorityEmitter<T> extends AbstractEmitter<T, Register<T>, __Priori
         /**
          * @hacky
          * Since {@link registerListener} and {@link registerListenerPriority}
-         * different only in terms of function parameters. We may just return 
-         * the same function, and dynamically check the arguments inside 
+         * different only in terms of function parameters (the new parameter is
+         * at the last). We may just return the same function.
          * {@link __constructListener}.
-         * 
-         * This might slightlyyyyyyyyyyy affect the performance, but i think it 
-         * worth at this point.
          */
         return this.registerListener as any;
     }
@@ -662,12 +659,8 @@ export class PriorityEmitter<T> extends AbstractEmitter<T, Register<T>, __Priori
         }
     }
 
-    protected override __constructListener(arg1: any, arg2: any, arg3?: any): __PriorityListener<T> {
-        const isPriority = isNumber(arg1) || arg1 === null;
-        const priority   = isPriority ? (arg1 ?? Priority.Normal) : Priority.Normal;
-        const listener   = isPriority ? arg2 : arg1;
-        const thisObject = isPriority ? arg3 : arg2;
-        return new __PriorityListener(priority, listener, thisObject, this._opts);
+    protected override __constructListener(listener: Listener<T>, thisObject?: any, priority?: number): __PriorityListener<T> {
+        return new __PriorityListener(priority ?? Priority.Normal, listener, thisObject, this._opts);
     }
 
     protected override __initStructure(): PriorityQueue<__PriorityListener<T>> {
