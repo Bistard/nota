@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { ErrorHandler } from 'src/base/common/error';
-import { AsyncEmitter, DelayableEmitter, Emitter, Event, IEmitterOptions, PauseableEmitter, Priority, PriorityEmitter, RelayEmitter, SignalEmitter } from 'src/base/common/event';
+import { AsyncEmitter, DelayableEmitter, Emitter, Event, EventStrategy, IEmitterOptions, PauseableEmitter, Priority, PriorityEmitter, RelayEmitter, SignalEmitter } from 'src/base/common/event';
 import { Blocker, repeat } from 'src/base/common/utilities/async';
 import { FakeAsync } from 'test/utils/fakeAsync';
 
@@ -603,31 +603,116 @@ suite('event-test', () => {
         assert.strictEqual(name, 'replaced');
     }));
 
-    test('relayEmitter', () => {
-        const input1 = new Emitter<number>();
-        const input2 = new Emitter<number>();
-
-        const relay = new RelayEmitter<number>();
-        
-        let total = 0;
-
-        relay.registerListener((value) => {
-            total += value;
+    suite('RelayEmitter', () => {
+        test('basic', () => {
+            const input1 = new Emitter<number>();
+            const input2 = new Emitter<number>();
+    
+            const relay = new RelayEmitter<number>();
+            
+            let total = 0;
+    
+            relay.registerListener((value) => {
+                total += value;
+            });
+            relay.registerListener((value) => {
+                total += value;
+            });
+    
+            relay.setInput(input1.registerListener);
+            
+            input1.fire(5);
+            assert.strictEqual(total, 10);
+    
+    
+            relay.setInput(input2.registerListener);
+            
+            input2.fire(-5);
+            assert.strictEqual(total, 0);
         });
-        relay.registerListener((value) => {
-            total += value;
+
+        test('should relay events from the input emitter', () => {
+            const inputEmitter = new Emitter<string>();
+            const relay = new RelayEmitter<string>();
+    
+            const result: string[] = [];
+            relay.registerListener((msg) => result.push(msg));
+    
+            relay.setInput(inputEmitter.registerListener);
+            inputEmitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['test']);
+        });
+    
+        test('should switch input emitter dynamically', () => {
+            const emitter1 = new Emitter<string>();
+            const emitter2 = new Emitter<string>();
+            const relay = new RelayEmitter<string>();
+    
+            const result: string[] = [];
+            relay.registerListener((msg) => result.push(msg));
+    
+            relay.setInput(emitter1.registerListener);
+            emitter1.fire('from E1');
+    
+            relay.setInput(emitter2.registerListener);
+            emitter2.fire('from E2');
+            emitter1.fire('from E1 again');
+    
+            assert.deepStrictEqual(result, ['from E1', 'from E2']);
+        });
+    
+        test('should stop relaying when no listeners are attached', () => {
+            const inputEmitter = new Emitter<string>();
+            const relay = new RelayEmitter<string>();
+    
+            const result: string[] = [];
+            const disposable = relay.registerListener((msg) => result.push(msg));
+    
+            relay.setInput(inputEmitter.registerListener);
+            inputEmitter.fire('before dispose');
+    
+            disposable.dispose();
+            inputEmitter.fire('after dispose');
+    
+            assert.deepStrictEqual(result, ['before dispose']);
+        });
+    
+        test('should work with PriorityEmitter when EventStrategy.Priority is set', () => {
+            const inputEmitter = new PriorityEmitter<string>();
+            const relay = RelayEmitter.createPriority();
+    
+            const result: string[] = [];
+            relay.registerListener((msg) => result.push(`Default: ${msg}`));
+            relay.registerListenerPriority((msg) => { result.push(`High: ${msg}`); }, undefined, Priority.High);
+    
+            relay.setInput(inputEmitter.registerListener);
+            inputEmitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['High: test', 'Default: test']);
         });
 
-        relay.setInput(input1.registerListener);
-        
-        input1.fire(5);
-        assert.strictEqual(total, 10);
-
-
-        relay.setInput(input2.registerListener);
-        
-        input2.fire(-5);
-        assert.strictEqual(total, 0);
+        test('should clean up previous input event listeners when switching inputs', () => {
+            const emitter1 = new Emitter<string>();
+            const emitter2 = new Emitter<string>();
+            const relay = new RelayEmitter<string>();
+    
+            let count1 = 0;
+            let count2 = 0;
+    
+            relay.registerListener(() => count1++);
+            relay.registerListener(() => count2++);
+    
+            relay.setInput(emitter1.registerListener);
+            emitter1.fire('test1');
+    
+            relay.setInput(emitter2.registerListener);
+            emitter2.fire('test2');
+            emitter1.fire('test1 again');
+    
+            assert.strictEqual(count1, 2);
+            assert.strictEqual(count2, 2);
+        });
     });
 
     suite('PriorityEmitter - registerListener', () => {
