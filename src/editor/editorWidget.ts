@@ -152,120 +152,120 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     // region - [model events]
 
-    private readonly _onDidStateChange = this.__register(new RelayEmitter<void>());
+    private readonly _onDidStateChange = this.__register(RelayEmitter.createPriority<void>());
     public readonly onDidStateChange = this._onDidStateChange.registerListener;
 
-    private readonly _onDidDirtyChange = this.__register(new RelayEmitter<boolean>());
+    private readonly _onDidDirtyChange = this.__register(RelayEmitter.createPriority<boolean>());
     public readonly onDidDirtyChange = this._onDidDirtyChange.registerListener;
 
-    private readonly _onDidSave = this.__register(new RelayEmitter<void>());
+    private readonly _onDidSave = this.__register(RelayEmitter.createPriority<void>());
     public readonly onDidSave = this._onDidSave.registerListener;
     
-    private readonly _onDidSaveError = this.__register(new RelayEmitter<unknown>());
+    private readonly _onDidSaveError = this.__register(RelayEmitter.createPriority<unknown>());
     public readonly onDidSaveError = this._onDidSaveError.registerListener;
 
     // region - [view events]
 
-    private readonly _onDidBlur = this.__register(new RelayEmitter<IOnFocusEvent>());
+    private readonly _onDidBlur = this.__register(RelayEmitter.createPriority<IOnFocusEvent>());
     public readonly onDidBlur = this._onDidBlur.registerListener;
     
-    private readonly _onDidFocus = this.__register(new RelayEmitter<IOnFocusEvent>());
+    private readonly _onDidFocus = this.__register(RelayEmitter.createPriority<IOnFocusEvent>());
     public readonly onDidFocus = this._onDidFocus.registerListener;
 
-    private readonly _onDidRenderModeChange = this.__register(new RelayEmitter<EditorType>());
+    private readonly _onDidRenderModeChange = this.__register(RelayEmitter.createPriority<EditorType>());
     public readonly onDidRenderModeChange = this._onDidRenderModeChange.registerListener;
 
-    private readonly _onBeforeRender = this.__register(new RelayEmitter<IOnBeforeRenderEvent>());
+    private readonly _onBeforeRender = this.__register(RelayEmitter.createPriority<IOnBeforeRenderEvent>());
     public readonly onBeforeRender = this._onBeforeRender.registerListener;
 
-    private readonly _onRender = this.__register(new RelayEmitter<IOnRenderEvent>());
+    private readonly _onRender = this.__register(RelayEmitter.createPriority<IOnRenderEvent>());
     public readonly onRender = this._onRender.registerListener;
     
-    private readonly _onDidRender = this.__register(new RelayEmitter<IOnDidRenderEvent>());
+    private readonly _onDidRender = this.__register(RelayEmitter.createPriority<IOnDidRenderEvent>());
     public readonly onDidRender = this._onDidRender.registerListener;
     
-    private readonly _onDidSelectionChange = this.__register(new RelayEmitter<IOnDidSelectionChangeEvent>());
+    private readonly _onDidSelectionChange = this.__register(RelayEmitter.createPriority<IOnDidSelectionChangeEvent>());
     public readonly onDidSelectionChange = this._onDidSelectionChange.registerListener;
     
-    private readonly _onDidContentChange = this.__register(new RelayEmitter<IOnDidContentChangeEvent>());
+    private readonly _onDidContentChange = this.__register(RelayEmitter.createPriority<IOnDidContentChangeEvent>());
     public readonly onDidContentChange = this._onDidContentChange.registerListener;
 
-    private readonly _onClick = this.__register(new RelayEmitter<IOnClickEvent>());
+    private readonly _onClick = this.__register(RelayEmitter.createPriority<IOnClickEvent>());
     public readonly onClick = this._onClick.registerListener;
 
-    private readonly _onDidClick = this.__register(new RelayEmitter<IOnDidClickEvent>());
+    private readonly _onDidClick = this.__register(RelayEmitter.createPriority<IOnDidClickEvent>());
     public readonly onDidClick = this._onDidClick.registerListener;
 
-    private readonly _onDoubleClick = this.__register(new RelayEmitter<IOnDoubleClickEvent>());
+    private readonly _onDoubleClick = this.__register(RelayEmitter.createPriority<IOnDoubleClickEvent>());
     public readonly onDoubleClick = this._onDoubleClick.registerListener;
 
-    private readonly _onDidDoubleClick = this.__register(new RelayEmitter<IOnDidDoubleClickEvent>());
+    private readonly _onDidDoubleClick = this.__register(RelayEmitter.createPriority<IOnDidDoubleClickEvent>());
     public readonly onDidDoubleClick = this._onDidDoubleClick.registerListener;
 
-    private readonly _onTripleClick = this.__register(new RelayEmitter<IOnTripleClickEvent>());
+    private readonly _onTripleClick = this.__register(RelayEmitter.createPriority<IOnTripleClickEvent>());
     public readonly onTripleClick = this._onTripleClick.registerListener;
 
-    private readonly _onDidTripleClick = this.__register(new RelayEmitter<IOnDidTripleClickEvent>());
+    private readonly _onDidTripleClick = this.__register(RelayEmitter.createPriority<IOnDidTripleClickEvent>());
     public readonly onDidTripleClick = this._onDidTripleClick.registerListener;
 
-    private readonly _onKeydown = this.__register(new RelayEmitter<IOnKeydownEvent>());
+    private readonly _onKeydown = this.__register(RelayEmitter.createPriority<IOnKeydownEvent>());
     public readonly onKeydown = this._onKeydown.registerListener;
 
-    private readonly _onKeypress = this.__register(new RelayEmitter<IOnKeypressEvent>());
+    private readonly _onKeypress = this.__register(RelayEmitter.createPriority<IOnKeypressEvent>());
     public readonly onKeypress = this._onKeypress.registerListener;
 
-    private readonly _onTextInput = this.__register(new RelayEmitter<IOnTextInputEvent>());
+    private readonly _onTextInput = this.__register(RelayEmitter.createPriority<IOnTextInputEvent>());
     public readonly onTextInput = this._onTextInput.registerListener;
 
-    private readonly _onMouseOver = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    private readonly _onMouseOver = this.__register(RelayEmitter.createPriority<IEditorMouseEvent>());
     public readonly onMouseOver = this._onMouseOver.registerListener;
     
-    private readonly _onMouseOut = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    private readonly _onMouseOut = this.__register(RelayEmitter.createPriority<IEditorMouseEvent>());
     public readonly onMouseOut = this._onMouseOut.registerListener;
     
-    private readonly _onMouseEnter = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    private readonly _onMouseEnter = this.__register(RelayEmitter.createPriority<IEditorMouseEvent>());
     public readonly onMouseEnter = this._onMouseEnter.registerListener;
     
-    private readonly _onMouseLeave = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    private readonly _onMouseLeave = this.__register(RelayEmitter.createPriority<IEditorMouseEvent>());
     public readonly onMouseLeave = this._onMouseLeave.registerListener;
     
-    private readonly _onMouseDown = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    private readonly _onMouseDown = this.__register(RelayEmitter.createPriority<IEditorMouseEvent>());
     public readonly onMouseDown = this._onMouseDown.registerListener;
     
-    private readonly _onMouseUp = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    private readonly _onMouseUp = this.__register(RelayEmitter.createPriority<IEditorMouseEvent>());
     public readonly onMouseUp = this._onMouseUp.registerListener;
     
-    private readonly _onMouseMove = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    private readonly _onMouseMove = this.__register(RelayEmitter.createPriority<IEditorMouseEvent>());
     public readonly onMouseMove = this._onMouseMove.registerListener;
     
-    private readonly _onPaste = this.__register(new RelayEmitter<IOnPasteEvent>());
+    private readonly _onPaste = this.__register(RelayEmitter.createPriority<IOnPasteEvent>());
     public readonly onPaste = this._onPaste.registerListener;
 
-    private readonly _onDrop = this.__register(new RelayEmitter<IOnDropEvent>());
+    private readonly _onDrop = this.__register(RelayEmitter.createPriority<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
     
-    private readonly _onDropOverlay = this.__register(new RelayEmitter<IEditorDragEvent>());
+    private readonly _onDropOverlay = this.__register(RelayEmitter.createPriority<IEditorDragEvent>());
     public readonly onDropOverlay = this._onDropOverlay.registerListener;
     
-    private readonly _onDrag = this.__register(new RelayEmitter<IEditorDragEvent>());
+    private readonly _onDrag = this.__register(RelayEmitter.createPriority<IEditorDragEvent>());
     public readonly onDrag = this._onDrag.registerListener;
     
-    private readonly _onDragStart = this.__register(new RelayEmitter<IEditorDragEvent>());
+    private readonly _onDragStart = this.__register(RelayEmitter.createPriority<IEditorDragEvent>());
     public readonly onDragStart = this._onDragStart.registerListener;
     
-    private readonly _onDragEnd = this.__register(new RelayEmitter<IEditorDragEvent>());
+    private readonly _onDragEnd = this.__register(RelayEmitter.createPriority<IEditorDragEvent>());
     public readonly onDragEnd = this._onDragEnd.registerListener;
     
-    private readonly _onDragOver = this.__register(new RelayEmitter<IEditorDragEvent>());
+    private readonly _onDragOver = this.__register(RelayEmitter.createPriority<IEditorDragEvent>());
     public readonly onDragOver = this._onDragOver.registerListener;
     
-    private readonly _onDragEnter = this.__register(new RelayEmitter<IEditorDragEvent>());
+    private readonly _onDragEnter = this.__register(RelayEmitter.createPriority<IEditorDragEvent>());
     public readonly onDragEnter = this._onDragEnter.registerListener;
     
-    private readonly _onDragLeave = this.__register(new RelayEmitter<IEditorDragEvent>());
+    private readonly _onDragLeave = this.__register(RelayEmitter.createPriority<IEditorDragEvent>());
     public readonly onDragLeave = this._onDragLeave.registerListener;
     
-    private readonly _onWheel = this.__register(new RelayEmitter<WheelEvent>());
+    private readonly _onWheel = this.__register(RelayEmitter.createPriority<WheelEvent>());
     public readonly onWheel = this._onWheel.registerListener;
 
     // region - [constructor]
