@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { ErrorHandler } from 'src/base/common/error';
-import { AsyncEmitter, DelayableEmitter, Emitter, Event, EventStrategy, IEmitterOptions, PauseableEmitter, Priority, PriorityEmitter, RelayEmitter, SignalEmitter } from 'src/base/common/event';
+import { AsyncEmitter, DelayableEmitter, DomEmitter, Emitter, Event, EventStrategy, IEmitterOptions, PauseableEmitter, Priority, PriorityEmitter, RelayEmitter, SignalEmitter } from 'src/base/common/event';
 import { Blocker, repeat } from 'src/base/common/utilities/async';
 import { FakeAsync } from 'test/utils/fakeAsync';
 
@@ -602,6 +602,88 @@ suite('event-test', () => {
 
         assert.strictEqual(name, 'replaced');
     }));
+
+    suite('DomEmitter', () => {
+        test('should register and emit DOM events', () => {
+            const element = document.createElement('div');
+            const emitter = new DomEmitter<'click'>(element, 'click');
+    
+            let eventTriggered = false;
+            emitter.registerListener(() => {
+                eventTriggered = true;
+            });
+    
+            element.click();
+    
+            assert.strictEqual(eventTriggered, true);
+        });
+    
+        test('should remove event listener when no listeners are attached', () => {
+            const element = document.createElement('div');
+            const emitter = new DomEmitter<'click'>(element, 'click');
+    
+            let eventCount = 0;
+            const disposable = emitter.registerListener(() => {
+                eventCount++;
+            });
+    
+            element.click();
+            disposable.dispose();
+            element.click();
+    
+            assert.strictEqual(eventCount, 1);
+        });
+    
+        test('should support priority-based event handling when strategy is Priority', () => {
+            const element = document.createElement('div');
+            const emitter = new DomEmitter<'click'>(element, 'click', false, EventStrategy.Priority);
+    
+            const result: string[] = [];
+    
+            emitter.registerListener(() => result.push('Normal'));
+            emitter.registerListenerPriority(() => {result.push('High');}, undefined, Priority.High);
+    
+            element.click();
+    
+            assert.deepStrictEqual(result, ['High', 'Normal']);
+        });
+    
+        test('should stop propagation when a high-priority listener returns true', () => {
+            const element = document.createElement('div');
+            const emitter = DomEmitter.createPriority(element, 'click', false);
+    
+            const result: string[] = [];
+    
+            emitter.registerListenerPriority(() => {
+                result.push('High');
+                return true;
+            }, undefined, Priority.High);
+            emitter.registerListener(() => result.push('Normal'));
+            element.click();
+            assert.deepStrictEqual(result, ['High']);
+        });
+    
+        test('should handle multiple listeners on the same event', () => {
+            const element = document.createElement('div');
+            const emitter = new DomEmitter<'click'>(element, 'click');
+    
+            const result: string[] = [];
+    
+            emitter.registerListener(() => result.push('Listener 1'));
+            emitter.registerListener(() => result.push('Listener 2'));
+    
+            element.click();
+    
+            assert.deepStrictEqual(result, ['Listener 1', 'Listener 2']);
+        });
+    
+        test('should not expose registerListenerPriority when strategy is FIFO', () => {
+            const element = document.createElement('div');
+            const emitter = new DomEmitter<'click'>(element, 'click');
+    
+            assert.strictEqual(typeof (emitter as any).registerListenerPriority, 'undefined');
+        });
+    });
 
     suite('RelayEmitter', () => {
         test('basic', () => {

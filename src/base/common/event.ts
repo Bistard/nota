@@ -32,11 +32,6 @@ export type Listener<E> = (e: E) => any;
 export type AsyncListener<E> = (e: E) => Promise<any>;
 export type PriorityListener<E> = (e: E) => boolean | void | nullable;
 
-export const enum EventStrategy {
-    FIFO = 'FIFO',
-    Priority = 'priority',
-}
-
 /**
  * Retrieve the event type T from the {@link Register}.
  */
@@ -68,6 +63,26 @@ export type PriorityRegister<T> = {
 export type AsyncRegister<T> = {
     (listener: AsyncListener<T>, thisObject?: object): IDisposable;
 };
+
+export const enum EventStrategy {
+    FIFO = 'FIFO',
+    Priority = 'priority',
+}
+
+export type StrategyEmitter<T, S extends EventStrategy> = {
+    [EventStrategy.FIFO]: Emitter<T>;
+    [EventStrategy.Priority]: PriorityEmitter<T>;
+}[S];
+
+export function createStrategyEmitter<T, S extends EventStrategy>(strategy: S | undefined, options?: IEmitterOptions): StrategyEmitter<T, S> {
+    if (strategy === EventStrategy.Priority) {
+        return new PriorityEmitter(options) as StrategyEmitter<T, S>;
+    } 
+    // default: EventStrategy.FIFO
+    else {
+        return new Emitter(options) as StrategyEmitter<T, S>;
+    }
+}
 
 /**
  * A common emitter interface.
@@ -514,7 +529,7 @@ export class AsyncEmitter<T> extends Emitter<T> {
  *       {@link EventStrategy.FIFO}, which cannot accept {@link PriorityEmitter}
  *       as input. You must set to {@link EventStrategy.Priority} instead.
  */
-export class RelayEmitter<T, S extends EventStrategy = EventStrategy.FIFO> extends Disposable {
+export class RelayEmitter<T, S extends EventStrategy = EventStrategy> extends Disposable {
     
     // [static]
 
@@ -537,7 +552,7 @@ export class RelayEmitter<T, S extends EventStrategy = EventStrategy.FIFO> exten
     private _listening: boolean = false;
 
     /** The relay (pipeline) emitter */
-    private readonly _relay: RelayEmitterType<T, S>;
+    private readonly _relay: StrategyEmitter<T, S>;
 
     // [event]
 
@@ -552,24 +567,21 @@ export class RelayEmitter<T, S extends EventStrategy = EventStrategy.FIFO> exten
 
     // [constructor]
 
-    constructor(strategy: S = <any>EventStrategy.FIFO) {
+    constructor(strategy?: S) {
         super();
-        const emitterOptions = {
-            onFirstListenerAdd: () => {
-                this._inputUnregister.register(this._inputRegister(e => this._relay.fire(e)));
-                this._listening = true;
-            },
-            onLastListenerDidRemove: () => {
-                this._inputUnregister.dispose();
-                this._listening = false;
+        this._relay = this.__register(createStrategyEmitter<T, S>(
+            strategy, 
+            {
+                onFirstListenerAdd: () => {
+                    this._inputUnregister.register(this._inputRegister(e => this._relay.fire(e)));
+                    this._listening = true;
+                },
+                onLastListenerDidRemove: () => {
+                    this._inputUnregister.dispose();
+                    this._listening = false;
+                }
             }
-        };
-
-        if (strategy === EventStrategy.Priority) {
-            this._relay = this.__register(new PriorityEmitter(emitterOptions)) as RelayEmitterType<T, S>;
-        } else {
-            this._relay = this.__register(new Emitter(emitterOptions)) as RelayEmitterType<T, S>;
-        }
+        ));
     }
 
     // [method]
@@ -587,11 +599,6 @@ export class RelayEmitter<T, S extends EventStrategy = EventStrategy.FIFO> exten
         }
     }
 }
-
-type RelayEmitterType<T, S extends EventStrategy> = S extends EventStrategy.Priority 
-    ? PriorityEmitter<T> 
-    : Emitter<T>;
-
 
 // region - NodeEventEmitter
 
@@ -642,26 +649,49 @@ export class NodeEventEmitter<T> extends Disposable {
  *
  * @note LAZY: only start listening when there is one listener presents.
  */
+export class DomEmitter<T extends keyof DomEventMap, S extends EventStrategy = EventStrategy> extends Disposable {
 
-export class DomEmitter<T extends keyof DomEventMap> extends Disposable {
+    // [static]
 
-	private readonly emitter: Emitter<DomEventMap[T]>;
+    public static createFIFO<T extends keyof DomEventMap>(element: EventTarget, type: T, useCapture: boolean = false): DomEmitter<T, EventStrategy.FIFO> {
+        return new DomEmitter<T, EventStrategy.FIFO>(element, type, useCapture, EventStrategy.FIFO);
+    }
+    
+    public static createPriority<T extends keyof DomEventMap>(element: EventTarget, type: T, useCapture: boolean = false): DomEmitter<T, EventStrategy.Priority> {
+        return new DomEmitter<T, EventStrategy.Priority>(element, type, useCapture, EventStrategy.Priority);
+    }
 
-	constructor(element: EventTarget, type: T, useCapture: boolean = false) {
+    // [field]
+
+    private readonly emitter: StrategyEmitter<DomEventMap[T], S>;
+
+    // [constructor]
+
+	constructor(element: EventTarget, type: T, useCapture: boolean = false, strategy?: S) {
 		super();
-		const fn = (e: any) => this.emitter.fire(e);
-		// LAZY
-		this.emitter = this.__register(new Emitter({
-			onFirstListenerAdd: () => element.addEventListener(type, fn, useCapture),
-			onLastListenerDidRemove: () => element.removeEventListener(type, fn, useCapture),
-		}));
+        const fn = (e: any) => this.emitter.fire(e);
+        this.emitter = this.__register(createStrategyEmitter<DomEventMap[T], S>(
+            strategy, 
+            { // lazy loading
+                onFirstListenerAdd: () => element.addEventListener(type, fn, useCapture),
+                onLastListenerDidRemove: () => element.removeEventListener(type, fn, useCapture),
+            }
+        ));
 	}
+
+    // [getter]
 
 	get registerListener(): Register<DomEventMap[T]> {
 		return this.emitter.registerListener;
 	}
-}
 
+    /**
+     * This API only provided when the strategy is {@link EventStrategy.Priority}.
+     */
+    get registerListenerPriority(): S extends EventStrategy.Priority ? PriorityRegister<DomEventMap[T]> : never {
+        return (<any>this.emitter).registerListenerPriority; // hacky
+    }
+}
 
 // region - PriorityEmitter
 
