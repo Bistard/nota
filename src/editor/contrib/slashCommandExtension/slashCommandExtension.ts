@@ -1,6 +1,6 @@
 import "src/editor/contrib/slashCommandExtension/slashCommand.scss";
 import { AnchorPrimaryAxisAlignment, AnchorVerticalPosition } from "src/base/browser/basic/contextMenu/contextMenu";
-import { IMenuAction, SimpleMenuAction } from "src/base/browser/basic/menu/menuItem";
+import { MenuAction, SimpleMenuAction } from "src/base/browser/basic/menu/menuItem";
 import { IPosition } from "src/base/common/utilities/size";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
 import { ProseTools } from "src/editor/common/proseUtility";
@@ -169,7 +169,7 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
         this._ongoingBucket = undefined;
     }
 
-    private __obtainSlashCommandContent(): IMenuAction[] {
+    private __obtainSlashCommandContent(): MenuAction[] {
         const nodes = this._editorWidget.model.getRegisteredDocumentNodes();
 
         // TODO: rename and reorder based on priority

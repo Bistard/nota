@@ -2,7 +2,7 @@ import { ContextMenuView, IAnchor, IContextMenu, IContextMenuDelegate, IContextM
 import { DomUtility, EventType } from "src/base/browser/basic/dom";
 import { DomEmitter } from "src/base/common/event";
 import { IMenu, IMenuActionRunEvent, Menu, MenuWithSubmenu } from "src/base/browser/basic/menu/menu";
-import { CheckMenuAction, IMenuAction, MenuItemType, MenuSeparatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
+import { CheckMenuAction, MenuAction, MenuItemType, MenuSeparatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { Disposable, DisposableBucket, IDisposable } from "src/base/common/dispose";
 import { ILayoutService } from "src/workbench/services/layout/layoutService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
@@ -71,7 +71,7 @@ export interface IShowContextMenuCustomDelegate extends IShowContextMenuDelegate
      * @description Defines the content of the context menu. A list of customizable
      * actions for each context menu item.
      */
-    getActions(): IMenuAction[];
+    getActions(): MenuAction[];
 }
 
 /**
@@ -143,6 +143,11 @@ export interface IContextMenuService extends IService {
          * @description The index of the current focused item, -1 means none.
          */
         getFocus(): number;
+
+        /**
+         * @description Get the action by index or id.
+         */
+        getAction(indexOrID: number | string): MenuAction | undefined;
     };
 }
 
@@ -208,6 +213,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
             runFocus: ensureExist(() => this._internalDelegate?.runFocus()),
             hasFocus: ensureExist(() => this._internalDelegate?.hasFocus()),
             getFocus: ensureExist(() => this._internalDelegate?.getFocus()),
+            getAction: ensureExist((arg: number | string) => this._internalDelegate?.getAction(arg)),
         };
     }
 
@@ -260,11 +266,11 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         }
     }
 
-    private __getActionsByMenuType(menuType: MenuTypes): IMenuAction[] {
+    private __getActionsByMenuType(menuType: MenuTypes): MenuAction[] {
         const registrant = this.registrantService.getRegistrant(RegistrantType.Menu);
         const menuItems = registrant.getMenuitems(menuType);
 
-        const actions: IMenuAction[] = menuItems.map((item) => {
+        const actions: MenuAction[] = menuItems.map((item) => {
             const providedArgs = (item.command.args ?? []);
             
             // check box
@@ -305,7 +311,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
         });
 
         // group up actions
-        const groupedActions = new Map<string, IMenuAction[]>();
+        const groupedActions = new Map<string, MenuAction[]>();
         for (const action of actions) {
             const group = menuItems.find((item) => item.title === action.id)?.group || '';
             let groupActions = groupedActions.get(group);
@@ -316,7 +322,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
             groupActions.push(action);
         }
 
-        const finalActions: IMenuAction[] = [];
+        const finalActions: MenuAction[] = [];
 
         // Add separators between groups
         let i = 0;
@@ -462,5 +468,9 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
 
     public focusAt(index: number): void {
         this._menu?.focus(index);
+    }
+
+    public getAction(arg: number | string): MenuAction | undefined {
+        return this._menu?.get(arg);
     }
 }

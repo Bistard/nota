@@ -2,8 +2,7 @@ import * as assert from 'assert';
 import { Action, ActionList, ActionListItem, IAction, IActionListItem } from 'src/base/common/action';
 
 suite('action-test', () => {
-
-    class TestItem extends ActionListItem implements IActionListItem {}
+    class TestItem extends ActionListItem<IAction> implements IActionListItem<IAction> {}
 
     class ConcreteActionList extends ActionList<IAction, TestItem> {
 

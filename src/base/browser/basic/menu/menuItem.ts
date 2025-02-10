@@ -14,6 +14,7 @@ import { UnbufferedScheduler } from "src/base/common/utilities/async";
 // region - interface
 
 export type MenuAction = SimpleMenuAction | MenuSeparatorAction | SubmenuAction | CheckMenuAction;
+export type MenuItem = MenuSeparatorItem | SimpleMenuItem<SimpleMenuAction> | CheckMenuItem | SubmenuItem;
 
 export const enum MenuItemType {
     General,
@@ -188,7 +189,7 @@ export class SubmenuAction extends __BaseMenuAction<MenuItemType.Submenu> {
 /**
  * Interface for {@link AbstractMenuItem} and its inheritance.
  */
-export interface IMenuItem extends IActionListItem, IDisposable {
+export interface IMenuItem<TMenuAction extends IMenuAction> extends IActionListItem<TMenuAction>, IDisposable {
     
     /**
      * The corresponding element of the item.
@@ -204,7 +205,7 @@ export interface IMenuItem extends IActionListItem, IDisposable {
      * The callback function when the item is about to run. Should be set by the
      * externals.
      */
-    actionRunner?: (action: IMenuAction) => void;
+    actionRunner?: (action: TMenuAction) => void;
 
     /**
      * @description Renders the item into the parent.
@@ -241,12 +242,11 @@ export interface IHoverEvent {
  * @class The {@link AbstractMenuItem} pre-defines a series of event listeners 
  * on the HTMLElement.
  */
-export abstract class AbstractMenuItem extends ActionListItem implements IMenuItem {
+export abstract class AbstractMenuItem<TMenuAction extends IMenuAction> extends ActionListItem<TMenuAction> implements IMenuItem<TMenuAction> {
 
     // [fields]
 
-    declare public readonly action: IMenuAction;
-    private _actionRunner?: (action: IMenuAction) => void;
+    private _actionRunner?: (action: TMenuAction) => void;
 
     public readonly element: FastElement<HTMLElement>;
     
@@ -267,7 +267,7 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
 
     // [constructor]
 
-    constructor(action: IMenuAction) {
+    constructor(action: TMenuAction) {
         super(action);
         this.element = this.__register(new FastElement(document.createElement('div')));
         this._mouseover = false;
@@ -280,11 +280,11 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
 
     // [setter]
 
-    get actionRunner(): ((action: IMenuAction) => void) | undefined {
+    get actionRunner(): ((action: TMenuAction) => void) | undefined {
         return this._actionRunner;
     }
 
-    set actionRunner(runner: ((action: IMenuAction) => void) | undefined) {
+    set actionRunner(runner: ((action: TMenuAction) => void) | undefined) {
         this._actionRunner = runner;
     }
 
@@ -434,9 +434,9 @@ export abstract class AbstractMenuItem extends ActionListItem implements IMenuIt
  * @class The {@link MenuSeparatorItem} overrides the pre-defined event 
  * listeners since the separator suppose to have no interactions from the user.
  */
-export class MenuSeparatorItem extends AbstractMenuItem {
+export class MenuSeparatorItem extends AbstractMenuItem<MenuSeparatorAction> {
     
-    constructor(action: IMenuAction) {
+    constructor(action: MenuSeparatorAction) {
         super(action);
     }
 
@@ -459,9 +459,9 @@ export class MenuSeparatorItem extends AbstractMenuItem {
  * @class {@link SimpleMenuItem} provides a general functionality as a menu item
  * that can response to user click.
  */
-export class SimpleMenuItem extends AbstractMenuItem {
+export class SimpleMenuItem<TSimpleMenuAction extends IMenuAction> extends AbstractMenuItem<TSimpleMenuAction> {
     
-    constructor(action: IMenuAction) {
+    constructor(action: TSimpleMenuAction) {
         super(action);
     }
 
@@ -494,7 +494,7 @@ export class SimpleMenuItem extends AbstractMenuItem {
     }
 }
 
-export class CheckMenuItem extends SimpleMenuItem {
+export class CheckMenuItem extends SimpleMenuItem<CheckMenuAction> {
 
     // [fields]
 
@@ -535,7 +535,7 @@ export interface ISubmenuDelegate {
  * @class A {@link SubmenuItem} provides no action functionality, instead, 
  * displays a list of actions in a submenu.
  */
-export class SubmenuItem extends AbstractMenuItem {
+export class SubmenuItem extends AbstractMenuItem<SubmenuAction> {
 
     // [constants]
 
@@ -543,8 +543,6 @@ export class SubmenuItem extends AbstractMenuItem {
     public static readonly HIDE_DELAY = Time.ms(750);
 
     // [field]
-
-    declare public readonly action: SubmenuAction;
 
     /**
      * Make sure schedulers are universal across different {@link SubmenuItem}s

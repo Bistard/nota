@@ -90,7 +90,7 @@ export interface IActionRunEvent {
 /**
  * An interface only for {@link ActionList}.
  */
-export interface IActionList<TAction extends IAction, TItem extends IActionListItem> extends IDisposable {
+export interface IActionList<TAction extends IAction, TItem extends IActionListItem<TAction>> extends IDisposable {
     
     onDidInsert: Register<TItem[]>;
     onBeforeRun: Register<IActionRunEvent>;
@@ -98,25 +98,25 @@ export interface IActionList<TAction extends IAction, TItem extends IActionListI
 
     run(index: number): void;
     run(id: string): void;
-    run(action: IAction): void;
-    run(arg: IAction | number | string): void;
+    run(action: TAction): void;
+    run(arg: TAction | number | string): void;
 
-    get(index: number): IAction | undefined;
-    get(id: string): IAction | undefined;
-    get(arg: number | string): IAction | undefined;
+    get(index: number): TAction | undefined;
+    get(id: string): TAction | undefined;
+    get(arg: number | string): TAction | undefined;
     
     has(id: string): boolean;
-    has(action: IAction): boolean;
-    has(arg: IAction | string): boolean;
+    has(action: TAction): boolean;
+    has(arg: TAction | string): boolean;
     
-    insert(action: IAction[], index?: number): void;
-    insert(action: IAction, index?: number): void;
-    insert(arg: IAction | IAction[], index?: number): void;
+    insert(action: TAction[], index?: number): void;
+    insert(action: TAction, index?: number): void;
+    insert(arg: TAction | TAction[], index?: number): void;
     
     delete(index: number): boolean;
     delete(id: string): boolean;
-    delete(action: IAction): boolean;
-    delete(arg: IAction | number | string): boolean;
+    delete(action: TAction): boolean;
+    delete(arg: TAction | number | string): boolean;
 
     size(): number;
     empty(): boolean;
@@ -132,8 +132,8 @@ export interface IActionList<TAction extends IAction, TItem extends IActionListI
 /**
  * Interface for {@link ActionListItem}.
  */
-export interface IActionListItem extends IDisposable {
-    readonly action: IAction;
+export interface IActionListItem<TAction extends IAction> extends IDisposable {
+    readonly action: TAction;
     run(context: unknown): void;
 }
 
@@ -142,15 +142,15 @@ export interface IActionListItem extends IDisposable {
  * inside a {@link ActionList}. 
  * @note The item owns the {@link IAction} (shares the lifecycle).
  */
-export class ActionListItem extends Disposable implements IActionListItem {
+export class ActionListItem<TAction extends IAction> extends Disposable implements IActionListItem<TAction> {
 
     // [fields]
 
-    public readonly action: IAction;
+    public readonly action: TAction;
 
     // [constructor]
 
-    constructor(action: IAction) {
+    constructor(action: TAction) {
         super();
         this.action = this.__register(action);
     }
@@ -173,14 +173,14 @@ export interface IContextProvider {
  * If the provider cannot construct an item for the given action, returns 
  * undefined.
  */
-export interface IActionItemProvider<TAction extends IAction, TItem extends IActionListItem> {
+export interface IActionItemProvider<TAction extends IAction, TItem extends IActionListItem<TAction>> {
     (action: TAction): TItem | undefined;
 }
 
 /**
  * Construction options for {@link ActionList}.
  */
-export interface IActionListOptions<TAction extends IAction, TItem extends IActionListItem> {
+export interface IActionListOptions<TAction extends IAction, TItem extends IActionListItem<TAction>> {
     
     /**
      * A callback that always return the latest context of the current 
@@ -203,6 +203,8 @@ export interface IActionListOptions<TAction extends IAction, TItem extends IActi
     readonly actionRunner?: ActionRunner;
 }
 
+// region - implementation
+
 /**
  * @class An abstraction container that contains a list of {@link IAction}s 
  * using wrapper {@link TItem}.
@@ -210,7 +212,7 @@ export interface IActionListOptions<TAction extends IAction, TItem extends IActi
  * @note The client may run the given {@link IAction} by given certain context.
  * @note The {@link TItem} shares the same lifetime as the action list.
  */
-export abstract class ActionList<TAction extends IAction, TItem extends IActionListItem> extends Disposable implements IActionList<TAction, TItem> {
+export abstract class ActionList<TAction extends IAction, TItem extends IActionListItem<TAction>> extends Disposable implements IActionList<TAction, TItem> {
 
     // [fields]
 
@@ -273,9 +275,9 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
         })();
     }
 
-    public get(index: number): IAction | undefined;
-    public get(id: string): IAction | undefined;
-    public get(arg: number | string): IAction | undefined {
+    public get(index: number): TAction | undefined;
+    public get(id: string): TAction | undefined;
+    public get(arg: number | string): TAction | undefined {
         if (isNumber(arg)) {
             return this._items[arg]?.action;
         }
@@ -288,8 +290,8 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
     }
     
     public has(id: string): boolean;
-    public has(action: IAction): boolean;
-    public has(arg: IAction | string): boolean {
+    public has(action: TAction): boolean;
+    public has(arg: TAction | string): boolean {
         const id = isString(arg) ? arg : arg.id;
         for (const curr of this._items) {
             if (curr.action.id === id) {
@@ -341,8 +343,8 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
 
     public delete(index: number): boolean;
     public delete(id: string): boolean;
-    public delete(action: IAction): boolean;
-    public delete(arg: IAction | number | string): boolean {
+    public delete(action: TAction): boolean;
+    public delete(arg: TAction | number | string): boolean {
         if (isNumber(arg)) {
             const deleted = this._items.splice(arg, 1);
             return !!deleted.length;

@@ -1,7 +1,7 @@
 import "src/base/browser/basic/menu/menu.scss";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
-import { CheckMenuItem, IMenuAction, IMenuItem, MenuAction, MenuItemType, MenuSeparatorItem as MenuSeparatorItem, SimpleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
-import { ActionList, ActionRunner, IAction, IActionItemProvider, IActionList, IActionListOptions, IActionRunEvent } from "src/base/common/action";
+import { CheckMenuItem, IMenuAction, IMenuItem, MenuAction, MenuItem, MenuItemType, MenuSeparatorItem as MenuSeparatorItem, SimpleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
+import { ActionList, ActionRunner, IActionItemProvider, IActionList, IActionListOptions, IActionRunEvent } from "src/base/common/action";
 import { addDisposableListener, DirectionX, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
@@ -22,7 +22,7 @@ export interface IMenuActionRunEvent extends IActionRunEvent {
 /**
  * An interface only for {@link BaseMenu}.
  */
-export interface IMenu extends IActionList<MenuAction, IMenuItem> {
+export interface IMenu extends IActionList<MenuAction, MenuItem> {
 
     /**
      * The HTMLElement of the {@link IMenu}.
@@ -101,7 +101,7 @@ export interface IMenu extends IActionList<MenuAction, IMenuItem> {
 /**
  * Interface for {@link BaseMenu} construction.
  */
-export interface IMenuOptions extends IActionListOptions<IMenuAction, IMenuItem> {
+export interface IMenuOptions extends IActionListOptions<IMenuAction, MenuItem> {
     
     /**
      * A list of possible trigger keys to determine which keys can execute the 
@@ -121,14 +121,14 @@ export interface IMenuOptions extends IActionListOptions<IMenuAction, IMenuItem>
  * @note The {@link BaseMenu} do not handle the concrete construction of each
  * {@link IMenuItem}. Instead, the inheritance should handle it.
  */
-export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> implements IMenu {
+export abstract class BaseMenu extends ActionList<MenuAction, MenuItem> implements IMenu {
 
     // [fields]
 
     public static readonly CLASS_NAME = 'menu';
 
     private readonly _element: HTMLElement;
-    declare protected readonly _items: IMenuItem[];
+    declare protected readonly _items: MenuItem[];
     
     private readonly _focusTracker: FocusTracker;
     private _currFocusedIndex: number; // index, -1 means no focused items.
@@ -356,7 +356,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
         }
 
         let actualIndex = this._currFocusedIndex;
-        let actualItem: IMenuItem;
+        let actualItem: MenuItem;
         do {
             actualIndex = ((actualIndex + offset) + this._items.length) % this._items.length;
             actualItem = this._items[actualIndex]!;
@@ -431,7 +431,7 @@ export abstract class MenuDecorator extends Disposable implements IMenu {
 
     // [events]
 
-    public readonly onDidInsert: Register<IMenuItem[]>;
+    public readonly onDidInsert: Register<MenuItem[]>;
     public readonly onBeforeRun: Register<IMenuActionRunEvent>;
     public readonly onDidRun: Register<IMenuActionRunEvent>;
     public readonly onDidBlur: Register<FocusEvent>;
@@ -467,7 +467,7 @@ export abstract class MenuDecorator extends Disposable implements IMenu {
         this._menu.build(actions);
     }
 
-    public addActionItemProvider(provider: IActionItemProvider<MenuAction, IMenuItem>): void {
+    public addActionItemProvider(provider: IActionItemProvider<MenuAction, MenuItem>): void {
         this._menu.addActionItemProvider(provider);
     }
 
@@ -492,34 +492,34 @@ export abstract class MenuDecorator extends Disposable implements IMenu {
     }
 
     public run(index: number): void;
-    public run(action: IAction): void;
+    public run(action: MenuAction): void;
     public run(id: string): void;
-    public run(arg: IAction | number | string): void {
+    public run(arg: MenuAction | number | string): void {
         this._menu.run(arg);
     }
 
-    public get(index: number): IAction | undefined;
-    public get(id: string): IAction | undefined;
-    public get(arg: string | number): IAction | undefined {    
+    public get(index: number): MenuAction | undefined;
+    public get(id: string): MenuAction | undefined;
+    public get(arg: string | number): MenuAction | undefined {    
         return this._menu.get(arg);
     }
 
     public has(id: string): boolean;
-    public has(action: IAction): boolean;
-    public has(arg: string | IAction): boolean {
+    public has(action: MenuAction): boolean;
+    public has(arg: string | MenuAction): boolean {
         return this._menu.has(arg);
     }
 
-    public insert(action: IAction[], index?: number | undefined): void;
-    public insert(action: IAction, index?: number | undefined): void;
-    public insert(arg: IAction | IAction[], index?: number | undefined): void {
+    public insert(action: MenuAction[], index?: number | undefined): void;
+    public insert(action: MenuAction, index?: number | undefined): void;
+    public insert(arg: MenuAction | MenuAction[], index?: number | undefined): void {
         this._menu.insert(arg, index);
     }
 
     public delete(index: number): boolean;
     public delete(id: string): boolean;
-    public delete(action: IAction): boolean;
-    public delete(arg: string | number | IAction): boolean {
+    public delete(action: MenuAction): boolean;
+    public delete(arg: string | number | MenuAction): boolean {
         return this._menu.delete(arg);
     }
 
@@ -567,7 +567,6 @@ export class MenuWithSubmenu extends MenuDecorator {
 
                 // bind the item-run to the action-run.
                 action.onRun = item.run.bind(item);
-
                 return item;
             }
             return undefined;
