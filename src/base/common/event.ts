@@ -43,7 +43,7 @@ export type GetEventType<R> = R extends Register<infer T> ? T : never;
  *                   the listener.
  */
 export type Register<T> = {
-	(listener: Listener<T>, thisObject?: any): IDisposable;
+	(listener: Listener<T>, thisObject?: object): IDisposable;
 };
 
 /**
@@ -55,11 +55,11 @@ export type Register<T> = {
  *     If `true` returned, the emitter will stop propagation to other listeners.
  */
 export type PriorityRegister<T> = {
-    (listener: PriorityListener<T>, thisObject?: any, priority?: number): IDisposable;
+    (listener: PriorityListener<T>, thisObject?: object, priority?: number): IDisposable;
 };
 
 export type AsyncRegister<T> = {
-    (listener: AsyncListener<T>, thisObject?: any): IDisposable;
+    (listener: AsyncListener<T>, thisObject?: object): IDisposable;
 };
 
 /**
@@ -320,7 +320,7 @@ export class Emitter<T> extends AbstractEmitter<T, Register<T>, __Listener<T>, L
         }
     }
 
-    protected override __constructListener(listener: Listener<T>, thisObject?: any): __Listener<T> {
+    protected override __constructListener(listener: Listener<T>, thisObject?: object): __Listener<T> {
         return new __Listener(listener, thisObject, this._opts);
     }
     protected override __initStructure(): LinkedList<__Listener<T>> {
@@ -659,7 +659,7 @@ export class PriorityEmitter<T> extends AbstractEmitter<T, Register<T>, __Priori
         }
     }
 
-    protected override __constructListener(listener: Listener<T>, thisObject?: any, priority?: number): __PriorityListener<T> {
+    protected override __constructListener(listener: Listener<T>, thisObject?: object, priority?: number): __PriorityListener<T> {
         return new __PriorityListener(priority ?? Priority.Normal, listener, thisObject, this._opts);
     }
 
@@ -728,7 +728,7 @@ export namespace Event {
      * @returns The new event register.
      */
     export function map<T, E>(register: Register<T>, to: (e: T) => E): Register<E> {
-        const newRegister = (listener: Listener<E>, thisArgs: any = null): IDisposable => {
+        const newRegister = (listener: Listener<E>, thisArgs?: object): IDisposable => {
             return register((e) => listener(to(e)), thisArgs);
         };
         return newRegister;
@@ -742,7 +742,7 @@ export namespace Event {
      * @returns The new event register.
      */
     export function each<T>(register: Register<T>, each: (e: T) => T): Register<T> {
-        const newRegister = (listener: Listener<T>, thisArgs: any = null): IDisposable => {
+        const newRegister = (listener: Listener<T>, thisArgs?: object): IDisposable => {
             return register((e) => listener(each(e)), thisArgs);
         };
         return newRegister;
@@ -758,7 +758,7 @@ export namespace Event {
      * single register with a union of their event types.
      */
     export function any<R extends Register<any>[]>(registers: [...R]): Register<GetEventType<R[number]>> {
-        const newRegister = (listener: Listener<GetEventType<R[number]>>, thisArgs: any = null) => {
+        const newRegister = (listener: Listener<GetEventType<R[number]>>, thisArgs?: object) => {
             const parent = new DisposableBucket();
             registers.map(register => {
                 const disposable = register(listener, thisArgs);
@@ -777,7 +777,7 @@ export namespace Event {
      * @param fn The filter function.
      */
     export function filter<T>(register: Register<T>, fn: (e: T) => boolean): Register<T> {
-        const newRegister = (listener: Listener<T>, thisArgs: any = null) => {
+        const newRegister = (listener: Listener<T>, thisArgs?: object) => {
             return register(e => {
                 if (fn(e)) {
                     listener.call(thisArgs, e);
