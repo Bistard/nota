@@ -636,7 +636,7 @@ suite('event-test', () => {
     
         test('should support priority-based event handling when strategy is Priority', () => {
             const element = document.createElement('div');
-            const emitter = new DomEmitter<'click'>(element, 'click', false, EventStrategy.Priority);
+            const emitter = DomEmitter.createPriority(element, 'click', false);
     
             const result: string[] = [];
     
