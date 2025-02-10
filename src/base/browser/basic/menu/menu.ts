@@ -500,8 +500,16 @@ export abstract class MenuDecorator extends Disposable implements IMenu {
 
     public get(index: number): MenuAction | undefined;
     public get(id: string): MenuAction | undefined;
+    public get(arg: string | number): MenuAction | undefined;
     public get(arg: string | number): MenuAction | undefined {    
         return this._menu.get(arg);
+    }
+
+    public getItem(index: number): MenuItem | undefined;
+    public getItem(id: string): MenuItem | undefined;
+    public getItem(arg: number | string): MenuItem | undefined;
+    public getItem(arg: number | string): MenuItem | undefined {
+        return this._menu.getItem(arg);
     }
 
     public has(id: string): boolean;
@@ -559,8 +567,8 @@ export class MenuWithSubmenu extends MenuDecorator {
             if (action.type === MenuItemType.Submenu) {
                 
                 const item = new SubmenuItem(action, {
-                    closeCurrSubmenu: this.__closeCurrSubmenu.bind(this),
-                    openNewSubmenu: this.__openNewSubmenu.bind(this),
+                    closeCurrSubmenu: this.closeCurrSubmenu.bind(this),
+                    openNewSubmenu: this.openNewSubmenu.bind(this),
                     isSubmenuActive: () => !!this._submenu,
                     focusParentMenu: this.__focusParentMenu.bind(this),
                 });
@@ -577,12 +585,10 @@ export class MenuWithSubmenu extends MenuDecorator {
 
     public override dispose(): void {
         super.dispose();
-        this.__closeCurrSubmenu();
+        this.closeCurrSubmenu();
     }
 
-    // [private helper methods]
-
-    private __closeCurrSubmenu(): void {
+    public closeCurrSubmenu(): void {
         this.release(this._submenu);
         this._submenu = undefined;
 
@@ -592,7 +598,7 @@ export class MenuWithSubmenu extends MenuDecorator {
         this.release(this._submenuLifecycle);
     }
 
-    private __openNewSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
+    public openNewSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
         
         /**
          * If there is already a submenu, we simply focus it instead of recreate 
@@ -606,6 +612,8 @@ export class MenuWithSubmenu extends MenuDecorator {
         this.__constructSubmenu(anchor, actions);
         this.__submenuEventRegistration();
     }
+
+    // [private helper methods]
 
     private __constructSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
         const submenuContainer = this.__register(new FastElement(document.createElement('div')));
@@ -717,14 +725,14 @@ export class MenuWithSubmenu extends MenuDecorator {
             // left-arrow
             if (event.key === KeyCode.LeftArrow) {
                 DomEventHandler.stop(event, true);
-                this.__closeCurrSubmenu();
+                this.closeCurrSubmenu();
                 this.__focusParentMenu();
             }
         }));
 
         // on-did-close
         this._submenuLifecycle.register(this._submenu.onDidClose(() => {
-            this.__closeCurrSubmenu();
+            this.closeCurrSubmenu();
         }));
     }
 

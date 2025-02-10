@@ -104,6 +104,10 @@ export interface IActionList<TAction extends IAction, TItem extends IActionListI
     get(index: number): TAction | undefined;
     get(id: string): TAction | undefined;
     get(arg: number | string): TAction | undefined;
+
+    getItem(index: number): TItem | undefined;
+    getItem(id: string): TItem | undefined;
+    getItem(arg: number | string): TItem | undefined;
     
     has(id: string): boolean;
     has(action: TAction): boolean;
@@ -284,6 +288,20 @@ export abstract class ActionList<TAction extends IAction, TItem extends IActionL
         for (const curr of this._items) {
             if (curr.action.id === arg) {
                 return curr.action;
+            }
+        }
+        return undefined;
+    }
+
+    public getItem(index: number): TItem | undefined;
+    public getItem(id: string): TItem | undefined;
+    public getItem(arg: number | string): TItem | undefined {
+        if (isNumber(arg)) {
+            return this._items[arg];
+        }
+        for (const curr of this._items) {
+            if (curr.action.id === arg) {
+                return curr;
             }
         }
         return undefined;
