@@ -40,7 +40,6 @@ export function getTokenReadableName(i18n: II18nService, token: string | TokenEn
     }
 
     TOKEN_READABLE_NAMES = {
-        [TokenEnum.Space]: i18n.localize('space', 'Space'),
         [TokenEnum.CodeBlock]: i18n.localize('code', 'Code'),
         [TokenEnum.Heading]: i18n.localize('heading', 'Heading'),
         [TokenEnum.Table]: i18n.localize('table', 'Table'),

@@ -23,7 +23,6 @@
             "emptyBlockPlaceHolder": "开始输入，或者试试 '@' 触发 AI，'/' 呼出命令..."
         },
         "editor/common/markdown": {
-            "space": "空格",
             "code": "代码",
             "heading": "标题",
             "table": "表格",
