@@ -191,6 +191,28 @@ export class EditorModel extends Disposable implements IEditorModel {
         return this._nodeProvider.getRegisteredNodes().map(each => each.name);
     }
 
+    public getRegisteredDocumentNodesBlock(): string[] {
+        const nodes = this._nodeProvider.getRegisteredNodes();
+        const blocks: string[] = [];
+        for (const node of nodes) {
+            if (!node.getSchema().inline) {
+                blocks.push(node.name);
+            }
+        }
+        return blocks;
+    }
+
+    public getRegisteredDocumentNodesInline(): string[] {
+        const nodes = this._nodeProvider.getRegisteredNodes();
+        const blocks: string[] = [];
+        for (const node of nodes) {
+            if (node.getSchema().inline === true) {
+                blocks.push(node.name);
+            }
+        }
+        return blocks;
+    }
+
     // [private methods]
 
     public __onDidStateChange(event: IOnDidContentChangeEvent): void {

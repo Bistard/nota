@@ -219,6 +219,8 @@ export interface IEditorModel extends IDisposable {
     // region - others
 
     getRegisteredDocumentNodes(): string[];
+    getRegisteredDocumentNodesBlock(): string[];
+    getRegisteredDocumentNodesInline(): string[];
 
     // region - internal
 
