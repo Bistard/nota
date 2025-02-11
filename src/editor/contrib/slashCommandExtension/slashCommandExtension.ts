@@ -1,6 +1,6 @@
 import "src/editor/contrib/slashCommandExtension/slashCommand.scss";
 import { AnchorPrimaryAxisAlignment, AnchorVerticalPosition } from "src/base/browser/basic/contextMenu/contextMenu";
-import { MenuAction, SimpleMenuAction } from "src/base/browser/basic/menu/menuItem";
+import { MenuAction, MenuItemType, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { IPosition } from "src/base/common/utilities/size";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
 import { ProseTools } from "src/editor/common/proseUtility";
@@ -12,6 +12,9 @@ import { DisposableBucket } from "src/base/common/dispose";
 import { KeyCode } from "src/base/common/keyboard";
 import { ProseEditorView } from "src/editor/common/proseMirror";
 import { Priority } from "src/base/common/event";
+import { getTokenReadableName, TokenEnum } from "src/editor/common/markdown";
+import { II18nService } from "src/platform/i18n/browser/i18nService";
+import { Arrays } from "src/base/common/utilities/array";
 
 interface IEditorSlashCommandExtension extends IEditorExtension {
     
@@ -30,6 +33,7 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
     constructor(
         editorWidget: IEditorWidget,
         @IContextMenuService private readonly contextMenuService: IContextMenuService,
+        @II18nService private readonly i18nService: II18nService,
     ) {
         super(editorWidget);
 
@@ -104,6 +108,7 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
 
         /** Registered with {@link Priority.High} */
         this._ongoingBucket.register(this.onKeydown(e => {
+            const pressed = e.event.key;
             const captureKey = [
                 KeyCode.UpArrow, 
                 KeyCode.DownArrow,
@@ -115,34 +120,52 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
             ];
             
             // do nothing if non-capture key pressed.
-            if (!captureKey.includes(e.event.key)) {
+            if (!captureKey.includes(pressed)) {
                 return;
             }
             
             // captured the keydown event, we handle it by ourselves.
             e.preventDefault();
             e.event.preventDefault();
-            console.log('captured');
 
             // escape: destroy the slash command
-            if (e.event.key === KeyCode.Escape) {
+            if (pressed === KeyCode.Escape) {
                 this.contextMenuService.contextMenu.destroy();
                 view.focus();
                 return true;
             }
 
-            // handle arrow keys
-            else if (e.event.key === KeyCode.UpArrow) {
+            // handle up/down arrows
+            else if (pressed === KeyCode.UpArrow) {
                 this.contextMenuService.contextMenu.focusPrev();
-            } else if (e.event.key === KeyCode.DownArrow) {
+            } else if (pressed === KeyCode.DownArrow) {
                 this.contextMenuService.contextMenu.focusNext();
             } 
-            // TODO: special handle on right/left arrow
-            // else if () {
-
-            // }
+            // handle right/left arrows
+            else if (pressed === KeyCode.RightArrow || pressed === KeyCode.LeftArrow) {
+                const index = this.contextMenuService.contextMenu.getFocus();
+                if (index === -1) {
+                    return false;
+                }
+                const currAction = this.contextMenuService.contextMenu.getAction(index);
+                if (!currAction) {
+                    return false;
+                }
+                if (currAction.type !== MenuItemType.Submenu) {
+                    return false;
+                }
+                
+                if (pressed === KeyCode.RightArrow) {
+                    // TODO
+                    const opened = this.contextMenuService.contextMenu.tryOpenSubmenu();
+                    return opened;
+                } else {
+                    // TODO
+                    return false;
+                }
+            }
             // enter
-            else if (e.event.key === KeyCode.Enter) {
+            else if (pressed === KeyCode.Enter) {
                 const hasFocus = this.contextMenuService.contextMenu.hasFocus();
                 if (!hasFocus) {
                     this.contextMenuService.contextMenu.destroy();
@@ -170,15 +193,74 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
     }
 
     private __obtainSlashCommandContent(): MenuAction[] {
-        const nodes = this._editorWidget.model.getRegisteredDocumentNodes();
+        const nodes = __obtainValidContent(this._editorWidget);
+        
+        // convert each node into menu action
+        return nodes.map(name => {
+            
+            // heading: submenu
+            if (name === TokenEnum.Heading) {
+                return __getHeadingActions(this.i18nService);
+            }
 
-        // TODO: rename and reorder based on priority
-        return nodes.map(name => new SimpleMenuAction({
-            enabled: true,
-            id: name,
-            callback: () => {
-                // todo: insert actual block
-            },
-        }));
+            // general case
+            return new SimpleMenuAction({
+                enabled: true,
+                id: getTokenReadableName(this.i18nService, name),
+                callback: () => {
+                    // todo: insert actual block
+                },
+            });
+        });
     }
+}
+
+// region - [private]
+
+const CONTENT_PRIORITY = [
+    TokenEnum.Paragraph,
+    TokenEnum.Blockquote,
+    TokenEnum.Heading,
+    TokenEnum.Image,
+    TokenEnum.List,
+    TokenEnum.Table,
+    TokenEnum.CodeBlock,
+    TokenEnum.MathBlock,
+    TokenEnum.HTML,
+    TokenEnum.HorizontalRule,
+];
+
+function __obtainValidContent(editor: IEditorWidget): string[] {
+    const blocks = editor.model.getRegisteredDocumentNodes();
+    const ordered = __reorderAndFilterContent(blocks, CONTENT_PRIORITY);
+    return ordered;
+}
+
+function __reorderAndFilterContent(unordered: string[], expectOrder: string[]): string[] {
+    const ordered: string[] = [];
+    const unorderedSet = new Set(unordered);
+    for (const name of expectOrder) {
+        if (unorderedSet.has(name)) {
+            ordered.push(name);
+            unorderedSet.delete(name);
+        } else {
+            console.warn(`[SlashCommandExtension] missing node: ${name}`);
+        }
+    }
+    return ordered;
+}
+
+function __getHeadingActions(i18nService: II18nService): SubmenuAction {
+    const heading = getTokenReadableName(i18nService, TokenEnum.Heading);
+    return new SubmenuAction(
+        Arrays.range(1, 7).map(level => new SimpleMenuAction({
+            enabled: true,
+            id: `${heading} ${level}`,
+            callback: () => {}, // TODO
+        })),
+        {
+            enabled: true,
+            id: heading,
+        }
+    );
 }
