@@ -7,6 +7,19 @@
     ],
     "version": "0.6.9",
     "contents": {
+        "editor/common/markdown": {
+            "space": "Space",
+            "code": "Code",
+            "heading": "Heading",
+            "table": "Table",
+            "horizontalRule": "Divider",
+            "blockquote": "Quote",
+            "list": "List",
+            "paragraph": "Paragraph",
+            "html": "HTML",
+            "image": "Image",
+            "mathBlock": "Math"
+        },
         "editor/common/math": {
             "empty": "Empty Math Block",
             "rendering": "Rendering...",
