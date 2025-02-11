@@ -738,6 +738,8 @@ export class MenuWithSubmenu extends MenuDecorator {
 
     private __focusParentMenu(): void {
         
+        // fix: parent menu didn't focused somehow
+
         /**
          * When focusing the parent menu making sure there is no existing 
          * focused item.

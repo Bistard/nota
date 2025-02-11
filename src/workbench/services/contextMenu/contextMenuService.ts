@@ -102,8 +102,8 @@ export interface IContextMenuService extends IService {
      * Indicates if any context menu is currently presented, also provides a 
      * list of functions to manipulate with it.
      * 
-     * @note The following functions will do nothing if no context menu is 
-     * presented.
+     * @note The following functions will do nothing and return `undefined` if 
+     * no context menu is presented.
      */
     readonly contextMenu: {
         /**
@@ -148,6 +148,12 @@ export interface IContextMenuService extends IService {
          * @description Get the action by index or id.
          */
         getAction(indexOrID: number | string): MenuAction | undefined;
+
+        /**
+         * @description If the current focused item is a submenu, open it. 
+         * Return `true` if submenu is opened.
+         */
+        tryOpenSubmenu(index?: number): boolean;
     };
 }
 
@@ -214,6 +220,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
             hasFocus: ensureExist(() => this._internalDelegate?.hasFocus()),
             getFocus: ensureExist(() => this._internalDelegate?.getFocus()),
             getAction: ensureExist((arg: number | string) => this._internalDelegate?.getAction(arg)),
+            tryOpenSubmenu: ensureExist((index?: number) => this._internalDelegate?.tryOpenSubmenu(index)),
         };
     }
 
@@ -344,7 +351,7 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
 
     // [fields]
 
-    private _menu?: IMenu;
+    private _menu?: MenuWithSubmenu;
     private readonly _delegate: IShowContextMenuCustomDelegate;
     private readonly _contextMenu: IContextMenu;
     private readonly _onBeforeActionRun: (event: IMenuActionRunEvent) => void;
@@ -472,5 +479,28 @@ class __ContextMenuDelegate implements IContextMenuDelegate {
 
     public getAction(arg: number | string): MenuAction | undefined {
         return this._menu?.get(arg);
+    }
+
+    public tryOpenSubmenu(index?: number): boolean {
+        if (!this._menu) {
+            return false;
+        }
+        index ??= this._menu.getCurrFocusIndex();
+        if (index === -1) {
+            return false;
+        }
+
+        const currItem = this._menu.getItem(index);
+        if (!currItem) {
+            return false;
+        }
+
+        const currAction = currItem.action;
+        if (currAction.type !== MenuItemType.Submenu || !currAction.enabled) {
+            return false;
+        }
+        
+        this._menu.openNewSubmenu(currItem.element.raw, currAction.actions);
+        return true;
     }
 }
