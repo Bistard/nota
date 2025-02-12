@@ -1,3 +1,4 @@
+import { memoize } from "src/base/common/memoization";
 import { MarkEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseMark, ProseMarkSpec } from "src/editor/common/proseMirror";
@@ -20,6 +21,7 @@ export class Strong extends DocumentMark<EditorTokens.Strong> {
         super(MarkEnum.Strong);
     }
 
+    @memoize
     public getSchema(): ProseMarkSpec {
         return <ProseMarkSpec>{
             attrs: {

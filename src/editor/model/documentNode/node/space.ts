@@ -5,6 +5,7 @@ import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/d
 import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
+import { memoize } from "src/base/common/memoization";
 
 /**
  * @class An empty space block. Represented in the DOM as an empty `<p>` 
@@ -16,6 +17,7 @@ export class Space extends DocumentNode<EditorTokens.Space> {
         super(TokenEnum.Space);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return {
             group: 'block',

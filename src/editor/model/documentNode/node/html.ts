@@ -1,3 +1,4 @@
+import { memoize } from "src/base/common/memoization";
 import { assert } from "src/base/common/utilities/panic";
 import { Strings, HtmlTagType } from "src/base/common/utilities/string";
 import { Dictionary } from "src/base/common/utilities/type";
@@ -18,6 +19,7 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
         super(TokenEnum.HTML);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return {
             group: 'block',
@@ -97,6 +99,7 @@ export class InlineHTML extends DocumentNode<EditorTokens.InlineHTML> {
         super(TokenEnum.InlineHTML);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return {
             group: 'inline',

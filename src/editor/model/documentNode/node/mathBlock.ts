@@ -1,4 +1,5 @@
 import { TokenizerAndRendererExtension } from "marked";
+import { memoize } from "src/base/common/memoization";
 import { SmartRegExp } from "src/base/common/utilities/regExp";
 import { TokenEnum } from "src/editor/common/markdown";
 import { renderMath } from "src/editor/common/math";
@@ -45,6 +46,7 @@ export class MathBlock extends DocumentNode<EditorTokens.MathBlock> {
         super(TokenEnum.MathBlock);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return {
             group: 'block',

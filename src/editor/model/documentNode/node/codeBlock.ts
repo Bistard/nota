@@ -1,3 +1,4 @@
+import { memoize } from "src/base/common/memoization";
 import { Strings } from "src/base/common/utilities/string";
 import { isString } from "src/base/common/utilities/type";
 import { CodeEditorView, minimalSetup } from "src/editor/common/codeMirror";
@@ -24,6 +25,7 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
         super(TokenEnum.CodeBlock);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return <ProseNodeSpec>{
             group: 'block',

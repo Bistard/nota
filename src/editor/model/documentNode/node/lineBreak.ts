@@ -1,3 +1,4 @@
+import { memoize } from "src/base/common/memoization";
 import { Strings } from "src/base/common/utilities/string";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
@@ -15,6 +16,7 @@ export class LineBreak extends DocumentNode<EditorTokens.Br> {
         super(TokenEnum.LineBreak);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return <ProseNodeSpec>{
             group: 'inline',

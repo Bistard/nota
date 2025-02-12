@@ -1,5 +1,6 @@
+import { memoize } from "src/base/common/memoization";
 import { TokenEnum } from "src/editor/common/markdown";
-import { EditorToken, EditorTokens } from "src/editor/common/model";
+import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser";
@@ -14,6 +15,7 @@ export class Text extends DocumentNode<EditorTokens.Text> {
         super(TokenEnum.Text);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return {
             group: 'inline',

@@ -1,3 +1,4 @@
+import { memoize } from "src/base/common/memoization";
 import { Strings } from "src/base/common/utilities/string";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
@@ -16,6 +17,7 @@ export class List extends DocumentNode<EditorTokens.List> {
         super(TokenEnum.List);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return {
             group: 'block',
@@ -76,6 +78,7 @@ export class ListItem extends DocumentNode<EditorTokens.ListItem> {
         super(TokenEnum.ListItem);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return {
             group: 'list_item',

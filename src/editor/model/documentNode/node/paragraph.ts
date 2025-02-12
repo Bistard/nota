@@ -5,6 +5,7 @@ import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/d
 import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
+import { memoize } from "src/base/common/memoization";
 
 /**
  * @class A plain paragraph textblock. Represented in the DOM as a `<p>` 
@@ -16,6 +17,7 @@ export class Paragraph extends DocumentNode<EditorTokens.Paragraph> {
         super(TokenEnum.Paragraph);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return {
             group: 'block',

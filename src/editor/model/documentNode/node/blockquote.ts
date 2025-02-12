@@ -7,6 +7,7 @@ import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
 import { Strings } from "src/base/common/utilities/string";
 import { assert } from "src/base/common/utilities/panic";
+import { memoize } from "src/base/common/memoization";
 
 /**
  * @class A blockquote (`<blockquote>`) wrapping one or more blocks.
@@ -17,6 +18,7 @@ export class Blockquote extends DocumentNode<EditorTokens.Blockquote> {
         super(TokenEnum.Blockquote);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return {
             group: 'block',

@@ -5,6 +5,7 @@ import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/d
 import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
+import { memoize } from "src/base/common/memoization";
 
 /**
  * @class An inline image (`<img>`) node. Supports `src`, `alt`, and `href` 
@@ -16,6 +17,7 @@ export class Image extends DocumentNode<EditorTokens.Image> {
         super(TokenEnum.Image);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return <ProseNodeSpec>{
             group: 'inline',

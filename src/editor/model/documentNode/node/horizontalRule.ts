@@ -1,4 +1,4 @@
-import { Strings } from "src/base/common/utilities/string";
+import { memoize } from "src/base/common/memoization";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
@@ -21,6 +21,7 @@ export class HorizontalRule extends DocumentNode<EditorTokens.Hr> {
         super(TokenEnum.HorizontalRule);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return <ProseNodeSpec>{
             group: 'block',

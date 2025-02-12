@@ -1,3 +1,4 @@
+import { memoize } from "src/base/common/memoization";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
@@ -14,6 +15,7 @@ export class Escape extends DocumentNode<EditorTokens.Escape> {
         super(TokenEnum.Escape);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return {
             group: 'inline',
