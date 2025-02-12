@@ -60,12 +60,6 @@ export interface IOnFocusEvent {
     readonly event: FocusEvent;
 }
 
-export interface IOnKeypressEvent {
-    readonly view: ProseEditorView;
-    readonly event: IStandardKeyboardEvent;
-    preventDefault(): void;
-}
-
 export interface IOnTextInputEvent {
     readonly view: ProseEditorView;
     readonly from: number;
@@ -223,11 +217,6 @@ export interface IProseEventBroadcaster extends IDisposable {
     readonly onKeydown: PriorityRegister<IOnKeydownEvent>;
 
     /**
-     * Fires when the editor encounters a keypress event.
-     */
-    readonly onKeypress: PriorityRegister<IOnKeypressEvent>;
-
-    /**
      * Fires whenever the user directly inputs some text, this event is called 
      * before the input is applied. If the `preventDefault` is invoked, the 
      * default behavior of inserting the text is prevented.
@@ -345,9 +334,6 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
     private readonly _onKeydown = this.__register(new PriorityEmitter<IOnKeydownEvent>());
     public readonly onKeydown = this._onKeydown.registerListenerPriority;
 
-    private readonly _onKeypress = this.__register(new PriorityEmitter<IOnKeypressEvent>());
-    public readonly onKeypress = this._onKeypress.registerListenerPriority;
-    
     private readonly _onTextInput = this.__register(new PriorityEmitter<IOnTextInputEvent>());
     public readonly onTextInput = this._onTextInput.registerListenerPriority;
 
@@ -499,19 +485,6 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
             });
 
             return anyExecuted;
-        };
-        
-        // on key press
-        property.handleKeyPress = (view, event) => {
-            let prevented = false;
-            
-            this._onKeypress.fire({
-                view: view,
-                event: createStandardKeyboardEvent(event),
-                preventDefault: () => prevented = true,
-            });
-
-            return prevented;
         };
         
         // on text input

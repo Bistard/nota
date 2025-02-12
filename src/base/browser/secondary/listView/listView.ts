@@ -155,9 +155,6 @@ export interface IListView<T> extends IList<T>, IDisposable {
     /** Fires when the {@link IListView} is keyup. */
     get onKeyup(): Register<KeyboardEvent>;
 
-    /** Fires when the {@link IListView} is keypress. */
-    get onKeypress(): Register<KeyboardEvent>;
-
     /** 
      * Fires when the user attempts to open a context menu {@link IListView}. 
      * This event is typically triggered by clicking the right mouse button, or 
@@ -355,7 +352,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
     @memoize get onKeydown(): Register<KeyboardEvent> { return this.__register(new DomEmitter(this._element, EventType.keydown)).registerListener; }
     @memoize get onKeyup(): Register<KeyboardEvent> { return this.__register(new DomEmitter(this._element, EventType.keyup)).registerListener; }
-    @memoize get onKeypress(): Register<KeyboardEvent> { return this.__register(new DomEmitter(this._element, EventType.keypress)).registerListener; }
     @memoize get onContextmenu(): Register<MouseEvent> { return this.__register(new DomEmitter(this._element, EventType.contextmenu)).registerListener; }
 
     get DOMElement(): HTMLElement { return this._element; }

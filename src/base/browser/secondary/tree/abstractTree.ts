@@ -546,11 +546,6 @@ export interface IAbstractTree<T, TFilter, TRef> extends IDisposable {
     get onKeyup(): Register<IStandardKeyboardEvent>;
 
     /** 
-     * Fires when the {@link IAbstractTree} is keypress. 
-     */
-    get onKeypress(): Register<IStandardKeyboardEvent>;
-
-    /** 
      * Fires when the user attempts to open a context menu {@link IAbstractTree}. 
      * This event is typically triggered by:
      *      - clicking the right mouse button
@@ -937,7 +932,6 @@ export abstract class AbstractTree<T, TFilter, TRef> extends Disposable implemen
 
     get onKeydown(): Register<IStandardKeyboardEvent> { return this._view.onKeydown; }
     get onKeyup(): Register<IStandardKeyboardEvent> { return this._view.onKeyup; }
-    get onKeypress(): Register<IStandardKeyboardEvent> { return this._view.onKeypress; }
     get onContextmenu(): Register<ITreeContextmenuEvent<T>> { return Event.map(this._view.onContextmenu, this.__toTreeContextmenuEvent); }
     
     // [protected methods]

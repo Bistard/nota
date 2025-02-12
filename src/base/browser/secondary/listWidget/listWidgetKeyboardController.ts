@@ -1,6 +1,6 @@
 import { DomUtility } from "src/base/browser/basic/dom";
 import { IListWidget } from "src/base/browser/secondary/listWidget/listWidget";
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { Event, Register } from "src/base/common/event";
 import { IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
 import { memoize } from "src/base/common/memoization";
@@ -8,7 +8,7 @@ import { memoize } from "src/base/common/memoization";
 /**
  * @internal
  * @class An internal class that handles the keyboard support of {@link IListWidget}.
- * It presets the following keypress behaviors (you may extend this class and
+ * It presets the following keydown behaviors (you may extend this class and
  * override the corresponding function):
  *  - enter
  *  - up arrow

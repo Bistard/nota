@@ -59,6 +59,7 @@ export const enum EventType {
 
 	keydown = 'keydown',
 	keyup = 'keyup',
+	/** @deprecated */
 	keypress = 'keypress',
 	compositionStart = 'compositionstart',
 	compositionUpdate = 'compositionupdate',

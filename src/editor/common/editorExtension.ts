@@ -64,7 +64,6 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     get onDidTripleClick() { return this._editorWidget.onDidTripleClick; }
 
     get onKeydown() { return this._editorWidget.onKeydown; }
-    get onKeypress() { return this._editorWidget.onKeypress; }
     get onTextInput() { return this._editorWidget.onTextInput; }
     
     get onMouseOver() { return this._editorWidget.onMouseOver; }

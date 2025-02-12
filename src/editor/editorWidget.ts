@@ -14,7 +14,7 @@ import { EditorView } from "src/editor/view/editorView";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IContextKey } from "src/platform/context/common/contextKey";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
-import { IEditorDragEvent, IEditorMouseEvent, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidContentChangeEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnFocusEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
+import { IEditorDragEvent, IEditorMouseEvent, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidContentChangeEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnFocusEvent, IOnKeydownEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
 import { EditorExtension } from "src/editor/common/editorExtension";
 import { assert, errorToMessage } from "src/base/common/utilities/panic";
 import { AsyncResult, err, ok, Result } from "src/base/common/result";
@@ -210,9 +210,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     private readonly _onKeydown = this.__register(RelayEmitter.createPriority<IOnKeydownEvent>());
     public readonly onKeydown = this._onKeydown.registerListener;
-
-    private readonly _onKeypress = this.__register(RelayEmitter.createPriority<IOnKeypressEvent>());
-    public readonly onKeypress = this._onKeypress.registerListener;
 
     private readonly _onTextInput = this.__register(RelayEmitter.createPriority<IOnTextInputEvent>());
     public readonly onTextInput = this._onTextInput.registerListener;
@@ -460,7 +457,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._onDidTripleClick.setInput(this.view.onDidTripleClick);
         
         this._onKeydown.setInput(this.view.onKeydown);
-        this._onKeypress.setInput(this.view.onKeypress);
         this._onTextInput.setInput(this.view.onTextInput);
         
         this._onMouseOver.setInput(this.view.onMouseOver);

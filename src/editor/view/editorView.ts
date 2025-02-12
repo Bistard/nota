@@ -51,7 +51,6 @@ export class EditorView extends Disposable implements IEditorView {
     get onDidTripleClick() { return this._view.onDidTripleClick; }
     
     get onKeydown() { return this._view.onKeydown; }
-    get onKeypress() { return this._view.onKeypress; }
     get onTextInput() { return this._view.onTextInput; }
     
     get onMouseOver() { return this._view.onMouseOver; }
