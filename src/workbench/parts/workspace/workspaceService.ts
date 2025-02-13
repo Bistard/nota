@@ -1,3 +1,4 @@
+import { Register } from 'src/base/common/event';
 import { URI } from 'src/base/common/files/uri';
 import { createService, IService } from 'src/platform/instantiation/common/decorator';
 import { IEditorGroupOpenOptions } from 'src/workbench/parts/workspace/editorGroupModel';
@@ -14,6 +15,14 @@ export interface IUnknownModel {
  * An interface only for {@link Workspace}.
  */
 export interface IWorkspaceService extends IComponent, IService {
+
+    /**
+     * Fires whenever an editor is opened. `null` fired when no editors is 
+     * opened right now.
+     */
+    readonly onDidOpen: Register<EditorPaneModel | null>;
+
+    getCurrentEditor(): URI | null;
 
     /**
      * // TODO
