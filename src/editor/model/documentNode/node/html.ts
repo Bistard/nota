@@ -2,6 +2,7 @@ import { memoize } from "src/base/common/memoization";
 import { assert } from "src/base/common/utilities/panic";
 import { Strings, HtmlTagType } from "src/base/common/utilities/string";
 import { Dictionary } from "src/base/common/utilities/type";
+import { resolveImagePath } from "src/editor/common/editor";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
@@ -9,13 +10,18 @@ import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/d
 import { IDocumentParseState } from "src/editor/model/parser";
 import { createDomOutputFromOptions } from "src/editor/model/schema";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
+import { IWorkspaceService } from "src/workbench/parts/workspace/workspaceService";
+
+// region - HTML
 
 /**
  * @class A block node that represents `<html>`.
  */
 export class HTML extends DocumentNode<EditorTokens.HTML> {
 
-    constructor() {
+    constructor(
+        @IWorkspaceService private readonly workspaceService: IWorkspaceService,
+    ) {
         super(TokenEnum.HTML);
     }
 
@@ -32,6 +38,9 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
                 const text = node.attrs['text'] as string;
                 const dom = document.createElement('div');
                 dom.innerHTML = text;
+
+                this.__fixImageLocalRelativeSource(dom);
+
                 return dom;
             }
         };
@@ -91,7 +100,28 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
         const { text } = node.attrs;
         state.write(text);
     };
+
+    // [private]
+
+    /**
+     * @description If the given html has <img>, we check if it is a local 
+     * relative path to the disk, if yes, we replace it with the absolute path.
+     */
+    private __fixImageLocalRelativeSource(element: HTMLElement): void {
+        const images = element.querySelectorAll('img');
+        for (const image of images) {
+            const src = image.getAttribute('src');
+            if (!src) {
+                return;
+            }
+
+            const resolved = resolveImagePath(this.workspaceService, src);
+            image.setAttribute('src', resolved);
+        }
+    }
 }
+
+// region - InlineHTML
 
 export class InlineHTML extends DocumentNode<EditorTokens.InlineHTML> {
     
