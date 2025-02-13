@@ -138,7 +138,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     /**
      * Responsible for managing the context key of the editor.
      */
-    private readonly _contextHub: EditorContextHub;
+    private readonly _contextHub: EditorContextController;
 
     /**
      * Responsible for constructing a list of editor extensions.
@@ -285,7 +285,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._editorData = null;
 
         this._options    = instantiationService.createInstance(EditorOptionController, options);
-        this._contextHub = instantiationService.createInstance(EditorContextHub, this);
+        this._contextHub = instantiationService.createInstance(EditorContextController, this);
         this._extensions = instantiationService.createInstance(EditorExtensionController, this, extensions);
 
         this.__registerListeners();
@@ -502,13 +502,13 @@ class EditorData extends Disposable {
     }
 }
 
-// region - EditorContextHub
+// region - EditorContextController
 
 /**
  * @class Once the class is constructed, the {@link IContextKey} relates to 
  * editor will be self-updated.
  */
-class EditorContextHub extends Disposable {
+class EditorContextController extends Disposable {
 
     // [context]
 
