@@ -1,5 +1,5 @@
-import 'src/editor/view/media/editor/editorBase.scss';
-import 'src/editor/view/media/editor/richTextView.scss';
+import 'src/editor/view/media/editorBase.scss';
+import 'src/editor/view/media/richTextView.scss';
 import { ProseEditorState, ProseEditorView } from "src/editor/common/proseMirror";
 import { ViewContext } from "src/editor/view/editorView";
 import { EditorViewProxy, IEditorViewProxy } from "src/editor/view/editorViewProxy";
