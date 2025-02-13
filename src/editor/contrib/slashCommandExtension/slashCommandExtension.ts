@@ -193,14 +193,14 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
     }
 
     private __obtainSlashCommandContent(): MenuAction[] {
-        const nodes = __obtainValidContent(this._editorWidget);
+        const nodes = this.__obtainValidContent();
         
         // convert each node into menu action
         return nodes.map(name => {
             
             // heading: submenu
             if (name === TokenEnum.Heading) {
-                return __getHeadingActions(this.i18nService);
+                return this.__getHeadingActions();
             }
 
             // general case
@@ -213,11 +213,47 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
             });
         });
     }
+
+    private __obtainValidContent(): string[] {
+        const blocks = this._editorWidget.model.getRegisteredDocumentNodes();
+        const ordered = this.__filterContent(blocks, CONTENT_FILTER);
+        return ordered;
+    }
+    
+    private __filterContent(unordered: string[], expectOrder: string[]): string[] {
+        const ordered: string[] = [];
+        const unorderedSet = new Set(unordered);
+        for (const name of expectOrder) {
+            if (unorderedSet.has(name)) {
+                ordered.push(name);
+                unorderedSet.delete(name);
+            } else {
+                console.warn(`[SlashCommandExtension] missing node: ${name}`);
+            }
+        }
+        return ordered;
+    }
+    
+    private __getHeadingActions(): SubmenuAction {
+        const heading = getTokenReadableName(this.i18nService, TokenEnum.Heading);
+        return new SubmenuAction(
+            Arrays.range(1, 7).map(level => new SimpleMenuAction({
+                enabled: true,
+                id: `${heading} ${level}`,
+                callback: () => {
+                }, // TODO
+            })),
+            {
+                enabled: true,
+                id: heading,
+            }
+        );
+    }
 }
 
 // region - [private]
 
-const CONTENT_PRIORITY = [
+const CONTENT_FILTER = [
     TokenEnum.Paragraph,
     TokenEnum.Blockquote,
     TokenEnum.Heading,
@@ -229,38 +265,3 @@ const CONTENT_PRIORITY = [
     TokenEnum.HTML,
     TokenEnum.HorizontalRule,
 ];
-
-function __obtainValidContent(editor: IEditorWidget): string[] {
-    const blocks = editor.model.getRegisteredDocumentNodes();
-    const ordered = __reorderAndFilterContent(blocks, CONTENT_PRIORITY);
-    return ordered;
-}
-
-function __reorderAndFilterContent(unordered: string[], expectOrder: string[]): string[] {
-    const ordered: string[] = [];
-    const unorderedSet = new Set(unordered);
-    for (const name of expectOrder) {
-        if (unorderedSet.has(name)) {
-            ordered.push(name);
-            unorderedSet.delete(name);
-        } else {
-            console.warn(`[SlashCommandExtension] missing node: ${name}`);
-        }
-    }
-    return ordered;
-}
-
-function __getHeadingActions(i18nService: II18nService): SubmenuAction {
-    const heading = getTokenReadableName(i18nService, TokenEnum.Heading);
-    return new SubmenuAction(
-        Arrays.range(1, 7).map(level => new SimpleMenuAction({
-            enabled: true,
-            id: `${heading} ${level}`,
-            callback: () => {}, // TODO
-        })),
-        {
-            enabled: true,
-            id: heading,
-        }
-    );
-}
