@@ -10,7 +10,7 @@ import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
 
 export type CodeBlockAttrs = {
-    readonly view: CodeEditorView;
+    readonly view?: CodeEditorView;
     
     /**
      * @default ''
@@ -43,7 +43,7 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
             code: true,
             defining: true,
             attrs: <GetProseAttrs<CodeBlockAttrs>>{
-                view: {},
+                view: { default: new CodeEditorView({ doc: '', extensions: [minimalSetup] }) },
                 lang: { default: '' },
                 fenceType: { default: CodeBlockFenceType.WaveLine },
                 fenceLength: { default: 3 },

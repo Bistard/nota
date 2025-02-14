@@ -10,7 +10,7 @@ import { resolveImagePath } from "src/editor/common/editor";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspaceService";
 
 export type ImageAttrs = {
-    readonly src: string;
+    readonly src?: string;
     readonly alt?: string;
     readonly title?: string;
 };
@@ -34,7 +34,7 @@ export class Image extends DocumentNode<EditorTokens.Image> {
             inline: true,
             content: undefined,
             attrs: {
-                src: {},
+                src: { default: '' },
                 alt: { default: '' },
                 title: { default: '' }
             } satisfies GetProseAttrs<ImageAttrs>,
