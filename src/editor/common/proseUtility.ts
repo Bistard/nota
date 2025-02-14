@@ -1,5 +1,6 @@
 import { Numbers } from "src/base/common/utilities/number";
 import { assert } from "src/base/common/utilities/panic";
+import { isNumber } from "src/base/common/utilities/type";
 import { ProseSelection, ProseCursor, ProseEditorState, ProseNode, ProseTransaction, ProseResolvedPos, ProseNodeType, ProseContentMatch, ProseAllSelection, ProseAttrs, ProseTextSelection, ProseFragment, ProseMark } from "src/editor/common/proseMirror";
 
 /**
@@ -37,7 +38,7 @@ export namespace ProseTools {
     
     export namespace Selection {
         export const isFullSelection = __isFullSelection;
-        export const replaceWithNode = __replaceWithNode;
+        export const replaceWithNode = __replaceSelectionWithNode;
     }
 
     export namespace Position {
@@ -46,6 +47,7 @@ export namespace ProseTools {
         export const resolve = __resolve;
         export const getNodeAt = __getNodeAtPosition;
         export const isSameParent = __isSameParent;
+        export const replaceWithNode = __replacePositionWithNode;
     }
 
     export namespace Node {
@@ -109,7 +111,7 @@ function __isFullSelection(state: ProseEditorState): boolean {
     return selection instanceof ProseAllSelection || selection.from === 0 && selection.to === ProseTools.Node.getDocumentSize(state);
 }
 
-function __replaceWithNode(tr: ProseTransaction, node?: ProseNode): ProseTransaction {
+function __replaceSelectionWithNode(tr: ProseTransaction, node?: ProseNode): ProseTransaction {
     if (!node) {
         return tr;
     }
@@ -134,6 +136,13 @@ function __getNodeAtPosition(state: ProseEditorState, position: number): ProseNo
 
 function __isSameParent(position1: ProseResolvedPos, position2: ProseResolvedPos): boolean {
     return position1.sameParent(position2);
+}
+
+function __replacePositionWithNode(state: ProseEditorState, position: number | ProseResolvedPos, node: ProseNode): ProseTransaction {
+    const resolvedPos = isNumber(position) ? state.doc.resolve(position) : position;
+    const nodeStart = resolvedPos.start();
+    const nodeEnd = resolvedPos.end();
+    return state.tr.replaceWith(nodeStart, nodeEnd, node);
 }
 
 /**
