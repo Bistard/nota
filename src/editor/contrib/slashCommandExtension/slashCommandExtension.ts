@@ -12,14 +12,17 @@ import { DisposableBucket } from "src/base/common/dispose";
 import { KeyCode } from "src/base/common/keyboard";
 import { ProseEditorView } from "src/editor/common/proseMirror";
 import { Priority } from "src/base/common/event";
-import { getTokenReadableName, TokenEnum } from "src/editor/common/markdown";
+import { getTokenReadableName, Markdown, TokenEnum } from "src/editor/common/markdown";
 import { II18nService } from "src/platform/i18n/browser/i18nService";
 import { Arrays } from "src/base/common/utilities/array";
+import { ErrorHandler } from "src/base/common/error";
 
 interface IEditorSlashCommandExtension extends IEditorExtension {
     
     readonly id: EditorExtensionIDs.SlashCommand;
 }
+
+// region - EditorSlashCommandExtension
 
 export class EditorSlashCommandExtension extends EditorExtension implements IEditorSlashCommandExtension {
 
@@ -196,17 +199,31 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
         const nodes = this.__obtainValidContent();
         
         // convert each node into menu action
-        return nodes.map(name => {
+        return nodes.map(nodeName => {
             // heading: submenu
-            if (name === TokenEnum.Heading) {
+            if (nodeName === TokenEnum.Heading) {
                 return this.__getHeadingActions();
             }
             // general case
+            const resolvedName = getTokenReadableName(this.i18nService, nodeName);
             return new SimpleMenuAction({
                 enabled: true,
-                id: getTokenReadableName(this.i18nService, name),
+                id: resolvedName,
                 callback: () => {
-                    // todo: insert actual block
+                    const view = this._editorWidget.view.editor.internalView;
+                    const state = view.state;
+                    
+                    const node = Markdown.Create.empty(state, nodeName, {});
+                    if (!node) {
+                        ErrorHandler.onUnexpectedError(new Error(`Cannot create node (${resolvedName})`));
+                        return;
+                    }
+                    
+                    const prevFrom = state.tr.selection.from;
+                    let tr = ProseTools.Selection.replaceWithNode(state.tr, node);
+                    tr = ProseTools.Selection.setAtNodeStart(tr, prevFrom + 1);
+
+                    view.dispatch(tr);
                 },
             });
         });
@@ -247,7 +264,7 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
             callback: () => {
                 const view = this._editorWidget.view.editor.internalView;
                 const state = view.state;
-                const node = ProseTools.Node.Create.heading(state, { level: level });
+                const node = Markdown.Create.empty(state, TokenEnum.Heading, { level: level });
 
                 const prevFrom = state.tr.selection.from;
                 let tr = ProseTools.Selection.replaceWithNode(state.tr, node);
