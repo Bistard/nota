@@ -4,7 +4,7 @@ import { SmartRegExp } from "src/base/common/utilities/regExp";
 import { TokenEnum } from "src/editor/common/markdown";
 import { renderMath } from "src/editor/common/math";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
+import { GetProseAttrs, ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
@@ -38,6 +38,13 @@ export function createMathBlockTokenizer(): TokenizerAndRendererExtension {
     };
 }
 
+export type MathBlockAttrs = {
+    /**
+     * @default ''
+     */
+    readonly text?: string;
+};
+
 export class MathBlock extends DocumentNode<EditorTokens.MathBlock> {
 
     constructor(
@@ -55,7 +62,7 @@ export class MathBlock extends DocumentNode<EditorTokens.MathBlock> {
             selectable: true,
             attrs: {
                 text: { default: '' },
-            },
+            } satisfies GetProseAttrs<MathBlockAttrs>,
             toDOM: (node) => { 
                 const text = node.attrs['text'] as string;
                 const dom = document.createElement('div');

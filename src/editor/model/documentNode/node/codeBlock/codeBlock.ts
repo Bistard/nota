@@ -4,10 +4,19 @@ import { isString } from "src/base/common/utilities/type";
 import { CodeEditorView, minimalSetup } from "src/editor/common/codeMirror";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
+import { GetProseAttrs, ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
+
+export type CodeBlockAttrs = {
+    readonly view: CodeEditorView;
+    
+    /**
+     * @default ''
+     */
+    readonly lang?: string;
+};
 
 const enum CodeBlockFenceType {
     WaveLine = 'waveLine',
@@ -33,7 +42,7 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
             marks: '', // disallow any marks
             code: true,
             defining: true,
-            attrs: {
+            attrs: <GetProseAttrs<CodeBlockAttrs>>{
                 view: {},
                 lang: { default: '' },
                 fenceType: { default: CodeBlockFenceType.WaveLine },

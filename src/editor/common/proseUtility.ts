@@ -3,8 +3,11 @@ import { assert } from "src/base/common/utilities/panic";
 import { TokenEnum } from "src/editor/common/markdown";
 import { ProseSelection, ProseCursor, ProseEditorState, ProseNode, ProseTransaction, ProseResolvedPos, ProseNodeType, ProseContentMatch, ProseAllSelection, ProseAttrs, ProseTextSelection } from "src/editor/common/proseMirror";
 import { BlockquoteAttrs } from "src/editor/model/documentNode/node/blockquote";
+import { CodeBlockAttrs } from "src/editor/model/documentNode/node/codeBlock/codeBlock";
 import { HeadingAttrs } from "src/editor/model/documentNode/node/heading";
 import { ImageAttrs } from "src/editor/model/documentNode/node/image";
+import { ListAttrs } from "src/editor/model/documentNode/node/list";
+import { MathBlockAttrs } from "src/editor/model/documentNode/node/mathBlock";
 import { ParagraphAttrs } from "src/editor/model/documentNode/node/paragraph";
 
 /**
@@ -71,6 +74,9 @@ export namespace ProseTools {
             export const paragraph = __createParagraph;
             export const blockquote = __createBlockquote;
             export const image = __createImage;
+            export const list = __createList;
+            export const codeBlock = __createCodeBlock;
+            export const mathBlock = __createMathBlock;
         }
     }
 
@@ -275,3 +281,17 @@ function __createBlockquote(state: ProseEditorState, attr: BlockquoteAttrs): Pro
 function __createImage(state: ProseEditorState, attr: ImageAttrs): ProseNode {
     return __createNode(state, TokenEnum.Image, attr);
 }
+
+function __createList(state: ProseEditorState, attr: ListAttrs): ProseNode {
+    return __createNode(state, TokenEnum.List, attr);
+}
+
+function __createCodeBlock(state: ProseEditorState, attr: CodeBlockAttrs): ProseNode {
+    return __createNode(state, TokenEnum.CodeBlock, attr);
+}
+
+function __createMathBlock(state: ProseEditorState, attr: MathBlockAttrs): ProseNode {
+    return __createNode(state, TokenEnum.MathBlock, attr);
+}
+
+

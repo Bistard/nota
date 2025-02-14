@@ -2,10 +2,22 @@ import { memoize } from "src/base/common/memoization";
 import { Strings } from "src/base/common/utilities/string";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
+import { GetProseAttrs, ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
+
+export type ListAttrs = {
+    /**
+     * @default false
+     */
+    readonly ordered?: boolean;
+
+    /**
+     * @default false
+     */
+    readonly tight?: boolean;
+};
 
 /**
  * @class A block node that represents ordered list or unordered list. Parsing 
@@ -22,7 +34,7 @@ export class List extends DocumentNode<EditorTokens.List> {
         return {
             group: 'block',
             content: 'list_item+',
-            attrs: { 
+            attrs: <GetProseAttrs<ListAttrs>>{ 
                 ordered: { default: false },
                 tight: { default: false },
                 start: { default: 1, },
