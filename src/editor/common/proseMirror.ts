@@ -53,6 +53,12 @@ export interface IProseTextNode extends ProseNode {
     withText(text: string): IProseTextNode;
 }
 
+export type GetProseAttrs<T> = {
+    [K in keyof Required<T>]: K extends keyof T
+      ? (undefined extends T[K] ? { default: T[K] } : { default: never })
+      : never;
+};
+
 declare module 'prosemirror-model' {
     
     // eslint-disable-next-line local/code-interface-check

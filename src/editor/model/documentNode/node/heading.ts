@@ -1,11 +1,18 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
+import { GetProseAttrs, ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
 import { memoize } from "src/base/common/memoization";
+
+/**
+ * The attribute for constructing a {@link TokenEnum.Heading}.
+ */
+export type HeadingAttrs = {
+    readonly level?: number;
+};
 
 /**
  * @class A heading textblock, with a `level` attribute that should hold the 
@@ -24,8 +31,8 @@ export class Heading extends DocumentNode<EditorTokens.Heading> {
             content: 'inline*',
             defining: true,
             attrs: { 
-                level: { default: 1 } 
-            },
+                level: { default: 1 } ,
+            } satisfies GetProseAttrs<HeadingAttrs>,
             toDOM(node) { 
                 const level = node.attrs['level'];
                 return createDomOutputFromOptions({

@@ -1,7 +1,8 @@
-import { ErrorHandler } from "src/base/common/error";
 import { Numbers } from "src/base/common/utilities/number";
 import { assert } from "src/base/common/utilities/panic";
+import { TokenEnum } from "src/editor/common/markdown";
 import { ProseSelection, ProseCursor, ProseEditorState, ProseNode, ProseTransaction, ProseResolvedPos, ProseNodeType, ProseContentMatch, ProseAllSelection, ProseAttrs, ProseTextSelection } from "src/editor/common/proseMirror";
+import { HeadingAttrs } from "src/editor/model/documentNode/node/heading";
 
 /**
  * @description Contains a list of helper functions that relates to ProseMirror.
@@ -62,6 +63,9 @@ export namespace ProseTools {
         export const getNextValidDefaultNodeType = __getNextValidDefaultNodeType;
 
         export const createNode = __createNode;
+        export namespace Create {
+            export const heading = __createHeading;
+        }
     }
 
     export namespace Text {
@@ -246,11 +250,10 @@ function __appendTextToEnd(state: ProseEditorState, text: string): ProseTransact
     return state.tr.insertText(text, docEnd);
 }
 
-function __createNode(state: ProseEditorState, type: string, attrs: ProseAttrs): ProseNode | undefined {
-    try {
-        return state.schema.node(type, attrs);
-    } catch (error) {
-        ErrorHandler.onUnexpectedError(error);
-    }
-    return undefined;
+function __createNode(state: ProseEditorState, type: string, attrs: ProseAttrs): ProseNode {
+    return state.schema.node(type, attrs);
+}
+
+function __createHeading(state: ProseEditorState, attr: HeadingAttrs): ProseNode {
+    return __createNode(state, TokenEnum.Heading, attr);
 }

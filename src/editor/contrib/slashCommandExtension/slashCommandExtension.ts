@@ -247,11 +247,7 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
             callback: () => {
                 const view = this._editorWidget.view.editor.internalView;
                 const state = view.state;
-                const node = ProseTools.Node.createNode(state, 
-                    TokenEnum.Heading, {
-                        level: level,
-                    }
-                );
+                const node = ProseTools.Node.Create.heading(state, { level: level });
 
                 const prevFrom = state.tr.selection.from;
                 let tr = ProseTools.Selection.replaceWithNode(state.tr, node);
