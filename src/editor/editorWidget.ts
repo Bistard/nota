@@ -90,6 +90,12 @@ export interface IEditorWidget extends
     open(source: URI): Promise<Result<void, Error>>;
 
     /**
+     * @description If the editor is opened. If this returns true, it is safe to
+     * invoke {@link model}/{@link viewModel}/{@link view} without panic.
+     */
+    isOpened(): boolean;
+
+    /**
      * @description Updates the options of the editor widget.
      * @param options The option.
      */
@@ -347,6 +353,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         // cache data
         this._editorData = this.__register(new EditorData(this._model, this._viewModel, this._view, undefined));
         return ok();
+    }
+
+    public isOpened(): boolean {
+        return !!this._model && !!this._viewModel && !!this._view;
     }
 
     public save(): AsyncResult<void, Error> {

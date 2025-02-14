@@ -34,6 +34,10 @@ export class EditorBlockPlaceHolderExtension extends EditorExtension implements 
      * @note Place-holder rendering.
      */
     protected override onDecoration(state: ProseEditorState): ProseDecorationSource | null {
+        if (this._editorWidget.isOpened() && this._editorWidget.view.editor.internalView.hasFocus() === false) {
+            return null;
+        }
+        
         const { selection } = state;
         const isCursor = ProseTools.Cursor.isCursor(selection);
         if (!isCursor) {

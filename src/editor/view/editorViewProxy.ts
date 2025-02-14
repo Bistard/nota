@@ -80,6 +80,8 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
             const { id, extension } = extensionInfo;
             return [id, extension];
         });
+
+        this.__registerListeners();
     }
 
     // [getter]
@@ -145,4 +147,13 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
     }
 
     // [private helper methods]
+
+    private __registerListeners(): void {
+        /**
+         * Trigger refresh when the focusibility changes, let the client has a
+         * chance to do something on decorations or update.
+         */
+        this.__register(this.onDidFocus(() => this._view.dispatch(this._view.state.tr)));
+        this.__register(this.onDidBlur(() => this._view.dispatch(this._view.state.tr)));
+    }
 }
