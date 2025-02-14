@@ -19,6 +19,12 @@ export type HTMLAttrs = {
      * @default
      */
     readonly text?: '';
+
+    /**
+     * Determines if the given HTML is constructed in inline/block mode.
+     * @default true
+     */
+    readonly isBlock?: boolean;
 };
 
 /**
@@ -39,7 +45,7 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
             content: undefined,
             attrs: <GetProseAttrs<HTMLAttrs>>{
                 text: { default: '' },
-                isBlock: {},
+                isBlock: { default: true },
             },
             toDOM: (node) => { 
                 const text = node.attrs['text'] as string;

@@ -1,7 +1,11 @@
-
 import { isAbsolute, resolve } from "src/base/common/files/path";
 import { Schemas, URI } from "src/base/common/files/uri";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspaceService";
+
+/**
+ * @overview
+ * This is a common file contains a list of unorganized stuff.
+ */
 
 /**
  * @description Resolves the relative path of an image to an absolute path based 
@@ -32,3 +36,4 @@ export function resolveImagePath(workspaceService: IWorkspaceService, src: strin
     const resolved = resolve(basePath, src);
     return resolved;
 }
+
