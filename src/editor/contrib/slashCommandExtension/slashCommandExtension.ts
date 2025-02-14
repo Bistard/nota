@@ -1,5 +1,5 @@
 import "src/editor/contrib/slashCommandExtension/slashCommand.scss";
-import { AnchorPrimaryAxisAlignment, AnchorVerticalPosition } from "src/base/browser/basic/contextMenu/contextMenu";
+import { AnchorPrimaryAxisAlignment, AnchorVerticalPosition, IContextMenu } from "src/base/browser/basic/contextMenu/contextMenu";
 import { MenuAction, MenuItemType, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { IPosition } from "src/base/common/utilities/size";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
@@ -8,7 +8,7 @@ import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { IOnTextInputEvent } from "src/editor/view/proseEventBroadcaster";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
-import { DisposableBucket } from "src/base/common/dispose";
+import { Disposable, DisposableBucket, IDisposable } from "src/base/common/dispose";
 import { KeyCode } from "src/base/common/keyboard";
 import { ProseEditorView } from "src/editor/common/proseMirror";
 import { Priority } from "src/base/common/event";
@@ -29,9 +29,7 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
     // [fields]
 
     public override readonly id = EditorExtensionIDs.SlashCommand;
-
-    /** ongoing lifecycles when the slash command is on. */
-    private _ongoingBucket?: DisposableBucket;
+    private readonly _keyboardController: SlashKeyboardController;
 
     constructor(
         editorWidget: IEditorWidget,
@@ -39,6 +37,7 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
         @II18nService private readonly i18nService: II18nService,
     ) {
         super(editorWidget);
+        this._keyboardController = this.__register(new SlashKeyboardController(this, contextMenuService));
 
         // slash-command rendering
         this.__register(this.onTextInput(e => {
@@ -71,7 +70,7 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
         view.focus();
 
         // slash command shown, we capture certain key press.
-        this.__registerKeyboardHandlers(view);
+        this._keyboardController.listen(view);
     }
 
     private __showSlashCommand(position?: IPosition): void {
@@ -101,98 +100,10 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
             },
             // clean up
             onDestroy: () => {
-                this.__releaseKeyboardHandlers();
+                this._keyboardController.unlisten();
                 editor.focus();
             },
         }, parentElement);
-    }
-
-    private __registerKeyboardHandlers(view: ProseEditorView): void {
-        this.release(this._ongoingBucket);
-        this._ongoingBucket = this.__register(new DisposableBucket());
-
-        /** Registered with {@link Priority.High} */
-        this._ongoingBucket.register(this.onKeydown(e => {
-            const pressed = e.event.key;
-            const captureKey = [
-                KeyCode.UpArrow, 
-                KeyCode.DownArrow,
-                KeyCode.LeftArrow, 
-                KeyCode.RightArrow,
-                
-                KeyCode.Escape,
-                KeyCode.Enter,
-            ];
-            
-            // do nothing if non-capture key pressed.
-            if (!captureKey.includes(pressed)) {
-                return;
-            }
-            
-            // captured the keydown event, we handle it by ourselves.
-            e.preventDefault();
-            e.event.preventDefault();
-
-            // escape: destroy the slash command
-            if (pressed === KeyCode.Escape) {
-                this.contextMenuService.contextMenu.destroy();
-                return true;
-            }
-
-            // handle up/down arrows
-            else if (pressed === KeyCode.UpArrow) {
-                this.contextMenuService.contextMenu.focusPrev();
-            } else if (pressed === KeyCode.DownArrow) {
-                this.contextMenuService.contextMenu.focusNext();
-            } 
-            // handle right/left arrows
-            else if (pressed === KeyCode.RightArrow || pressed === KeyCode.LeftArrow) {
-                const index = this.contextMenuService.contextMenu.getFocus();
-                if (index === -1) {
-                    return false;
-                }
-                const currAction = this.contextMenuService.contextMenu.getAction(index);
-                if (!currAction) {
-                    return false;
-                }
-                if (currAction.type !== MenuItemType.Submenu) {
-                    return false;
-                }
-                
-                if (pressed === KeyCode.RightArrow) {
-                    // TODO
-                    const opened = this.contextMenuService.contextMenu.tryOpenSubmenu();
-                    return opened;
-                } else {
-                    // TODO
-                    return false;
-                }
-            }
-            // enter
-            else if (pressed === KeyCode.Enter) {
-                const hasFocus = this.contextMenuService.contextMenu.hasFocus();
-                if (!hasFocus) {
-                    this.contextMenuService.contextMenu.destroy();
-                    return false; // do not handle it since no focusing item
-                }
-                this.contextMenuService.contextMenu.runFocus();
-            }
-            
-            // make sure to re-focus back to editor
-            view.focus();
-            
-            // tell the editor we handled this event, stop propagation.
-            return true;
-        }, undefined, Priority.High));
-
-        // todo: when back to empty block, also destroy the slash command
-
-        // todo: every contextMenu onFocus, need refocus editor
-    }
-
-    private __releaseKeyboardHandlers(): void {
-        this.release(this._ongoingBucket);
-        this._ongoingBucket = undefined;
     }
 
     private __obtainSlashCommandContent(): MenuAction[] {
@@ -290,3 +201,107 @@ const CONTENT_FILTER = [
     TokenEnum.HTML,
     TokenEnum.HorizontalRule,
 ];
+
+// region - SlashKeyboardController
+
+class SlashKeyboardController implements IDisposable {
+    
+    private _ongoing?: IDisposable;
+
+    constructor(
+        private readonly extension: EditorSlashCommandExtension,
+        private readonly contextMenuService: IContextMenuService,
+    ) {}
+
+    public dispose(): void {
+        this._ongoing?.dispose();
+        this._ongoing = undefined;
+    }
+
+    public unlisten(): void {
+        this.dispose();
+    }
+
+    public listen(view: ProseEditorView): void {
+        this._ongoing?.dispose();
+        const bucket = (this._ongoing = new DisposableBucket());
+
+        /** Registered with {@link Priority.High} */
+        bucket.register(this.extension.onKeydown(e => {
+            const pressed = e.event.key;
+            const captureKey = [
+                KeyCode.UpArrow, 
+                KeyCode.DownArrow,
+                KeyCode.LeftArrow, 
+                KeyCode.RightArrow,
+                
+                KeyCode.Escape,
+                KeyCode.Enter,
+            ];
+            
+            // do nothing if non-capture key pressed.
+            if (!captureKey.includes(pressed)) {
+                return;
+            }
+            
+            // captured the keydown event, we handle it by ourselves.
+            e.preventDefault();
+            e.event.preventDefault();
+
+            // escape: destroy the slash command
+            if (pressed === KeyCode.Escape) {
+                this.contextMenuService.contextMenu.destroy();
+                return true;
+            }
+
+            // handle up/down arrows
+            else if (pressed === KeyCode.UpArrow) {
+                this.contextMenuService.contextMenu.focusPrev();
+            } else if (pressed === KeyCode.DownArrow) {
+                this.contextMenuService.contextMenu.focusNext();
+            } 
+            // handle right/left arrows
+            else if (pressed === KeyCode.RightArrow || pressed === KeyCode.LeftArrow) {
+                const index = this.contextMenuService.contextMenu.getFocus();
+                if (index === -1) {
+                    return false;
+                }
+                const currAction = this.contextMenuService.contextMenu.getAction(index);
+                if (!currAction) {
+                    return false;
+                }
+                if (currAction.type !== MenuItemType.Submenu) {
+                    return false;
+                }
+                
+                if (pressed === KeyCode.RightArrow) {
+                    // TODO
+                    const opened = this.contextMenuService.contextMenu.tryOpenSubmenu();
+                    return opened;
+                } else {
+                    // TODO
+                    return false;
+                }
+            }
+            // enter
+            else if (pressed === KeyCode.Enter) {
+                const hasFocus = this.contextMenuService.contextMenu.hasFocus();
+                if (!hasFocus) {
+                    this.contextMenuService.contextMenu.destroy();
+                    return false; // do not handle it since no focusing item
+                }
+                this.contextMenuService.contextMenu.runFocus();
+            }
+            
+            // make sure to re-focus back to editor
+            view.focus();
+            
+            // tell the editor we handled this event, stop propagation.
+            return true;
+        }, undefined, Priority.High));
+
+        // todo: when back to empty block, also destroy the slash command
+
+        // todo: every contextMenu onFocus, need refocus editor
+    }
+}
