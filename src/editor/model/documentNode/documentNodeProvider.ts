@@ -10,7 +10,7 @@ import { Link } from "src/editor/model/documentNode/mark/link";
 import { MathInline } from "src/editor/model/documentNode/mark/mathInline";
 import { Strong } from "src/editor/model/documentNode/mark/strong";
 import { Blockquote } from "src/editor/model/documentNode/node/blockquote";
-import { CodeBlock } from "src/editor/model/documentNode/node/codeBlock";
+import { CodeBlock } from "src/editor/model/documentNode/node/codeBlock/codeBlock";
 import { Escape } from "src/editor/model/documentNode/node/escape";
 import { Heading } from "src/editor/model/documentNode/node/heading";
 import { HorizontalRule } from "src/editor/model/documentNode/node/horizontalRule";
