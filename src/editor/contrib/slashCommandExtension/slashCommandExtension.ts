@@ -129,19 +129,13 @@ class SlashKeyboardController implements IDisposable {
             
             // do nothing if non-capture key pressed.
             if (!captureKey.includes(pressed)) {
-                return;
+                return false;
             }
             
-            // captured the keydown event, we handle it by ourselves.
-            e.preventDefault();
-            e.event.preventDefault();
-
             // escape: destroy the slash command
             if (pressed === KeyCode.Escape) {
                 this.contextMenuService.contextMenu.destroy();
-                return true;
             }
-
             // handle up/down arrows
             else if (pressed === KeyCode.UpArrow) {
                 this.contextMenuService.contextMenu.focusPrev();
@@ -151,23 +145,15 @@ class SlashKeyboardController implements IDisposable {
             // handle right/left arrows
             else if (pressed === KeyCode.RightArrow || pressed === KeyCode.LeftArrow) {
                 const index = this.contextMenuService.contextMenu.getFocus();
-                if (index === -1) {
-                    return false;
-                }
                 const currAction = this.contextMenuService.contextMenu.getAction(index);
-                if (!currAction) {
-                    return false;
-                }
-                if (currAction.type !== MenuItemType.Submenu) {
+                if (!currAction || currAction.type !== MenuItemType.Submenu) {
                     return false;
                 }
                 
                 if (pressed === KeyCode.RightArrow) {
-                    // TODO
                     const opened = this.contextMenuService.contextMenu.tryOpenSubmenu();
                     return opened;
                 } else {
-                    // TODO
                     return false;
                 }
             }
@@ -176,7 +162,7 @@ class SlashKeyboardController implements IDisposable {
                 const hasFocus = this.contextMenuService.contextMenu.hasFocus();
                 if (!hasFocus) {
                     this.contextMenuService.contextMenu.destroy();
-                    return false; // do not handle it since no focusing item
+                    return false;
                 }
                 this.contextMenuService.contextMenu.runFocus();
             }
@@ -185,7 +171,9 @@ class SlashKeyboardController implements IDisposable {
             view.focus();
             
             // tell the editor we handled this event, stop propagation.
+            e.preventDefault();
             return true;
+            
         }, undefined, Priority.High));
 
         // todo: when back to empty block, also destroy the slash command
