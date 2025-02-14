@@ -283,6 +283,16 @@ export namespace EditorCommands {
 
             // case 1: empty selection, only select that parent block first.
             if (ProseTools.Cursor.isCursor(selection)) {
+                const parentNode = selection.$from.parent;
+
+                // case 1.1: the parent block has no content, we select everything.
+                if (parentNode.type.isTextblock && parentNode.content.size === 0) {
+                    const tr = state.tr.setSelection(new ProseAllSelection(state.doc));
+                    dispatch(tr);
+                    return true;
+                }
+
+                // case 1.2: normal case
                 this.__selectParent(state, selection, dispatch);
                 return true;
             }
