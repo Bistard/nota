@@ -54,6 +54,7 @@ export namespace ProseTools {
         export const getDocumentSize = __getDocumentSize;
         export const getNodeSize = __getNodeSize;
         export const isTextBlock = __isTextBlock;
+        export const isEmptyTextBlock = __isEmptyTextBlock;
         export const isInline = __isInline;
         export const isLeaf = __isLeaf;
         export const iterateChild = __iterateChild;
@@ -167,6 +168,10 @@ function __getNodeSize(node: ProseNode): number {
  */
 function __isTextBlock(node: ProseNode): boolean {
     return node.isTextblock;
+}
+
+function __isEmptyTextBlock(node: ProseNode): boolean {
+    return node.isTextblock && node.textContent === '';
 }
 
 /**

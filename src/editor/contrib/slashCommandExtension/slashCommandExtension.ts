@@ -39,7 +39,7 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
         @II18nService i18nService: II18nService,
     ) {
         super(editorWidget);
-        this._keyboardController = this.__register(new SlashKeyboardController(this, contextMenuService));
+        this._keyboardController = this.__register(new SlashKeyboardController(this, editorWidget, contextMenuService));
         this._menuController = new SlashMenuController(editorWidget);
         this._menuRenderer = this.__register(new SlashMenuRenderer(editorWidget, contextMenuService, i18nService));
 
@@ -98,6 +98,7 @@ class SlashKeyboardController implements IDisposable {
 
     constructor(
         private readonly extension: EditorSlashCommandExtension,
+        private readonly editorWidget: IEditorWidget,
         private readonly contextMenuService: IContextMenuService,
     ) {}
 
@@ -114,7 +115,10 @@ class SlashKeyboardController implements IDisposable {
         this._ongoing?.dispose();
         const bucket = (this._ongoing = new DisposableBucket());
 
-        /** Registered with {@link Priority.High} */
+        /** 
+         * Capture certain key down we handle it by ourselves.
+         * @note Registered with {@link Priority.High} 
+         */
         bucket.register(this.extension.onKeydown(e => {
             const pressed = e.event.key;
             const captureKey = [
@@ -176,11 +180,21 @@ class SlashKeyboardController implements IDisposable {
             
         }, undefined, Priority.High));
 
-        // todo: when back to empty block, also destroy the slash command
+        /**
+         * Whenever current textblock back to empty state, destroy the slash 
+         * command.
+         */
+        bucket.register(this.editorWidget.view.editor.onDidContentChange(() => {
+            const { $from } = view.state.selection;
+            const isEmptyBlock = ProseTools.Node.isEmptyTextBlock($from.parent);
+            if (isEmptyBlock) {
+                this.contextMenuService.contextMenu.destroy();
+            }
+        }));
 
-        // todo: when click somewhere else, destory contextMenu.
+        // todo 2: when click somewhere else, destory contextMenu.
 
-        // todo: every contextMenu onFocus, need refocus editor
+        // todo 3: every contextMenu onFocus, need refocus editor
     }
 }
 
