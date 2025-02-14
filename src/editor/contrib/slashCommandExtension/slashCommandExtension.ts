@@ -10,7 +10,7 @@ import { IOnTextInputEvent } from "src/editor/view/proseEventBroadcaster";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 import { Disposable, DisposableBucket, IDisposable } from "src/base/common/dispose";
 import { KeyCode } from "src/base/common/keyboard";
-import { ProseAttrs, ProseEditorView } from "src/editor/common/proseMirror";
+import { ProseAttrs, ProseEditorView, ProseTextSelection } from "src/editor/common/proseMirror";
 import { Emitter, Priority } from "src/base/common/event";
 import { getTokenReadableName, Markdown, TokenEnum } from "src/editor/common/markdown";
 import { II18nService } from "src/platform/i18n/browser/i18nService";
@@ -329,6 +329,8 @@ const CONTENT_FILTER = [
     TokenEnum.HorizontalRule,
 ];
 
+// region - SlashMenuController
+
 class SlashMenuController {
 
     constructor(
@@ -341,8 +343,9 @@ class SlashMenuController {
         const state = view.state;
         let tr = state.tr;
 
-        const $pos = state.selection.$from;
-
+        const prevStart = tr.selection.$from.start();
+        const $pos = state.doc.resolve(prevStart);
+        
         // create an empy node with given type
         const node = Markdown.Create.empty(state, type, attr);
         if (!node) {
@@ -353,8 +356,15 @@ class SlashMenuController {
         // replace the current node with the new node
         tr = ProseTools.Position.replaceWithNode(state, $pos, node);
 
-        // TODO: set selection inside the first position of the new node
+        // find next selectable text
+        const newStart = tr.mapping.map(prevStart);
+        const $newStart = tr.doc.resolve(newStart + 1);
+        const selection = ProseTextSelection.findFrom($newStart, 1, true);
+        if (selection) {
+            tr = tr.setSelection(selection);
+        }
 
+        // update
         view.dispatch(tr);
     }
 }
