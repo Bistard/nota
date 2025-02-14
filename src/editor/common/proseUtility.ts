@@ -1,16 +1,6 @@
 import { Numbers } from "src/base/common/utilities/number";
 import { assert } from "src/base/common/utilities/panic";
-import { TokenEnum } from "src/editor/common/markdown";
-import { ProseSelection, ProseCursor, ProseEditorState, ProseNode, ProseTransaction, ProseResolvedPos, ProseNodeType, ProseContentMatch, ProseAllSelection, ProseAttrs, ProseTextSelection } from "src/editor/common/proseMirror";
-import { BlockquoteAttrs } from "src/editor/model/documentNode/node/blockquote";
-import { CodeBlockAttrs } from "src/editor/model/documentNode/node/codeBlock/codeBlock";
-import { HeadingAttrs } from "src/editor/model/documentNode/node/heading";
-import { HorizontalRuleAttrs } from "src/editor/model/documentNode/node/horizontalRule";
-import { HTMLAttrs } from "src/editor/model/documentNode/node/html";
-import { ImageAttrs } from "src/editor/model/documentNode/node/image";
-import { ListAttrs } from "src/editor/model/documentNode/node/list";
-import { MathBlockAttrs } from "src/editor/model/documentNode/node/mathBlock";
-import { ParagraphAttrs } from "src/editor/model/documentNode/node/paragraph";
+import { ProseSelection, ProseCursor, ProseEditorState, ProseNode, ProseTransaction, ProseResolvedPos, ProseNodeType, ProseContentMatch, ProseAllSelection, ProseAttrs, ProseTextSelection, ProseFragment, ProseMark } from "src/editor/common/proseMirror";
 
 /**
  * @description Contains a list of helper functions that relates to ProseMirror.
@@ -71,17 +61,7 @@ export namespace ProseTools {
         export const getNextValidDefaultNodeType = __getNextValidDefaultNodeType;
 
         export const createNode = __createNode;
-        export namespace Create {
-            export const heading = __createHeading;
-            export const paragraph = __createParagraph;
-            export const blockquote = __createBlockquote;
-            export const image = __createImage;
-            export const list = __createList;
-            export const codeBlock = __createCodeBlock;
-            export const mathBlock = __createMathBlock;
-            export const HTML = __createHTML;
-            export const HorizontalRule = __createHorizontalRule;
-        }
+        
     }
 
     export namespace Text {
@@ -266,43 +246,6 @@ function __appendTextToEnd(state: ProseEditorState, text: string): ProseTransact
     return state.tr.insertText(text, docEnd);
 }
 
-function __createNode(state: ProseEditorState, type: string, attrs: ProseAttrs): ProseNode {
-    return state.schema.node(type, attrs);
+function __createNode(state: ProseEditorState, type: string, attrs: ProseAttrs, content?: ProseFragment | ProseNode | readonly ProseNode[], marks?: readonly ProseMark[]): ProseNode {
+    return state.schema.node(type, attrs, content, marks);
 }
-
-function __createHeading(state: ProseEditorState, attr: HeadingAttrs): ProseNode {
-    return __createNode(state, TokenEnum.Heading, attr);
-}
-
-function __createParagraph(state: ProseEditorState, attr: ParagraphAttrs): ProseNode {
-    return __createNode(state, TokenEnum.Paragraph, attr);
-}
-
-function __createBlockquote(state: ProseEditorState, attr: BlockquoteAttrs): ProseNode {
-    return __createNode(state, TokenEnum.Blockquote, attr);
-}
-
-function __createImage(state: ProseEditorState, attr: ImageAttrs): ProseNode {
-    return __createNode(state, TokenEnum.Image, attr);
-}
-
-function __createList(state: ProseEditorState, attr: ListAttrs): ProseNode {
-    return __createNode(state, TokenEnum.List, attr);
-}
-
-function __createCodeBlock(state: ProseEditorState, attr: CodeBlockAttrs): ProseNode {
-    return __createNode(state, TokenEnum.CodeBlock, attr);
-}
-
-function __createMathBlock(state: ProseEditorState, attr: MathBlockAttrs): ProseNode {
-    return __createNode(state, TokenEnum.MathBlock, attr);
-}
-
-function __createHTML(state: ProseEditorState, attr: HTMLAttrs): ProseNode {
-    return __createNode(state, TokenEnum.HTML, attr);
-}
-
-function __createHorizontalRule(state: ProseEditorState, attr: HorizontalRuleAttrs): ProseNode {
-    return __createNode(state, TokenEnum.HorizontalRule, attr);
-}
-
