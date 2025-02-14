@@ -10,7 +10,7 @@ import { IOnTextInputEvent } from "src/editor/view/proseEventBroadcaster";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 import { Disposable, DisposableBucket, IDisposable } from "src/base/common/dispose";
 import { KeyCode } from "src/base/common/keyboard";
-import { ProseEditorView } from "src/editor/common/proseMirror";
+import { ProseEditorView, ProseSelection } from "src/editor/common/proseMirror";
 import { Emitter, Priority } from "src/base/common/event";
 import { getTokenReadableName, Markdown, TokenEnum } from "src/editor/common/markdown";
 import { II18nService } from "src/platform/i18n/browser/i18nService";
@@ -193,6 +193,9 @@ class SlashMenuRenderer extends Disposable {
     private readonly _onMenuDestroy = this.__register(new Emitter<void>());
     public readonly onMenuDestroy = this._onMenuDestroy.registerListener;
 
+    private readonly _onClick = this.__register(new Emitter<string>());
+    public readonly onClick = this._onClick.registerListener;
+
     constructor(
         private readonly editorWidget: IEditorWidget,
         private readonly contextMenuService: IContextMenuService,
@@ -250,19 +253,50 @@ class SlashMenuRenderer extends Disposable {
                 callback: () => {
                     const view = this.editorWidget.view.editor.internalView;
                     const state = view.state;
-                    
+                    let tr = state.tr;
+    
+                    // 1) 找到当前光标所在行（block）的起止位置
+                    const $pos = state.selection.$from;
+                    const startOfLine = $pos.start();
+                    const endOfLine = $pos.end();
+    
+                    // 2) 删除当前行所有文本
+                    tr.deleteRange(startOfLine, endOfLine);
+    
+                    // 3) 创建要插入的空节点
                     const node = Markdown.Create.empty(state, nodeName, {});
                     if (!node) {
                         ErrorHandler.onUnexpectedError(new Error(`Cannot create node (${resolvedName})`));
                         return;
                     }
-                    
-                    const prevFrom = state.tr.selection.from;
-                    let tr = ProseTools.Selection.replaceWithNode(state.tr, node);
-                    tr = ProseTools.Selection.setAtNodeStart(tr, prevFrom + 1);
 
+                    // 4) 用新建的空节点替换（由于上一步已经把当前行清空, 
+                    //    可以直接基于当前 selection 替换插入）
+                    // TODO: insert to a new block
+                    tr = ProseTools.Selection.replaceWithNode(tr, node);
+
+                    // 假设我们删除了当前行后，用 replaceWithNode 插入了新节点。
+                    // newNodePos 即该节点插入后在文档中的位置。例如如果删除区间是 [start, end]，
+                    // 新插入节点通常会出现在 start 位置:
+                    const newNodePos = startOfLine;
+
+                    // 这里将 selection 往后找第一个可编辑的位置，
+                    // 第三个参数若支持 textOnly(或其它配置) 可根据需求设置。
+                    // 不同 ProseMirror 版本/封装库可能略有差异。
+                    const $resolvedPos = tr.doc.resolve(newNodePos + 1);
+                    const textSelection = ProseSelection.findFrom($resolvedPos, 1 /*搜索方向*/, true /*仅文本块*/);
+
+                    // 如果找到了合适的位置，就设置 selection:
+                    if (textSelection) {
+                        tr = tr.setSelection(textSelection);
+                    }
+    
+                    // 6) dispatch 更新视图
                     view.dispatch(tr);
-                },
+    
+                    // (可选) 再次 focus
+                    view.focus();
+                },    
             });
         });
     }
@@ -306,7 +340,12 @@ class SlashMenuRenderer extends Disposable {
 
                 const prevFrom = state.tr.selection.from;
                 let tr = ProseTools.Selection.replaceWithNode(state.tr, node);
-                tr = ProseTools.Selection.setAtNodeStart(tr, prevFrom + 1);
+
+                const $resolvedPos = tr.doc.resolve(prevFrom + 1);
+                const textSelection = ProseSelection.findFrom($resolvedPos, 1, true);
+                if (textSelection) {
+                    tr = tr.setSelection(textSelection);
+                }
 
                 view.dispatch(tr);
             },

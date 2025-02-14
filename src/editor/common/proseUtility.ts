@@ -38,7 +38,6 @@ export namespace ProseTools {
     export namespace Selection {
         export const isFullSelection = __isFullSelection;
         export const replaceWithNode = __replaceWithNode;
-        export const setAtNodeStart = __setAtNodeStart;
     }
 
     export namespace Position {
@@ -115,12 +114,6 @@ function __replaceWithNode(tr: ProseTransaction, node?: ProseNode): ProseTransac
         return tr;
     }
     return tr.replaceSelectionWith(node);
-}
-
-function __setAtNodeStart(tr: ProseTransaction, nodePos: number): ProseTransaction {
-    const resolvedPos = tr.doc.resolve(nodePos + 1);
-    const newTr = tr.setSelection(ProseTextSelection.near(resolvedPos));
-    return newTr;
 }
 
 function __isValid(state: ProseEditorState, position: number): boolean {
