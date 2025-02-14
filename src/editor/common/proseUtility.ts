@@ -1,6 +1,7 @@
+import { ErrorHandler } from "src/base/common/error";
 import { Numbers } from "src/base/common/utilities/number";
 import { assert } from "src/base/common/utilities/panic";
-import { ProseSelection, ProseCursor, ProseEditorState, ProseNode, ProseTransaction, ProseResolvedPos, ProseNodeType, ProseContentMatch, ProseAllSelection } from "src/editor/common/proseMirror";
+import { ProseSelection, ProseCursor, ProseEditorState, ProseNode, ProseTransaction, ProseResolvedPos, ProseNodeType, ProseContentMatch, ProseAllSelection, ProseAttrs, ProseTextSelection } from "src/editor/common/proseMirror";
 
 /**
  * @description Contains a list of helper functions that relates to ProseMirror.
@@ -34,9 +35,11 @@ export namespace ProseTools {
         export const getCurrNode = __getCurrNode;
         export const setCursorAt = __setCursorAt;
     }
-
+    
     export namespace Selection {
         export const isFullSelection = __isFullSelection;
+        export const replaceWithNode = __replaceWithNode;
+        export const setAtNodeStart = __setAtNodeStart;
     }
 
     export namespace Position {
@@ -57,6 +60,8 @@ export namespace ProseTools {
 
         export const getNextValidDefaultNodeTypeAt = __getNextValidDefaultNodeTypeAt;
         export const getNextValidDefaultNodeType = __getNextValidDefaultNodeType;
+
+        export const createNode = __createNode;
     }
 
     export namespace Text {
@@ -103,6 +108,19 @@ function __setCursorAt(state: ProseEditorState, position: number): ProseTransact
 function __isFullSelection(state: ProseEditorState): boolean {
     const { selection } = state;
     return selection instanceof ProseAllSelection || selection.from === 0 && selection.to === ProseTools.Node.getDocumentSize(state);
+}
+
+function __replaceWithNode(tr: ProseTransaction, node?: ProseNode): ProseTransaction {
+    if (!node) {
+        return tr;
+    }
+    return tr.replaceSelectionWith(node);
+}
+
+function __setAtNodeStart(tr: ProseTransaction, nodePos: number): ProseTransaction {
+    const resolvedPos = tr.doc.resolve(nodePos + 1);
+    const newTr = tr.setSelection(ProseTextSelection.near(resolvedPos));
+    return newTr;
 }
 
 function __isValid(state: ProseEditorState, position: number): boolean {
@@ -226,4 +244,13 @@ function __getWordBound(pos: ProseResolvedPos): { from: number; to: number } | n
 function __appendTextToEnd(state: ProseEditorState, text: string): ProseTransaction {
     const docEnd = state.doc.content.size;
     return state.tr.insertText(text, docEnd);
+}
+
+function __createNode(state: ProseEditorState, type: string, attrs: ProseAttrs): ProseNode | undefined {
+    try {
+        return state.schema.node(type, attrs);
+    } catch (error) {
+        ErrorHandler.onUnexpectedError(error);
+    }
+    return undefined;
 }

@@ -75,10 +75,11 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
         if (!position) {
             return;
         }
+        const editor = this._editorWidget.view.editor;
         const x = position.left;
         const y = position.top + 30; // add a bit offset to the bottom
 
-        const parentElement = this._editorWidget.view.editor.container;
+        const parentElement = editor.container;
         this.contextMenuService.showContextMenuCustom({
             getActions: () => this.__obtainSlashCommandContent(),
             getContext: () => undefined,
@@ -98,6 +99,7 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
             // clean up
             onDestroy: () => {
                 this.__releaseKeyboardHandlers();
+                editor.focus();
             },
         }, parentElement);
     }
@@ -131,7 +133,6 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
             // escape: destroy the slash command
             if (pressed === KeyCode.Escape) {
                 this.contextMenuService.contextMenu.destroy();
-                view.focus();
                 return true;
             }
 
@@ -169,7 +170,6 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
                 const hasFocus = this.contextMenuService.contextMenu.hasFocus();
                 if (!hasFocus) {
                     this.contextMenuService.contextMenu.destroy();
-                    view.focus();
                     return false; // do not handle it since no focusing item
                 }
                 this.contextMenuService.contextMenu.runFocus();
@@ -197,12 +197,10 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
         
         // convert each node into menu action
         return nodes.map(name => {
-            
             // heading: submenu
             if (name === TokenEnum.Heading) {
                 return this.__getHeadingActions();
             }
-
             // general case
             return new SimpleMenuAction({
                 enabled: true,
@@ -237,17 +235,31 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
     private __getHeadingActions(): SubmenuAction {
         const heading = getTokenReadableName(this.i18nService, TokenEnum.Heading);
         return new SubmenuAction(
-            Arrays.range(1, 7).map(level => new SimpleMenuAction({
-                enabled: true,
-                id: `${heading} ${level}`,
-                callback: () => {
-                }, // TODO
-            })),
-            {
-                enabled: true,
-                id: heading,
-            }
+            Arrays.range(1, 7).map(level => this.__getHeadingAction(heading, level)),
+            { enabled: true, id: heading }
         );
+    }
+
+    private __getHeadingAction(name: string, level: number): MenuAction {
+        return new SimpleMenuAction({
+            enabled: true,
+            id: `${name} ${level}`,
+            callback: () => {
+                const view = this._editorWidget.view.editor.internalView;
+                const state = view.state;
+                const node = ProseTools.Node.createNode(state, 
+                    TokenEnum.Heading, {
+                        level: level,
+                    }
+                );
+
+                const prevFrom = state.tr.selection.from;
+                let tr = ProseTools.Selection.replaceWithNode(state.tr, node);
+                tr = ProseTools.Selection.setAtNodeStart(tr, prevFrom + 1);
+
+                view.dispatch(tr);
+            },
+        });
     }
 }
 
