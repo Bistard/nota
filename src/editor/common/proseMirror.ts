@@ -55,7 +55,7 @@ export interface IProseTextNode extends ProseNode {
 
 export type GetProseAttrs<T> = {
     [K in keyof Required<T>]: K extends keyof T
-      ? (undefined extends T[K] ? { default: T[K] } : { default: never })
+      ? (undefined extends T[K] ? { default: T[K] } : { default?: never })
       : never;
 };
 

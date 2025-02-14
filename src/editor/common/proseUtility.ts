@@ -2,7 +2,10 @@ import { Numbers } from "src/base/common/utilities/number";
 import { assert } from "src/base/common/utilities/panic";
 import { TokenEnum } from "src/editor/common/markdown";
 import { ProseSelection, ProseCursor, ProseEditorState, ProseNode, ProseTransaction, ProseResolvedPos, ProseNodeType, ProseContentMatch, ProseAllSelection, ProseAttrs, ProseTextSelection } from "src/editor/common/proseMirror";
+import { BlockquoteAttrs } from "src/editor/model/documentNode/node/blockquote";
 import { HeadingAttrs } from "src/editor/model/documentNode/node/heading";
+import { ImageAttrs } from "src/editor/model/documentNode/node/image";
+import { ParagraphAttrs } from "src/editor/model/documentNode/node/paragraph";
 
 /**
  * @description Contains a list of helper functions that relates to ProseMirror.
@@ -65,6 +68,9 @@ export namespace ProseTools {
         export const createNode = __createNode;
         export namespace Create {
             export const heading = __createHeading;
+            export const paragraph = __createParagraph;
+            export const blockquote = __createBlockquote;
+            export const image = __createImage;
         }
     }
 
@@ -256,4 +262,16 @@ function __createNode(state: ProseEditorState, type: string, attrs: ProseAttrs):
 
 function __createHeading(state: ProseEditorState, attr: HeadingAttrs): ProseNode {
     return __createNode(state, TokenEnum.Heading, attr);
+}
+
+function __createParagraph(state: ProseEditorState, attr: ParagraphAttrs): ProseNode {
+    return __createNode(state, TokenEnum.Paragraph, attr);
+}
+
+function __createBlockquote(state: ProseEditorState, attr: BlockquoteAttrs): ProseNode {
+    return __createNode(state, TokenEnum.Blockquote, attr);
+}
+
+function __createImage(state: ProseEditorState, attr: ImageAttrs): ProseNode {
+    return __createNode(state, TokenEnum.Image, attr);
 }
