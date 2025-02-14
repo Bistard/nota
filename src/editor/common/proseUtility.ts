@@ -5,6 +5,8 @@ import { ProseSelection, ProseCursor, ProseEditorState, ProseNode, ProseTransact
 import { BlockquoteAttrs } from "src/editor/model/documentNode/node/blockquote";
 import { CodeBlockAttrs } from "src/editor/model/documentNode/node/codeBlock/codeBlock";
 import { HeadingAttrs } from "src/editor/model/documentNode/node/heading";
+import { HorizontalRuleAttrs } from "src/editor/model/documentNode/node/horizontalRule";
+import { HTMLAttrs } from "src/editor/model/documentNode/node/html";
 import { ImageAttrs } from "src/editor/model/documentNode/node/image";
 import { ListAttrs } from "src/editor/model/documentNode/node/list";
 import { MathBlockAttrs } from "src/editor/model/documentNode/node/mathBlock";
@@ -77,6 +79,8 @@ export namespace ProseTools {
             export const list = __createList;
             export const codeBlock = __createCodeBlock;
             export const mathBlock = __createMathBlock;
+            export const HTML = __createHTML;
+            export const HorizontalRule = __createHorizontalRule;
         }
     }
 
@@ -294,4 +298,11 @@ function __createMathBlock(state: ProseEditorState, attr: MathBlockAttrs): Prose
     return __createNode(state, TokenEnum.MathBlock, attr);
 }
 
+function __createHTML(state: ProseEditorState, attr: HTMLAttrs): ProseNode {
+    return __createNode(state, TokenEnum.HTML, attr);
+}
+
+function __createHorizontalRule(state: ProseEditorState, attr: HorizontalRuleAttrs): ProseNode {
+    return __createNode(state, TokenEnum.HorizontalRule, attr);
+}
 

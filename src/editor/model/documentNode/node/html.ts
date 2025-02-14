@@ -5,7 +5,7 @@ import { Dictionary } from "src/base/common/utilities/type";
 import { resolveImagePath } from "src/editor/common/editor";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
+import { GetProseAttrs, ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { createDomOutputFromOptions } from "src/editor/model/schema";
@@ -13,6 +13,13 @@ import { IMarkdownSerializerState } from "src/editor/model/serializer";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspaceService";
 
 // region - HTML
+
+export type HTMLAttrs = {
+    /**
+     * @default
+     */
+    readonly text?: '';
+};
 
 /**
  * @class A block node that represents `<html>`.
@@ -30,7 +37,7 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
         return {
             group: 'block',
             content: undefined,
-            attrs: {
+            attrs: <GetProseAttrs<HTMLAttrs>>{
                 text: { default: '' },
                 isBlock: {},
             },
