@@ -15,7 +15,7 @@ import { BrowserClipboardService } from "src/platform/clipboard/browser/clipboar
 import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
 
 export type CodeBlockAttrs = {
-    readonly container: HTMLElement;
+    readonly container?: HTMLElement;
     
     readonly view?: CodeEditorView;
     
@@ -52,7 +52,7 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
             code: true,
             defining: true,
             attrs: <GetProseAttrs<CodeBlockAttrs>>{
-                container: {},
+                container: {default: document.createElement('div')},
                 view: { default: new CodeEditorView({ doc: '', extensions: [minimalSetup] }) },
                 lang: { default: '' },
                 fenceType: { default: CodeBlockFenceType.WaveLine },
@@ -135,44 +135,44 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
         }
         state.closeBlock(node);
     };
-    
-    private __createCodeBlock(token: Tokens.Code):{
-        container: HTMLElement, 
-        editorView: CodeEditorView,
-    } {
-        
-        // create the container
+
+    private __createCodeBlock(token: Tokens.Code): { container: HTMLElement, editorView: CodeEditorView } {
         const container = document.createElement('div');
         container.classList.add('code-block-container');
-
+    
         const editorView = new CodeEditorView({
             doc: token.text,
             extensions: [minimalSetup],
         });
+    
+        const header = this.__createCodeBlockHeader(token, editorView);
+        container.appendChild(header);
+        container.appendChild(editorView.dom);
+    
+        return { container, editorView };
+    }
 
+    private __createCodeBlockHeader(token: Tokens.Code, editorView: CodeEditorView): HTMLElement {
         const header = document.createElement('div');
         header.classList.add('code-block-header');
-
+    
         const langLabel = document.createElement('span');
         langLabel.classList.add('code-lang');
         langLabel.textContent = token.lang || 'Code';
-
+    
         const copyButton = document.createElement('button');
         copyButton.classList.add('code-copy');
         copyButton.textContent = '📋';
-
+    
         copyButton.onclick = async () => {
             await this.clipboardService.write(ClipboardType.Text, editorView.state.doc.toString());
             copyButton.textContent = '✔️';
             setTimeout(() => (copyButton.textContent = '📋'), 2000);
         };
-
+    
         header.appendChild(langLabel);
         header.appendChild(copyButton);
-        container.appendChild(header);
-        container.appendChild(editorView.dom);
-
-        return {container, editorView};
+        return header;
     }
 }
 
