@@ -9,6 +9,7 @@ import { ProseEditorView, ProseNode, ProseResolvedPos, ProseTextSelection } from
 import { KeyCode } from "src/base/common/keyboard";
 import { TokenEnum } from "src/editor/common/markdown";
 import { IInputRule, InputRule, registerDefaultInputRules } from "src/editor/contrib/inputRuleExtension/editorInputRules";
+import { IInstantiationService, IServiceProvider } from "src/platform/instantiation/common/instantiation";
 
 /**
  * Defines the replacement behavior for an input rule. An input rule replacement 
@@ -47,7 +48,7 @@ export type InputRuleReplacement =
          * 
          * @note If not defined, the attributes of the generated node would be `null`.
          */
-        readonly getNodeAttribute?: (matchedText: RegExpExecArray) => Dictionary<string, any>;
+        readonly getNodeAttribute?: (matchedText: RegExpExecArray, serviceProvider: IServiceProvider) => Dictionary<string, any>;
 
         /** 
          * @description A predicate function that determines if the new node 
@@ -113,7 +114,10 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
     
     // [constructor]
 
-    constructor(editorWidget: IEditorWidget) {
+    constructor(
+        editorWidget: IEditorWidget,
+        @IInstantiationService private readonly instantiationService: IInstantiationService,
+    ) {
         super(editorWidget);
         
         registerDefaultInputRules(this);
@@ -148,7 +152,7 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
             return false;
         }
 
-        const rule = new InputRule(id, pattern, replacement);
+        const rule = new InputRule(id, pattern, replacement, this.instantiationService);
         this._rules.set(id, rule);
         return true;
     }
