@@ -2,7 +2,8 @@ import { EditorState, Transaction } from "prosemirror-state";
 import { canJoin, findWrapping } from "prosemirror-transform";
 import { TokenEnum } from "src/editor/common/markdown";
 import { IEditorInputRuleExtension, InputRuleReplacement } from "src/editor/contrib/inputRuleExtension/inputRuleExtension";
-import { CodeBlock } from "src/editor/model/documentNode/node/codeBlock/codeBlock";
+import { CodeBlockAttrs } from "src/editor/model/documentNode/node/codeBlock/codeBlock";
+import { HeadingAttrs } from "src/editor/model/documentNode/node/heading";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
 export function registerDefaultInputRules(extension: IEditorInputRuleExtension): void {
@@ -19,8 +20,10 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
         {
             nodeType: TokenEnum.Heading,
             whenReplace: 'type',
-            getNodeAttribute: (match) => {
-                return { level: match[1]?.length };
+            getNodeAttribute: (match): HeadingAttrs => {
+                return { 
+                    level: match[1]?.length,
+                };
             },
             wrapStrategy: 'WrapTextBlock'
         }
@@ -40,9 +43,11 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
         { 
             nodeType: TokenEnum.CodeBlock,
             whenReplace: 'enter',
-            getNodeAttribute: (match, provider) => {
+            getNodeAttribute: (match): CodeBlockAttrs => {
                 const lang = match[1];
-                return CodeBlock.CreateAttrs(lang ?? '', '', provider);
+                return {
+                    lang: lang ?? 'Unknown',
+                };
             },
             wrapStrategy: 'WrapTextBlock'
         }

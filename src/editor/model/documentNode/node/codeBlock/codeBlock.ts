@@ -10,17 +10,11 @@ import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/d
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
 import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
-import { IInstantiationService, IServiceProvider } from 'src/platform/instantiation/common/instantiation';
 
 export type CodeBlockAttrs = {
-    readonly container?: HTMLElement;
-    
-    readonly view?: CodeEditorView;
-    
-    /**
-     * @default ''
-     */
+    /** @default '' */
     readonly lang?: string;
+    readonly view?: CodeEditorView;
 };
 
 const enum CodeBlockFenceType {
@@ -38,7 +32,7 @@ const enum CodeBlockFenceType {
 export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
 
     constructor(
-        @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @IClipboardService private readonly clipboardService: IClipboardService,
     ) {
         super(TokenEnum.CodeBlock);
     }
@@ -52,8 +46,7 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
             code: true,
             defining: true,
             attrs: <GetProseAttrs<CodeBlockAttrs>>{
-                container: {default: document.createElement('div')},
-                view: { default: new CodeEditorView({ doc: '', extensions: [minimalSetup] }) },
+                view: { default: CodeBlock.createView('') },
                 lang: { default: '' },
                 fenceType: { default: CodeBlockFenceType.WaveLine },
                 fenceLength: { default: 3 },
@@ -62,7 +55,16 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
                 mismatchFence: { default: undefined },
             },
             toDOM: (node) => { 
-                const { container } = node.attrs;
+                const { view, lang } = node.attrs;
+                
+                // the entire container of a code block
+                const container = document.createElement('div');
+                container.classList.add('code-block-container');
+
+                const header = this.__createCodeBlockHeader(lang, view);
+                container.appendChild(header);
+                container.appendChild(view.dom);
+
                 return container;
             },
         };
@@ -71,10 +73,11 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
     public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.CodeBlock>): void {
         const { token } = status;
         const fenceResult = __resolveFenceStatus(token);
-        const baseAttrs = CodeBlock.CreateAttrs(token.lang ?? '', token.text, this.instantiationService);
-        
+
         const attrs = {
-            ...baseAttrs,
+            view: CodeBlock.createView(token.text),
+            lang: token.lang,
+            text: token.text,
             fenceType: fenceResult.type,
             fenceLength: fenceResult.length,
         };
@@ -133,29 +136,16 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
         state.closeBlock(node);
     };
 
-    // region - static
-
-    public static CreateAttrs(lang: string, text: string, provider: IServiceProvider): CodeBlockAttrs {
-        const container = document.createElement('div');
-        container.classList.add('code-block-container');
-    
-        const editorView = new CodeEditorView({
-            doc: text,
+    public static createView(text: string): CodeEditorView {
+        return new CodeEditorView({ 
+            doc: text ?? '', 
             extensions: [minimalSetup],
         });
-    
-        const header = this.__createCodeBlockHeader(lang, editorView, provider);
-        container.appendChild(header);
-        container.appendChild(editorView.dom);
-    
-        return { 
-            container, 
-            view: editorView,
-            lang: lang,
-        };
     }
 
-    private static __createCodeBlockHeader(lang: string, editorView: CodeEditorView, provider: IServiceProvider): HTMLElement {
+    // region - [private]
+
+    private __createCodeBlockHeader(lang: string, editorView: CodeEditorView): HTMLElement {
         const header = document.createElement('div');
         header.classList.add('code-block-header');
     
@@ -168,8 +158,7 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
         copyButton.textContent = '📋';
     
         copyButton.onclick = async () => {
-            const clipboardService = provider.getOrCreateService(IClipboardService);
-            await clipboardService.write(ClipboardType.Text, editorView.state.doc.toString());
+            await this.clipboardService.write(ClipboardType.Text, editorView.state.doc.toString());
             copyButton.textContent = '✔️';
             setTimeout(() => (copyButton.textContent = '📋'), 2000);
         };
