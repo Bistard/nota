@@ -1,37 +1,45 @@
 .code-block-container {
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    
     overflow: hidden;
     background: #f9f9f9;  /* White background */
     display: flex;     /* So header and editor align vertically */
     flex-direction: column;
 
+    margin: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    
     // header
     & > .code-block-header {
+        position: relative;
         display: flex;
         justify-content: space-between;
         align-items: center;
         background: #f5f5f5; /* Slightly off-white header */
         padding: 6px 10px;
+
         font-size: 12px;
         font-weight: bold;
         border-bottom: 1px solid #ddd;
-        width: 100%;
 
-        & > .code-lang {
+        & > .code-lang { 
+            cursor: pointer;
             color: #555;
         }
-        
         & > .code-copy {
             background: none;
             border: none;
             cursor: pointer;
             font-size: 14px;
             padding: 0;
-
-            &:hover {
-                color: #007bff;
-            }
+            &:hover { color: #007bff; }
         }
+    }
+
+    /* Make sure the CodeMirror editor stretches to fill the container width */
+    & > .cm-editor {
+        position: relative;
+        width: 100%;
+        box-sizing: border-box;
     }
 }
