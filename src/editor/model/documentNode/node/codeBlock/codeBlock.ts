@@ -10,6 +10,7 @@ import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/d
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
 import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
+import { IInstantiationService, IServiceProvider } from 'src/platform/instantiation/common/instantiation';
 
 export type CodeBlockAttrs = {
     readonly container?: HTMLElement;
@@ -28,6 +29,8 @@ const enum CodeBlockFenceType {
     Indent = 'indent',
 }
 
+// region - CodeBlock
+
 /**
  * @class A code listing. Disallows marks or non-text inline nodes by default. 
  * Represented as a `<pre>` element with a `<code>` element inside of it.
@@ -35,7 +38,7 @@ const enum CodeBlockFenceType {
 export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
 
     constructor(
-        @IClipboardService private readonly clipboardService: IClipboardService,
+        @IInstantiationService private readonly instantiationService: IInstantiationService,
     ) {
         super(TokenEnum.CodeBlock);
     }
@@ -68,13 +71,10 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
     public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.CodeBlock>): void {
         const { token } = status;
         const fenceResult = __resolveFenceStatus(token);
-
-        const { container, editorView } = this.__createCodeBlock(token);
+        const baseAttrs = CodeBlock.CreateAttrs(token.lang ?? '', token.text, this.instantiationService);
         
         const attrs = {
-            container: container,
-            view: editorView, 
-            lang: token.lang,
+            ...baseAttrs,
             fenceType: fenceResult.type,
             fenceLength: fenceResult.length,
         };
@@ -133,36 +133,43 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
         state.closeBlock(node);
     };
 
-    private __createCodeBlock(token: EditorTokens.CodeBlock): { container: HTMLElement, editorView: CodeEditorView } {
+    // region - static
+
+    public static CreateAttrs(lang: string, text: string, provider: IServiceProvider): CodeBlockAttrs {
         const container = document.createElement('div');
         container.classList.add('code-block-container');
     
         const editorView = new CodeEditorView({
-            doc: token.text,
+            doc: text,
             extensions: [minimalSetup],
         });
     
-        const header = this.__createCodeBlockHeader(token, editorView);
+        const header = this.__createCodeBlockHeader(lang, editorView, provider);
         container.appendChild(header);
         container.appendChild(editorView.dom);
     
-        return { container, editorView };
+        return { 
+            container, 
+            view: editorView,
+            lang: lang,
+        };
     }
 
-    private __createCodeBlockHeader(token: EditorTokens.CodeBlock, editorView: CodeEditorView): HTMLElement {
+    private static __createCodeBlockHeader(lang: string, editorView: CodeEditorView, provider: IServiceProvider): HTMLElement {
         const header = document.createElement('div');
         header.classList.add('code-block-header');
     
         const langLabel = document.createElement('span');
         langLabel.classList.add('code-lang');
-        langLabel.textContent = token.lang || 'Unknown';
+        langLabel.textContent = lang || 'Unknown';
     
         const copyButton = document.createElement('button');
         copyButton.classList.add('code-copy');
         copyButton.textContent = '📋';
     
         copyButton.onclick = async () => {
-            await this.clipboardService.write(ClipboardType.Text, editorView.state.doc.toString());
+            const clipboardService = provider.getOrCreateService(IClipboardService);
+            await clipboardService.write(ClipboardType.Text, editorView.state.doc.toString());
             copyButton.textContent = '✔️';
             setTimeout(() => (copyButton.textContent = '📋'), 2000);
         };
