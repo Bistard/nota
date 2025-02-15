@@ -1,6 +1,4 @@
 import 'src/editor/model/documentNode/node/codeBlock/codeBlock.scss';
-import { clipboard } from "electron";
-import { Tokens } from "marked";
 import { memoize } from "src/base/common/memoization";
 import { Strings } from "src/base/common/utilities/string";
 import { isString } from "src/base/common/utilities/type";
@@ -11,7 +9,6 @@ import { GetProseAttrs, ProseNode, ProseNodeSpec } from "src/editor/common/prose
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
-import { BrowserClipboardService } from "src/platform/clipboard/browser/clipboardService";
 import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
 
 export type CodeBlockAttrs = {
@@ -136,7 +133,7 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
         state.closeBlock(node);
     };
 
-    private __createCodeBlock(token: Tokens.Code): { container: HTMLElement, editorView: CodeEditorView } {
+    private __createCodeBlock(token: EditorTokens.CodeBlock): { container: HTMLElement, editorView: CodeEditorView } {
         const container = document.createElement('div');
         container.classList.add('code-block-container');
     
@@ -152,13 +149,13 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
         return { container, editorView };
     }
 
-    private __createCodeBlockHeader(token: Tokens.Code, editorView: CodeEditorView): HTMLElement {
+    private __createCodeBlockHeader(token: EditorTokens.CodeBlock, editorView: CodeEditorView): HTMLElement {
         const header = document.createElement('div');
         header.classList.add('code-block-header');
     
         const langLabel = document.createElement('span');
         langLabel.classList.add('code-lang');
-        langLabel.textContent = token.lang || 'Code';
+        langLabel.textContent = token.lang || 'Unknown';
     
         const copyButton = document.createElement('button');
         copyButton.classList.add('code-copy');
