@@ -1,3 +1,4 @@
+import 'src/editor/model/documentNode/node/codeBlock/codeBlock.scss';
 import { memoize } from "src/base/common/memoization";
 import { Strings } from "src/base/common/utilities/string";
 import { isString } from "src/base/common/utilities/type";
@@ -8,8 +9,12 @@ import { GetProseAttrs, ProseNode, ProseNodeSpec } from "src/editor/common/prose
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
+import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
+import { IInstantiationService, IServiceProvider } from 'src/platform/instantiation/common/instantiation';
 
 export type CodeBlockAttrs = {
+    readonly container?: HTMLElement;
+    
     readonly view?: CodeEditorView;
     
     /**
@@ -24,13 +29,17 @@ const enum CodeBlockFenceType {
     Indent = 'indent',
 }
 
+// region - CodeBlock
+
 /**
  * @class A code listing. Disallows marks or non-text inline nodes by default. 
  * Represented as a `<pre>` element with a `<code>` element inside of it.
  */
 export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
 
-    constructor() {
+    constructor(
+        @IInstantiationService private readonly instantiationService: IInstantiationService,
+    ) {
         super(TokenEnum.CodeBlock);
     }
 
@@ -43,6 +52,7 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
             code: true,
             defining: true,
             attrs: <GetProseAttrs<CodeBlockAttrs>>{
+                container: {default: document.createElement('div')},
                 view: { default: new CodeEditorView({ doc: '', extensions: [minimalSetup] }) },
                 lang: { default: '' },
                 fenceType: { default: CodeBlockFenceType.WaveLine },
@@ -52,8 +62,8 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
                 mismatchFence: { default: undefined },
             },
             toDOM: (node) => { 
-                const { view } = node.attrs;
-                return view.dom;
+                const { container } = node.attrs;
+                return container;
             },
         };
     }
@@ -61,15 +71,10 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
     public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.CodeBlock>): void {
         const { token } = status;
         const fenceResult = __resolveFenceStatus(token);
-
-        const view = new CodeEditorView({
-            doc: token.text,
-            extensions: [minimalSetup],
-        });
+        const baseAttrs = CodeBlock.CreateAttrs(token.lang ?? '', token.text, this.instantiationService);
         
         const attrs = {
-            view: view, 
-            lang: token.lang,
+            ...baseAttrs,
             fenceType: fenceResult.type,
             fenceLength: fenceResult.length,
         };
@@ -125,9 +130,54 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
                 state.text('\n', false);
             }
         }
-
         state.closeBlock(node);
     };
+
+    // region - static
+
+    public static CreateAttrs(lang: string, text: string, provider: IServiceProvider): CodeBlockAttrs {
+        const container = document.createElement('div');
+        container.classList.add('code-block-container');
+    
+        const editorView = new CodeEditorView({
+            doc: text,
+            extensions: [minimalSetup],
+        });
+    
+        const header = this.__createCodeBlockHeader(lang, editorView, provider);
+        container.appendChild(header);
+        container.appendChild(editorView.dom);
+    
+        return { 
+            container, 
+            view: editorView,
+            lang: lang,
+        };
+    }
+
+    private static __createCodeBlockHeader(lang: string, editorView: CodeEditorView, provider: IServiceProvider): HTMLElement {
+        const header = document.createElement('div');
+        header.classList.add('code-block-header');
+    
+        const langLabel = document.createElement('span');
+        langLabel.classList.add('code-lang');
+        langLabel.textContent = lang || 'Unknown';
+    
+        const copyButton = document.createElement('button');
+        copyButton.classList.add('code-copy');
+        copyButton.textContent = '📋';
+    
+        copyButton.onclick = async () => {
+            const clipboardService = provider.getOrCreateService(IClipboardService);
+            await clipboardService.write(ClipboardType.Text, editorView.state.doc.toString());
+            copyButton.textContent = '✔️';
+            setTimeout(() => (copyButton.textContent = '📋'), 2000);
+        };
+    
+        header.appendChild(langLabel);
+        header.appendChild(copyButton);
+        return header;
+    }
 }
 
 
