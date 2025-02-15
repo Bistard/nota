@@ -5,38 +5,33 @@
     background: #f9f9f9;  /* White background */
     display: flex;     /* So header and editor align vertically */
     flex-direction: column;
-}
 
-.code-block-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #f5f5f5; /* Slightly off-white header */
-    padding: 6px 10px;
-    font-size: 12px;
-    font-weight: bold;
-    border-bottom: 1px solid #ddd;
-    width: 100%;
-}
+    // header
+    & > .code-block-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f5f5f5; /* Slightly off-white header */
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: bold;
+        border-bottom: 1px solid #ddd;
+        width: 100%;
 
-.code-lang {
-    color: #555;
-}
+        & > .code-lang {
+            color: #555;
+        }
+        
+        & > .code-copy {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
 
-.code-copy {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    padding: 0;
-}
-
-.code-copy:hover {
-    color: #007bff;
-}
-
-/* Make sure the CodeMirror editor stretches to fill the container width */
-.code-block-container .cm-editor {
-    width: 100%;
-    box-sizing: border-box;
+            &:hover {
+                color: #007bff;
+            }
+        }
+    }
 }
