@@ -8,7 +8,7 @@ import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { IOnTextInputEvent } from "src/editor/view/proseEventBroadcaster";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
-import { Disposable, DisposableBucket, IDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableBucket, IDisposable, safeDisposable } from "src/base/common/dispose";
 import { KeyCode } from "src/base/common/keyboard";
 import { ProseAttrs, ProseEditorView, ProseTextSelection } from "src/editor/common/proseMirror";
 import { Emitter, Priority } from "src/base/common/event";
@@ -126,7 +126,7 @@ class SlashKeyboardController implements IDisposable {
         this.__trackCurrentNode(view);
 
         this._ongoing?.dispose();
-        const bucket = (this._ongoing = new DisposableBucket());
+        const bucket = (this._ongoing = safeDisposable(new DisposableBucket()));
 
         /** 
          * Capture certain key down we handle it by ourselves.
