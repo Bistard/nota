@@ -20,6 +20,8 @@ export interface IRichTextView extends IEditorViewProxy {
     /**
      * The container that directly contains the actual editor components and 
      * editor-related overlay components.
+     * 
+     * @note This is the container that is scrollable.
      */
     readonly overlayContainer: HTMLElement;
 }

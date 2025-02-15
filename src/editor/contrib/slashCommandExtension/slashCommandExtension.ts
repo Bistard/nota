@@ -272,14 +272,12 @@ class SlashMenuRenderer extends Disposable {
             return;
         }
         const editor = this.editorWidget.view.editor;
-        const x = position.left;
-        const y = position.top + 30; // add a bit offset to the bottom
+        const parentElement = editor.overlayContainer;
 
-        const parentElement = editor.container;
         this.contextMenuService.showContextMenuCustom({
             getActions: () => this.__obtainSlashCommandContent(),
             getContext: () => undefined,
-            getAnchor: () => ({ x, y }), // FIX: use element
+            getAnchor: () => ({ x: position.left, y: position.top, height: 24 }),
             getExtraContextMenuClassName: () => 'editor-slash-command',
             primaryAlignment: AnchorPrimaryAxisAlignment.Vertical,
             verticalPosition: AnchorVerticalPosition.Below,
