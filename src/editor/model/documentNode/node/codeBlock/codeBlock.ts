@@ -1,3 +1,6 @@
+import 'src/editor/model/documentNode/node/codeBlock/codeBlock.scss';
+import { clipboard } from "electron";
+import { Tokens } from "marked";
 import { memoize } from "src/base/common/memoization";
 import { Strings } from "src/base/common/utilities/string";
 import { isString } from "src/base/common/utilities/type";
@@ -8,8 +11,12 @@ import { GetProseAttrs, ProseNode, ProseNodeSpec } from "src/editor/common/prose
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
+import { BrowserClipboardService } from "src/platform/clipboard/browser/clipboardService";
+import { ClipboardType, IClipboardService } from "src/platform/clipboard/common/clipboard";
 
 export type CodeBlockAttrs = {
+    readonly container: HTMLElement;
+    
     readonly view?: CodeEditorView;
     
     /**
@@ -30,7 +37,9 @@ const enum CodeBlockFenceType {
  */
 export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
 
-    constructor() {
+    constructor(
+        @IClipboardService private readonly clipboardService: IClipboardService,
+    ) {
         super(TokenEnum.CodeBlock);
     }
 
@@ -43,6 +52,7 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
             code: true,
             defining: true,
             attrs: <GetProseAttrs<CodeBlockAttrs>>{
+                container: {},
                 view: { default: new CodeEditorView({ doc: '', extensions: [minimalSetup] }) },
                 lang: { default: '' },
                 fenceType: { default: CodeBlockFenceType.WaveLine },
@@ -52,8 +62,8 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
                 mismatchFence: { default: undefined },
             },
             toDOM: (node) => { 
-                const { view } = node.attrs;
-                return view.dom;
+                const { container } = node.attrs;
+                return container;
             },
         };
     }
@@ -62,13 +72,11 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
         const { token } = status;
         const fenceResult = __resolveFenceStatus(token);
 
-        const view = new CodeEditorView({
-            doc: token.text,
-            extensions: [minimalSetup],
-        });
+        const { container, editorView } = this.__createCodeBlock(token);
         
         const attrs = {
-            view: view, 
+            container: container,
+            view: editorView, 
             lang: token.lang,
             fenceType: fenceResult.type,
             fenceLength: fenceResult.length,
@@ -125,9 +133,47 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
                 state.text('\n', false);
             }
         }
-
         state.closeBlock(node);
     };
+    
+    private __createCodeBlock(token: Tokens.Code):{
+        container: HTMLElement, 
+        editorView: CodeEditorView,
+    } {
+        
+        // create the container
+        const container = document.createElement('div');
+        container.classList.add('code-block-container');
+
+        const editorView = new CodeEditorView({
+            doc: token.text,
+            extensions: [minimalSetup],
+        });
+
+        const header = document.createElement('div');
+        header.classList.add('code-block-header');
+
+        const langLabel = document.createElement('span');
+        langLabel.classList.add('code-lang');
+        langLabel.textContent = token.lang || 'Code';
+
+        const copyButton = document.createElement('button');
+        copyButton.classList.add('code-copy');
+        copyButton.textContent = '📋';
+
+        copyButton.onclick = async () => {
+            await this.clipboardService.write(ClipboardType.Text, editorView.state.doc.toString());
+            copyButton.textContent = '✔️';
+            setTimeout(() => (copyButton.textContent = '📋'), 2000);
+        };
+
+        header.appendChild(langLabel);
+        header.appendChild(copyButton);
+        container.appendChild(header);
+        container.appendChild(editorView.dom);
+
+        return {container, editorView};
+    }
 }
 
 
