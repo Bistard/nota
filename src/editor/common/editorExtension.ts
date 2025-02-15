@@ -66,6 +66,9 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     get onKeydown() { return this._editorWidget.onKeydown; }
     get onTextInput() { return this._editorWidget.onTextInput; }
     
+    get onCompositionStart() { return this._editorWidget.onCompositionStart; }
+    get onCompositionEnd() { return this._editorWidget.onCompositionEnd; }
+
     get onMouseOver() { return this._editorWidget.onMouseOver; }
     get onMouseOut() { return this._editorWidget.onMouseOut; }
     get onMouseEnter() { return this._editorWidget.onMouseEnter; }

@@ -223,6 +223,9 @@ export interface IProseEventBroadcaster extends IDisposable {
      */
     readonly onTextInput: PriorityRegister<IOnTextInputEvent>;
 
+    readonly onCompositionStart: PriorityRegister<CompositionEvent>;
+    readonly onCompositionEnd: PriorityRegister<CompositionEvent>;
+
     readonly onMouseOver: Register<IEditorMouseEvent>;
     readonly onMouseOut: Register<IEditorMouseEvent>;
     readonly onMouseEnter: Register<IEditorMouseEvent>;
@@ -336,6 +339,9 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
 
     private readonly _onTextInput = this.__register(new PriorityEmitter<IOnTextInputEvent>());
     public readonly onTextInput = this._onTextInput.registerListenerPriority;
+
+    @memoize get onCompositionStart() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.compositionStart)).registerListener, e => e); }
+    @memoize get onCompositionEnd() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.compositionEnd)).registerListener, e => e); }
 
     @memoize get onMouseOver() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.mouseover)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
     @memoize get onMouseOut() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.mouseout)).registerListener, e => __standardizeMouseEvent(e, this._view)); }

@@ -219,6 +219,13 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     private readonly _onTextInput = this.__register(RelayEmitter.createPriority<IOnTextInputEvent>());
     public readonly onTextInput = this._onTextInput.registerListener;
+    
+    private readonly _onCompositionStart = this.__register(RelayEmitter.createPriority<CompositionEvent>());
+    public readonly onCompositionStart = this._onCompositionStart.registerListener;
+    
+    private readonly _onCompositionEnd = this.__register(RelayEmitter.createPriority<CompositionEvent>());
+    public readonly onCompositionEnd = this._onCompositionEnd.registerListener;
+
 
     private readonly _onMouseOver = this.__register(RelayEmitter.createPriority<IEditorMouseEvent>());
     public readonly onMouseOver = this._onMouseOver.registerListener;
@@ -469,6 +476,9 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._onKeydown.setInput(this.view.onKeydown);
         this._onTextInput.setInput(this.view.onTextInput);
         
+        this._onCompositionStart.setInput(this.view.onCompositionStart);
+        this._onCompositionEnd.setInput(this.view.onCompositionEnd);
+
         this._onMouseOver.setInput(this.view.onMouseOver);
         this._onMouseOut.setInput(this.view.onMouseOut);
         this._onMouseEnter.setInput(this.view.onMouseEnter);

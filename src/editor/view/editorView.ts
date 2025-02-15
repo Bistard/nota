@@ -53,6 +53,9 @@ export class EditorView extends Disposable implements IEditorView {
     get onKeydown() { return this._view.onKeydown; }
     get onTextInput() { return this._view.onTextInput; }
     
+    get onCompositionStart() { return this._view.onCompositionStart; }
+    get onCompositionEnd() { return this._view.onCompositionEnd; }
+
     get onMouseOver() { return this._view.onMouseOver; }
     get onMouseOut() { return this._view.onMouseOut; }
     get onMouseEnter() { return this._view.onMouseEnter; }
