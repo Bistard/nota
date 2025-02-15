@@ -1,5 +1,5 @@
 import "src/editor/contrib/slashCommandExtension/slashCommand.scss";
-import { AnchorPrimaryAxisAlignment, AnchorVerticalPosition, IContextMenu } from "src/base/browser/basic/contextMenu/contextMenu";
+import { AnchorPrimaryAxisAlignment, AnchorVerticalPosition } from "src/base/browser/basic/contextMenu/contextMenu";
 import { MenuAction, MenuItemType, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { IPosition } from "src/base/common/utilities/size";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
@@ -111,6 +111,9 @@ class SlashKeyboardController implements IDisposable {
         this.dispose();
     }
 
+    /**
+     * Invoked whenever a menu is rendererd, we handle the keyboard logic here.
+     */
     public listen(view: ProseEditorView): void {
         this._ongoing?.dispose();
         const bucket = (this._ongoing = new DisposableBucket());
@@ -184,7 +187,7 @@ class SlashKeyboardController implements IDisposable {
          * Whenever current textblock back to empty state, destroy the slash 
          * command.
          */
-        bucket.register(this.editorWidget.view.editor.onDidContentChange(() => {
+        bucket.register(this.extension.onDidContentChange(() => {
             const { $from } = view.state.selection;
             const isEmptyBlock = ProseTools.Node.isEmptyTextBlock($from.parent);
             if (isEmptyBlock) {
@@ -192,9 +195,16 @@ class SlashKeyboardController implements IDisposable {
             }
         }));
 
-        // todo 2: when click somewhere else, destory contextMenu.
+        // TODO: destroy contextMenu whenever the selection changes to other blocks.
 
-        // todo 3: every contextMenu onFocus, need refocus editor
+        /**
+         * Whenever clicks happens, destory contextMenu. Unless the user is 
+         * clicking the current text block.
+         */
+        bucket.register(this.extension.onDidClick(e => {
+            // TODO: check if clicking the current text block
+            this.contextMenuService.contextMenu.destroy();
+        }));
     }
 }
 
