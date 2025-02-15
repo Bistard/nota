@@ -39,7 +39,7 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
         @II18nService i18nService: II18nService,
     ) {
         super(editorWidget);
-        this._keyboardController = this.__register(new SlashKeyboardController(this, editorWidget, contextMenuService));
+        this._keyboardController = this.__register(new SlashKeyboardController(this, contextMenuService));
         this._menuController = new SlashMenuController(editorWidget);
         this._menuRenderer = this.__register(new SlashMenuRenderer(editorWidget, contextMenuService, i18nService));
 
@@ -96,15 +96,23 @@ class SlashKeyboardController implements IDisposable {
     
     private _ongoing?: IDisposable;
 
+    private _triggeredNode?: {
+        readonly pos: number;
+        readonly depth: number;
+        readonly nodeType: string;
+    };
+
     constructor(
         private readonly extension: EditorSlashCommandExtension,
-        private readonly editorWidget: IEditorWidget,
         private readonly contextMenuService: IContextMenuService,
-    ) {}
+    ) {
+        this._triggeredNode = undefined;
+    }
 
     public dispose(): void {
         this._ongoing?.dispose();
         this._ongoing = undefined;
+        this._triggeredNode = undefined;
     }
 
     public unlisten(): void {
@@ -115,6 +123,8 @@ class SlashKeyboardController implements IDisposable {
      * Invoked whenever a menu is rendererd, we handle the keyboard logic here.
      */
     public listen(view: ProseEditorView): void {
+        this.__trackCurrentNode(view);
+
         this._ongoing?.dispose();
         const bucket = (this._ongoing = new DisposableBucket());
 
@@ -195,16 +205,41 @@ class SlashKeyboardController implements IDisposable {
             }
         }));
 
-        // TODO: destroy contextMenu whenever the selection changes to other blocks.
-
         /**
-         * Whenever clicks happens, destory contextMenu. Unless the user is 
-         * clicking the current text block.
+         * Destroy slash command whenever the selection changes to other blocks.
          */
-        bucket.register(this.extension.onDidClick(e => {
-            // TODO: check if clicking the current text block
-            this.contextMenuService.contextMenu.destroy();
+        bucket.register(this.extension.onDidSelectionChange(e => {
+            const menu = this.contextMenuService.contextMenu;
+            const triggeredNode = this._triggeredNode;
+            if (!triggeredNode) {
+                return;
+            }
+            
+            // obtain current selection's node info
+            const currSelection = e.transaction.selection;
+            const $current = currSelection.$from;
+            const mappedPos = e.transaction.mapping.map(triggeredNode.pos);
+
+            const isSameNode = (
+                $current.parent.type.name === triggeredNode.nodeType &&
+                $current.before() === mappedPos &&
+                $current.depth === triggeredNode.depth
+            );
+
+            if (!isSameNode) {
+                menu.destroy();
+            }
         }));
+    }
+
+    private __trackCurrentNode(view: ProseEditorView): void {
+        const { state } = view;
+        const $pos = state.selection.$from;
+        this._triggeredNode = {
+            pos: $pos.before(),
+            depth: $pos.depth,
+            nodeType: $pos.parent.type.name,
+        };
     }
 }
 
