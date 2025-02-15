@@ -72,13 +72,13 @@ export namespace Markdown {
     }
 }
 
-let cached: Record<string, (state: ProseEditorState, attr: ProseAttrs) => ProseNode>;
+let cached: Record<string, (state: ProseEditorState, attr: any) => ProseNode>;
 
 /**
  * @description Construct an empty node by the given `type`.
  * @returns `undefined` if the `type` is invalid.
  */
-function __createEmptyNodeByType(state: ProseEditorState, type: string, attr: ProseAttrs): ProseNode | undefined {
+function __createEmptyNodeByType(state: ProseEditorState, type: string, attr: any): ProseNode | undefined {
     cached ??= {
         [TokenEnum.Heading]: __createHeading,
         [TokenEnum.Paragraph]: __createParagraph,
