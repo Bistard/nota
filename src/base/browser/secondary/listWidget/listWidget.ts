@@ -145,9 +145,6 @@ export interface IListWidget<T> extends IList<T>, Disposable {
     /** Fires when the {@link IListWidget} is keyup. */
     get onKeyup(): Register<IStandardKeyboardEvent>;
 
-    /** Fires when the {@link IListWidget} is keypress. */
-    get onKeypress(): Register<IStandardKeyboardEvent>;
-
     /** 
      * Fires when the user attempts to open a context menu {@link IListWidget}. 
      * This event is typically triggered by:
@@ -405,7 +402,6 @@ export class ListWidget<T> extends Disposable implements IListWidget<T> {
 
     get onKeydown(): Register<IStandardKeyboardEvent> { return Event.map(this.view.onKeydown, e => createStandardKeyboardEvent(e)); }
     get onKeyup(): Register<IStandardKeyboardEvent> { return Event.map(this.view.onKeyup, e => createStandardKeyboardEvent(e)); }
-    get onKeypress(): Register<IStandardKeyboardEvent> { return Event.map(this.view.onKeypress, e => createStandardKeyboardEvent(e)); }
     @memoize 
     get onContextmenu(): Register<IListContextmenuEvent<T>> { return this.__createContextmenuRegister(); }
 

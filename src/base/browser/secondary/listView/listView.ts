@@ -4,7 +4,8 @@ import { IListViewRenderer, ListItemRenderer, PipelineRenderer, RendererType } f
 import { ScrollableWidget } from "src/base/browser/secondary/scrollableWidget/scrollableWidget";
 import { IScrollableWidgetExtensionOpts, ScrollbarType } from "src/base/browser/secondary/scrollableWidget/scrollableWidgetOptions";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { DomEmitter, DomUtility, EventType } from "src/base/browser/basic/dom";
+import { DomUtility, EventType } from "src/base/browser/basic/dom";
+import { DomEmitter } from "src/base/common/event";
 import { Emitter, Register } from "src/base/common/event";
 import { IRange, ISpliceable, Range, RangeTable } from "src/base/common/structures/range";
 import { IScrollEvent, Scrollable } from "src/base/common/scrollable";
@@ -116,10 +117,10 @@ export interface IListView<T> extends IList<T>, IDisposable {
     get onDidScroll(): Register<IScrollEvent>;
     
     /** Fires when the {@link IListView} itself is focused. */
-    get onDidFocus(): Register<void>;
+    get onDidFocus(): Register<FocusEvent>;
 
     /** Fires when the {@link IListView} itself is blurred. */
-    get onDidBlur(): Register<void>;
+    get onDidBlur(): Register<FocusEvent>;
 
     /** Fires when the item in the {@link IListView} is clicked. */
     get onClick(): Register<MouseEvent>;
@@ -153,9 +154,6 @@ export interface IListView<T> extends IList<T>, IDisposable {
 
     /** Fires when the {@link IListView} is keyup. */
     get onKeyup(): Register<KeyboardEvent>;
-
-    /** Fires when the {@link IListView} is keypress. */
-    get onKeypress(): Register<KeyboardEvent>;
 
     /** 
      * Fires when the user attempts to open a context menu {@link IListView}. 
@@ -340,8 +338,8 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
     get onWillScroll(): Register<IScrollEvent> { return this._scrollableWidget.onWillScroll; }
     get onDidScroll(): Register<IScrollEvent> { return this._scrollableWidget.onDidScroll; }
     
-    get onDidFocus(): Register<void> { return this._focusTracker.onDidFocus; }
-    get onDidBlur(): Register<void> { return this._focusTracker.onDidBlur; }
+    get onDidFocus(): Register<FocusEvent> { return this._focusTracker.onDidFocus; }
+    get onDidBlur(): Register<FocusEvent> { return this._focusTracker.onDidBlur; }
     
     @memoize get onClick(): Register<MouseEvent> { return this.__register(new DomEmitter(this._element, EventType.click)).registerListener; }
     @memoize get onDoubleClick(): Register<MouseEvent> { return this.__register(new DomEmitter(this._element, EventType.doubleClick)).registerListener; }
@@ -354,7 +352,6 @@ export class ListView<T> extends Disposable implements ISpliceable<T>, IListView
 
     @memoize get onKeydown(): Register<KeyboardEvent> { return this.__register(new DomEmitter(this._element, EventType.keydown)).registerListener; }
     @memoize get onKeyup(): Register<KeyboardEvent> { return this.__register(new DomEmitter(this._element, EventType.keyup)).registerListener; }
-    @memoize get onKeypress(): Register<KeyboardEvent> { return this.__register(new DomEmitter(this._element, EventType.keypress)).registerListener; }
     @memoize get onContextmenu(): Register<MouseEvent> { return this.__register(new DomEmitter(this._element, EventType.contextmenu)).registerListener; }
 
     get DOMElement(): HTMLElement { return this._element; }

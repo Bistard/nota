@@ -1,5 +1,6 @@
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { DomEmitter, EventType } from "src/base/browser/basic/dom";
+import { EventType } from "src/base/browser/basic/dom";
+import { DomEmitter } from "src/base/common/event";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { Event, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent } from "src/base/common/keyboard";
@@ -22,11 +23,6 @@ export interface IKeyboardService extends IService, IDisposable {
      */
     onKeyup: Register<IStandardKeyboardEvent>;
 
-    /**
-     * Fires when key press happens in the current window.
-     */
-    onKeypress: Register<IStandardKeyboardEvent>;
-    
     /**
      * Event fired when a text composition (e.g., IME input) starts in the 
      * current window. Typically used to handle non-Latin character inputs.
@@ -62,7 +58,6 @@ export class KeyboardService extends Disposable implements IKeyboardService {
 
     public readonly onKeydown: Register<IStandardKeyboardEvent>;
     public readonly onKeyup: Register<IStandardKeyboardEvent>;
-    public readonly onKeypress: Register<IStandardKeyboardEvent>;
     public readonly onCompositionStart: Register<CompositionEvent>;
     public readonly onCompositionUpdate: Register<CompositionEvent>;
     public readonly onCompositionEnd: Register<CompositionEvent>;
@@ -75,14 +70,12 @@ export class KeyboardService extends Disposable implements IKeyboardService {
         super();
         const onKeydown = this.__register(new DomEmitter(layoutService.parentContainer, EventType.keydown, true));
         const onKeyup = this.__register(new DomEmitter(layoutService.parentContainer, EventType.keyup, true));
-        const onKeypress = this.__register(new DomEmitter(layoutService.parentContainer, EventType.keypress, true));
         const onCompositionStart = this.__register(new DomEmitter(layoutService.parentContainer, EventType.compositionStart, true));
         const onCompositionUpdate = this.__register(new DomEmitter(layoutService.parentContainer, EventType.compositionUpdate, true));
         const onCompositionEnd = this.__register(new DomEmitter(layoutService.parentContainer, EventType.compositionEnd, true));
 
         this.onKeydown = Event.map(onKeydown.registerListener, e => createStandardKeyboardEvent(e));
         this.onKeyup = Event.map(onKeyup.registerListener, e => createStandardKeyboardEvent(e));
-        this.onKeypress = Event.map(onKeypress.registerListener, e => createStandardKeyboardEvent(e));
         this.onCompositionStart = onCompositionStart.registerListener;
         this.onCompositionUpdate = onCompositionUpdate.registerListener;
         this.onCompositionEnd = onCompositionEnd.registerListener;

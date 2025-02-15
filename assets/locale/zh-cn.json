@@ -18,6 +18,24 @@
             "empty": "空数学公式",
             "rendering": "渲染中...",
             "error": "错误公式"
+        },
+        "editor/contrib/blockPlaceHolderExtension/blockPlaceHolderExtension": {
+            "emptyBlockPlaceHolder": "开始输入，或者试试 '@' 触发 AI，'/' 呼出命令..."
+        },
+        "editor/common/markdown": {
+            "code": "代码",
+            "heading": "标题",
+            "table": "表格",
+            "horizontalRule": "分割线",
+            "blockquote": "引用",
+            "list": "列表",
+            "paragraph": "文字",
+            "html": "HTML",
+            "image": "图片",
+            "mathBlock": "数学公式"
+        },
+        "editor/model/documentNode/node/html/html": {
+            "empty": "空HTML"
         }
     }
 }

@@ -1,4 +1,4 @@
-import { IDisposable } from "src/base/common/dispose";
+import { Disposable, IDisposable, untrackDisposable } from "src/base/common/dispose";
 import { IIterable } from "src/base/common/utilities/iterable";
 import { Comparator } from "src/base/common/utilities/type";
 
@@ -43,10 +43,15 @@ export interface IPriorityQueue<T> extends IIterable<T>, IDisposable {
 	 * @description Checks if the queue is empty.
 	 * @returns True if the queue is empty, false otherwise.
 	 */
-	isEmpty(): boolean;
+	empty(): boolean;
+
+    /**
+     * @description Clear the entire queue to empty.
+     */
+    clear(): void;
 }
 
-export class PriorityQueue<T> implements IPriorityQueue<T> {
+export class PriorityQueue<T> extends Disposable implements IPriorityQueue<T> {
 	
 	// [fields]
 
@@ -57,6 +62,7 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
 	// [constructor]
 
     constructor(comparator: Comparator<T>) {
+        super();
         this.__comparator = comparator;
     }
 
@@ -69,7 +75,7 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
     }
     
     public dequeue(): T | undefined {
-        if (this.isEmpty()) {
+        if (this.empty()) {
             return undefined;
         }
         
@@ -109,7 +115,7 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
     }
     
     public peek(): T | undefined {
-        if (this.isEmpty()) {
+        if (this.empty()) {
             return undefined;
         }
         return this._heap[0];
@@ -119,13 +125,18 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
         return this._count;
     }
     
-    public isEmpty(): boolean {
+    public empty(): boolean {
         return this._heap.length === 0;
     }
 
-    public dispose(): void {
+    public clear(): void {
         this._heap = [];
         this._count = 0;
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        this.clear();
     }
 
 	*[Symbol.iterator](): Iterator<T> {
@@ -133,11 +144,11 @@ export class PriorityQueue<T> implements IPriorityQueue<T> {
         const copyCount = this._count;
         const copyComparator = this.__comparator;
 
-        const copyQueue = new PriorityQueue<T>(copyComparator);
+        const copyQueue = untrackDisposable(new PriorityQueue<T>(copyComparator));
         copyQueue._heap = copy;
         copyQueue._count = copyCount;
         
-        while (!copyQueue.isEmpty()) {
+        while (!copyQueue.empty()) {
             yield copyQueue.dequeue()!;
         }
     }

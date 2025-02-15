@@ -1,6 +1,5 @@
 import { IProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
-import { EditorBase } from "src/editor/view/editorBase";
-import { RichtextEditor } from "src/editor/view/richtextEditor";
+import { RichTextView } from "src/editor/view/richTextView";
 
 export const enum EditorType {
     Plain = 'plain-text',
@@ -8,10 +7,10 @@ export const enum EditorType {
     Rich = 'rich-text'
 }
 
-export type PlaintextEditor = {} & EditorBase; // TEST
-export type SplitViewEditor = {} & EditorBase; // TEST
+export type PlaintextEditor = {} & RichTextView; // TEST
+export type SplitViewEditor = {} & RichTextView; // TEST
 
-export type EditorWindow = RichtextEditor | PlaintextEditor | SplitViewEditor;
+export type EditorWindow = RichTextView | PlaintextEditor | SplitViewEditor;
 
 /**
  * An interface only for {@link EditorView}.
@@ -21,5 +20,5 @@ export interface IEditorView extends IProseEventBroadcaster {
     /**
      * The actual editor instance.
      */
-    readonly editor: EditorWindow;
+    readonly editor: RichTextView;
 }

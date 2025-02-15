@@ -1,7 +1,6 @@
 import * as assert from 'assert';
-import { IDisposable } from 'src/base/common/dispose';
 import { ErrorHandler } from 'src/base/common/error';
-import { AsyncEmitter, DelayableEmitter, Emitter, Event, IEmitterOptions, PauseableEmitter, RelayEmitter, SignalEmitter } from 'src/base/common/event';
+import { AsyncEmitter, DelayableEmitter, DomEmitter, Emitter, Event, EventStrategy, IEmitterOptions, PauseableEmitter, Priority, PriorityEmitter, RelayEmitter, SignalEmitter } from 'src/base/common/event';
 import { Blocker, repeat } from 'src/base/common/utilities/async';
 import { FakeAsync } from 'test/utils/fakeAsync';
 
@@ -312,7 +311,7 @@ suite('event-test', () => {
         const object = new NameClass('chris');
         const thisObject = new NameClass('replaced');
 
-        const registration1 = emitter.registerListener(object.getName, undefined, thisObject);
+        const registration1 = emitter.registerListener(object.getName, thisObject);
 
         emitter.fire();
 
@@ -361,36 +360,6 @@ suite('event-test', () => {
         registration2.dispose();
         emitter.fire(undefined);
         assert.strictEqual(counter, 3);
-    });
-
-    test('emitter - multiple listeners disposables', () => {
-        let counter = 0;
-        const callback = (e: undefined) => {
-            counter++;
-        };
-
-        const emitter = new Emitter<undefined>();
-        const disposables: IDisposable[] = [];
-
-        const registration1 = emitter.registerListener(callback, disposables);
-        const registration2 = emitter.registerListener(callback, disposables);
-
-        emitter.fire(undefined);
-        assert.strictEqual(counter, 2);
-
-        while (disposables.length) {
-            const disposable = disposables.pop();
-            disposable?.dispose();
-        }
-
-        emitter.fire(undefined);
-        assert.strictEqual(counter, 2);
-
-        // no operations
-        registration1.dispose();
-        registration2.dispose();
-        emitter.fire(undefined);
-        assert.strictEqual(counter, 2);
     });
 
     test('emitter - dispose emitter', () => {
@@ -627,38 +596,340 @@ suite('event-test', () => {
         const object = new NameClass('chris');
         const thisObject = new NameClass('replaced');
 
-        const registration1 = emitter.registerListener(object.getName, undefined, thisObject);
+        const registration1 = emitter.registerListener(object.getName, thisObject);
 
         await emitter.fireAsync();
 
         assert.strictEqual(name, 'replaced');
     }));
 
-    test('relayEmitter', () => {
-        const input1 = new Emitter<number>();
-        const input2 = new Emitter<number>();
-
-        const relay = new RelayEmitter<number>();
-        
-        let total = 0;
-
-        relay.registerListener((value) => {
-            total += value;
+    suite('DomEmitter', () => {
+        test('should register and emit DOM events', () => {
+            const element = document.createElement('div');
+            const emitter = new DomEmitter<'click'>(element, 'click');
+    
+            let eventTriggered = false;
+            emitter.registerListener(() => {
+                eventTriggered = true;
+            });
+    
+            element.click();
+    
+            assert.strictEqual(eventTriggered, true);
         });
-        relay.registerListener((value) => {
-            total += value;
+    
+        test('should remove event listener when no listeners are attached', () => {
+            const element = document.createElement('div');
+            const emitter = new DomEmitter<'click'>(element, 'click');
+    
+            let eventCount = 0;
+            const disposable = emitter.registerListener(() => {
+                eventCount++;
+            });
+    
+            element.click();
+            disposable.dispose();
+            element.click();
+    
+            assert.strictEqual(eventCount, 1);
+        });
+    
+        test('should support priority-based event handling when strategy is Priority', () => {
+            const element = document.createElement('div');
+            const emitter = DomEmitter.createPriority(element, 'click', false);
+    
+            const result: string[] = [];
+    
+            emitter.registerListener(() => result.push('Normal'));
+            emitter.registerListenerPriority(() => {result.push('High');}, undefined, Priority.High);
+    
+            element.click();
+    
+            assert.deepStrictEqual(result, ['High', 'Normal']);
+        });
+    
+        test('should stop propagation when a high-priority listener returns true', () => {
+            const element = document.createElement('div');
+            const emitter = DomEmitter.createPriority(element, 'click', false);
+    
+            const result: string[] = [];
+    
+            emitter.registerListenerPriority(() => {
+                result.push('High');
+                return true;
+            }, undefined, Priority.High);
+            emitter.registerListener(() => result.push('Normal'));
+            element.click();
+            assert.deepStrictEqual(result, ['High']);
+        });
+    
+        test('should handle multiple listeners on the same event', () => {
+            const element = document.createElement('div');
+            const emitter = new DomEmitter<'click'>(element, 'click');
+    
+            const result: string[] = [];
+    
+            emitter.registerListener(() => result.push('Listener 1'));
+            emitter.registerListener(() => result.push('Listener 2'));
+    
+            element.click();
+    
+            assert.deepStrictEqual(result, ['Listener 1', 'Listener 2']);
+        });
+    
+        test('should not expose registerListenerPriority when strategy is FIFO', () => {
+            const element = document.createElement('div');
+            const emitter = new DomEmitter<'click'>(element, 'click');
+    
+            assert.strictEqual(typeof (emitter as any).registerListenerPriority, 'undefined');
+        });
+    });
+
+    suite('RelayEmitter', () => {
+        test('basic', () => {
+            const input1 = new Emitter<number>();
+            const input2 = new Emitter<number>();
+    
+            const relay = new RelayEmitter<number>();
+            
+            let total = 0;
+    
+            relay.registerListener((value) => {
+                total += value;
+            });
+            relay.registerListener((value) => {
+                total += value;
+            });
+    
+            relay.setInput(input1.registerListener);
+            
+            input1.fire(5);
+            assert.strictEqual(total, 10);
+    
+    
+            relay.setInput(input2.registerListener);
+            
+            input2.fire(-5);
+            assert.strictEqual(total, 0);
         });
 
-        relay.setInput(input1.registerListener);
-        
-        input1.fire(5);
-        assert.strictEqual(total, 10);
+        test('should relay events from the input emitter', () => {
+            const inputEmitter = new Emitter<string>();
+            const relay = new RelayEmitter<string>();
+    
+            const result: string[] = [];
+            relay.registerListener((msg) => result.push(msg));
+    
+            relay.setInput(inputEmitter.registerListener);
+            inputEmitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['test']);
+        });
+    
+        test('should switch input emitter dynamically', () => {
+            const emitter1 = new Emitter<string>();
+            const emitter2 = new Emitter<string>();
+            const relay = new RelayEmitter<string>();
+    
+            const result: string[] = [];
+            relay.registerListener((msg) => result.push(msg));
+    
+            relay.setInput(emitter1.registerListener);
+            emitter1.fire('from E1');
+    
+            relay.setInput(emitter2.registerListener);
+            emitter2.fire('from E2');
+            emitter1.fire('from E1 again');
+    
+            assert.deepStrictEqual(result, ['from E1', 'from E2']);
+        });
+    
+        test('should stop relaying when no listeners are attached', () => {
+            const inputEmitter = new Emitter<string>();
+            const relay = new RelayEmitter<string>();
+    
+            const result: string[] = [];
+            const disposable = relay.registerListener((msg) => result.push(msg));
+    
+            relay.setInput(inputEmitter.registerListener);
+            inputEmitter.fire('before dispose');
+    
+            disposable.dispose();
+            inputEmitter.fire('after dispose');
+    
+            assert.deepStrictEqual(result, ['before dispose']);
+        });
+    
+        test('should work with PriorityEmitter when EventStrategy.Priority is set', () => {
+            const inputEmitter = new PriorityEmitter<string>();
+            const relay = RelayEmitter.createPriority();
+    
+            const result: string[] = [];
+            relay.registerListener((msg) => result.push(`Default: ${msg}`));
+            relay.registerListenerPriority((msg) => { result.push(`High: ${msg}`); }, undefined, Priority.High);
+    
+            relay.setInput(inputEmitter.registerListener);
+            inputEmitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['High: test', 'Default: test']);
+        });
 
+        test('should clean up previous input event listeners when switching inputs', () => {
+            const emitter1 = new Emitter<string>();
+            const emitter2 = new Emitter<string>();
+            const relay = new RelayEmitter<string>();
+    
+            let count1 = 0;
+            let count2 = 0;
+    
+            relay.registerListener(() => count1++);
+            relay.registerListener(() => count2++);
+    
+            relay.setInput(emitter1.registerListener);
+            emitter1.fire('test1');
+    
+            relay.setInput(emitter2.registerListener);
+            emitter2.fire('test2');
+            emitter1.fire('test1 again');
+    
+            assert.strictEqual(count1, 2);
+            assert.strictEqual(count2, 2);
+        });
+    });
 
-        relay.setInput(input2.registerListener);
-        
-        input2.fire(-5);
-        assert.strictEqual(total, 0);
+    suite('PriorityEmitter - registerListener', () => {
+        test('should register and fire events in default priority order', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListener((e) => result.push(`Listener 1: ${e}`));
+            emitter.registerListener((e) => result.push(`Listener 2: ${e}`));
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['Listener 1: test', 'Listener 2: test']);
+        });
+    
+        test('should allow removing a registered listener', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            const disposable = emitter.registerListener((e) => result.push(`Listener: ${e}`));
+    
+            emitter.fire('test1');
+            disposable.dispose();
+            emitter.fire('test2');
+    
+            assert.deepStrictEqual(result, ['Listener: test1']);
+        });
+    
+        test('should continue firing even if one listener throws an error', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListener(() => {
+                throw new Error('Listener error');
+            });
+            emitter.registerListener((e) => result.push(`Listener: ${e}`));
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['Listener: test']);
+        });
+    
+        test('should not interfere with registerListenerPriority behavior', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListener((e) => result.push(`Normal: ${e}`));
+            emitter.registerListenerPriority((e) => { result.push(`High: ${e}`); }, undefined, Priority.High);
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['High: test', 'Normal: test']);
+        });
+    });
+
+    suite('PriorityEmitter - registerListenerPriority', () => {
+        test('should register and fire events in priority order', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListenerPriority((e) => {result.push(`Low: ${e}`);}, undefined, Priority.Low);
+            emitter.registerListenerPriority((e) => {result.push(`Normal: ${e}`);}, undefined, Priority.Normal);
+            emitter.registerListenerPriority((e) => {result.push(`High: ${e}`);}, undefined, Priority.High);
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['High: test', 'Normal: test', 'Low: test']);
+        });
+    
+        test('should stop propagation if a high-priority listener returns true', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListenerPriority((e) => {result.push(`Low: ${e}`);}, undefined, Priority.Low);
+            emitter.registerListenerPriority((e) => {result.push(`Normal: ${e}`);}, undefined, Priority.Normal);
+            emitter.registerListenerPriority((e) => {
+                result.push(`High: ${e}`);
+                return true;
+            }, undefined, Priority.High);
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['High: test']);
+        });
+    
+        test('should allow multiple listeners with the same priority', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListenerPriority((e) => {result.push(`Listener 1: ${e}`);}, undefined , Priority.Normal);
+            emitter.registerListenerPriority((e) => {result.push(`Listener 2: ${e}`);}, undefined , Priority.Normal);
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['Listener 1: test', 'Listener 2: test']);
+        });
+    
+        test('should remove a registered listener', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            const disposable = emitter.registerListenerPriority((e) => {result.push(`Listener: ${e}`);}, undefined, Priority.Normal);
+    
+            emitter.fire('test1');
+            disposable.dispose();
+            emitter.fire('test2');
+    
+            assert.deepStrictEqual(result, ['Listener: test1']);
+        });
+    
+        test('should handle errors thrown by listeners and continue execution', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListenerPriority(() => {
+                throw new Error('Listener error');
+            }, undefined, Priority.Normal);
+            emitter.registerListenerPriority((e) => {result.push(`Listener: ${e}`);}, undefined, Priority.Low);
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['Listener: test']);
+        });
+    
+        test('should handle listeners with default priority when null is passed', () => {
+            const emitter = new PriorityEmitter<string>();
+            const result: string[] = [];
+    
+            emitter.registerListenerPriority((e) => {result.push(`Default: ${e}`);});
+            emitter.registerListenerPriority((e) => {result.push(`High: ${e}`);}, undefined, Priority.High);
+    
+            emitter.fire('test');
+    
+            assert.deepStrictEqual(result, ['High: test', 'Default: test']);
+        });
     });
 
     test('Event.map()', () => {

@@ -7,10 +7,25 @@
     ],
     "version": "0.6.9",
     "contents": {
+        "editor/common/markdown": {
+            "code": "Code",
+            "heading": "Heading",
+            "table": "Table",
+            "horizontalRule": "Divider",
+            "blockquote": "Quote",
+            "list": "List",
+            "paragraph": "Paragraph",
+            "html": "HTML",
+            "image": "Image",
+            "mathBlock": "Math"
+        },
         "editor/common/math": {
             "empty": "Empty Math Block",
             "rendering": "Rendering...",
             "error": "Error Equations"
+        },
+        "editor/contrib/blockPlaceHolderExtension/blockPlaceHolderExtension": {
+            "emptyBlockPlaceHolder": "Start typing, or press '@' for AI, '/' for commands..."
         },
         "platform/i18n/browser/i18nService": {
             "relaunchDisplayLanguageMessage": "Restart {name} to switch to language: {languageName}?"
@@ -18,6 +33,9 @@
         "platform/i18n/common/i18n": {
             "openDirectory": "Open a Folder",
             "missingTranslation": "MISSING_TRANSLATION"
+        },
+        "editor/model/documentNode/node/html/html": {
+            "empty": "Empty HTML Block"
         }
     }
 }

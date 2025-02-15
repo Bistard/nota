@@ -1,4 +1,5 @@
 import { TokenizerAndRendererExtension } from "marked";
+import { memoize } from "src/base/common/memoization";
 import { TokenEnum } from "src/editor/common/markdown";
 import { renderMath } from "src/editor/common/math";
 import { EditorTokens } from "src/editor/common/model";
@@ -56,6 +57,7 @@ export class MathInline extends DocumentNode<EditorTokens.MathInline> {
         super(TokenEnum.MathInline);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return <ProseNodeSpec>{
             group: 'inline',

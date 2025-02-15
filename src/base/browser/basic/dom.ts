@@ -1,7 +1,6 @@
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { HexColor } from "src/base/common/color";
 import { Disposable, IDisposable, toDisposable } from "src/base/common/dispose";
-import { Emitter, Register } from "src/base/common/event";
 import { err, ok, Result } from "src/base/common/result";
 import { panic } from "src/base/common/utilities/panic";
 import { Dimension, IDomBox } from "src/base/common/utilities/size";
@@ -60,6 +59,7 @@ export const enum EventType {
 
 	keydown = 'keydown',
 	keyup = 'keyup',
+	/** @deprecated */
 	keypress = 'keypress',
 	compositionStart = 'compositionstart',
 	compositionUpdate = 'compositionupdate',
@@ -648,31 +648,6 @@ export namespace DomUtility
 			}
 		}
 	}
-}
-
-/**
- * @class A Simple class for register callback on a given HTMLElement using an
- * {@link Emitter} instead of using raw *addEventListener()* method.
- * 
- * @note LAZY: only start listening when there is one listener presents.
- */
-export class DomEmitter<T extends keyof DomEventMap> extends Disposable {
-
-    private readonly emitter: Emitter<DomEventMap[T]>;
-
-    constructor(element: EventTarget, type: T, useCapture: boolean = false) {
-		super();
-		const fn = (e: any) => this.emitter.fire(e);
-		// LAZY
-		this.emitter = this.__register(new Emitter({
-			onFirstListenerAdd: () => element.addEventListener(type, fn, useCapture),
-			onLastListenerDidRemove: () => element.removeEventListener(type, fn, useCapture),
-		}));
-    }
-
-	get registerListener(): Register<DomEventMap[T]> {
-        return this.emitter.registerListener;
-    }
 }
 
 /**

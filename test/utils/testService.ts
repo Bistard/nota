@@ -278,10 +278,6 @@ export class TestKeyboardService implements IKeyboardService {
         return this._emitter.registerListener;
     }
 
-    get onKeypress() {
-        return this._emitter.registerListener;
-    }
-    
     get onCompositionStart() {
         return this._emitter2.registerListener;
     }

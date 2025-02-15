@@ -38,7 +38,7 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     public abstract readonly id: string;
 
     protected readonly _editorWidget: IEditorWidget;
-    private readonly _viewExtension: ProseExtension;
+    protected readonly _viewExtension: ProseExtension;
     
     /**
      * Will be defined when the editor is initialized for the first time.
@@ -64,9 +64,11 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     get onDidTripleClick() { return this._editorWidget.onDidTripleClick; }
 
     get onKeydown() { return this._editorWidget.onKeydown; }
-    get onKeypress() { return this._editorWidget.onKeypress; }
     get onTextInput() { return this._editorWidget.onTextInput; }
     
+    get onCompositionStart() { return this._editorWidget.onCompositionStart; }
+    get onCompositionEnd() { return this._editorWidget.onCompositionEnd; }
+
     get onMouseOver() { return this._editorWidget.onMouseOver; }
     get onMouseOut() { return this._editorWidget.onMouseOut; }
     get onMouseEnter() { return this._editorWidget.onMouseEnter; }
@@ -170,9 +172,23 @@ export abstract class EditorExtension extends Disposable implements IEditorExten
     protected onViewDestroy?(view: ProseEditorView): void;
 
     /**
-     * @description It is called whenever the view's decorations are updated.
-     * @returns A decoration source object defining the visual modifications, or 
-     * `null`/`undefined` if no decorations are to be applied.
+     * Called on every editor state update (e.g., after each transaction or
+     * whenever the view's state is re-evaluated) to retrieve decorations for
+     * this extension. ProseMirror will invoke `props.decorations(state)` on
+     * each update, and in turn, call this method if defined.
+     *
+     * @remarks
+     * 1. Initial Render: This is also invoked when the editor is first
+     *    rendered or re-initialized, so you can provide initial decorations.
+     * 2. Subsequent Updates: Each time the user edits the document or a
+     *    plugin changes the state (causing a transaction), ProseMirror checks
+     *    for updated decorations. Thus, `onDecoration` may be called frequently.
+     * 3. Performance Consideration: Since this can be called on every
+     *    transaction, ensure that any decoration-building logic is optimized
+     *    or incremental if possible.
+     *
+     * @returns A {@link ProseDecorationSource} (DecorationSet) or `null` (if no
+     * decoration needs to be applied).
      */
     protected onDecoration?(state: ProseEditorState): ProseDecorationSource | nullable;
 

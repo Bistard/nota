@@ -14,13 +14,15 @@ import { EditorView } from "src/editor/view/editorView";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IContextKey } from "src/platform/context/common/contextKey";
 import { IConfigurationService } from "src/platform/configuration/common/configuration";
-import { IEditorDragEvent, IEditorMouseEvent, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidContentChangeEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnKeydownEvent, IOnKeypressEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
+import { IEditorDragEvent, IEditorMouseEvent, IOnBeforeRenderEvent, IOnClickEvent, IOnDidClickEvent, IOnDidContentChangeEvent, IOnDidDoubleClickEvent, IOnDidRenderEvent, IOnDidSelectionChangeEvent, IOnDidTripleClickEvent, IOnDoubleClickEvent, IOnDropEvent, IOnFocusEvent, IOnKeydownEvent, IOnPasteEvent, IOnRenderEvent, IOnTextInputEvent, IOnTripleClickEvent, IProseEventBroadcaster } from "src/editor/view/proseEventBroadcaster";
 import { EditorExtension } from "src/editor/common/editorExtension";
 import { assert, errorToMessage } from "src/base/common/utilities/panic";
 import { AsyncResult, err, ok, Result } from "src/base/common/result";
 import { EditorDragState } from "src/editor/common/cursorDrop";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 import { IEditorViewModel } from "src/editor/common/viewModel";
+
+// region - [interface]
 
 /**
  * An interface only for {@link EditorWidget}.
@@ -58,11 +60,19 @@ export interface IEditorWidget extends
 
     /**
      * Returns the model.
+     * @panic If the editor is not intialized.
      */
     readonly model: IEditorModel;
 
     /**
+     * Returns the view model.
+     * @panic If the editor is not intialized.
+     */
+    readonly viewModel: IEditorViewModel;
+
+    /**
      * Returns the view.
+     * @panic If the editor is not intialized.
      */
     readonly view: IEditorView;
 
@@ -78,6 +88,12 @@ export interface IEditorWidget extends
      * @throws An exception will be thrown if the editor cannot open it.
      */
     open(source: URI): Promise<Result<void, Error>>;
+
+    /**
+     * @description If the editor is opened. If this returns true, it is safe to
+     * invoke {@link model}/{@link viewModel}/{@link view} without panic.
+     */
+    isOpened(): boolean;
 
     /**
      * @description Updates the options of the editor widget.
@@ -99,6 +115,12 @@ export interface IEditorWidget extends
     
     getContextKey<T>(name: string): IContextKey<T> | undefined;
     updateContext(name: string, value: any): boolean;
+
+    /**
+     * @description Let the world ends. Destroy EVERYTHING.
+     * @note same as {@link dispose()}.
+     */
+    destroy(): void;
 }
 
 /**
@@ -106,7 +128,7 @@ export interface IEditorWidget extends
  */
 export class EditorWidget extends Disposable implements IEditorWidget {
 
-    // #region [fields]
+    // region - [fields]
 
     /**
      * The HTML container of the entire editor.
@@ -122,7 +144,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     /**
      * Responsible for managing the context key of the editor.
      */
-    private readonly _contextHub: EditorContextHub;
+    private readonly _contextHub: EditorContextController;
 
     /**
      * Responsible for constructing a list of editor extensions.
@@ -134,125 +156,129 @@ export class EditorWidget extends Disposable implements IEditorWidget {
      */
     private readonly _options: EditorOptionController;
 
-    // #region [model events]
+    // region - [model events]
 
-    private readonly _onDidStateChange = this.__register(new RelayEmitter<void>());
+    private readonly _onDidStateChange = this.__register(RelayEmitter.createPriority<void>());
     public readonly onDidStateChange = this._onDidStateChange.registerListener;
 
-    private readonly _onDidDirtyChange = this.__register(new RelayEmitter<boolean>());
+    private readonly _onDidDirtyChange = this.__register(RelayEmitter.createPriority<boolean>());
     public readonly onDidDirtyChange = this._onDidDirtyChange.registerListener;
 
-    private readonly _onDidSave = this.__register(new RelayEmitter<void>());
+    private readonly _onDidSave = this.__register(RelayEmitter.createPriority<void>());
     public readonly onDidSave = this._onDidSave.registerListener;
     
-    private readonly _onDidSaveError = this.__register(new RelayEmitter<unknown>());
+    private readonly _onDidSaveError = this.__register(RelayEmitter.createPriority<unknown>());
     public readonly onDidSaveError = this._onDidSaveError.registerListener;
 
-    // #region [view events]
+    // region - [view events]
 
-    private readonly _onDidBlur = this.__register(new RelayEmitter<void>());
+    private readonly _onDidBlur = this.__register(RelayEmitter.createPriority<IOnFocusEvent>());
     public readonly onDidBlur = this._onDidBlur.registerListener;
     
-    private readonly _onDidFocus = this.__register(new RelayEmitter<void>());
+    private readonly _onDidFocus = this.__register(RelayEmitter.createPriority<IOnFocusEvent>());
     public readonly onDidFocus = this._onDidFocus.registerListener;
 
-    private readonly _onDidRenderModeChange = this.__register(new RelayEmitter<EditorType>());
+    private readonly _onDidRenderModeChange = this.__register(RelayEmitter.createPriority<EditorType>());
     public readonly onDidRenderModeChange = this._onDidRenderModeChange.registerListener;
 
-    private readonly _onBeforeRender = this.__register(new RelayEmitter<IOnBeforeRenderEvent>());
+    private readonly _onBeforeRender = this.__register(RelayEmitter.createPriority<IOnBeforeRenderEvent>());
     public readonly onBeforeRender = this._onBeforeRender.registerListener;
 
-    private readonly _onRender = this.__register(new RelayEmitter<IOnRenderEvent>());
+    private readonly _onRender = this.__register(RelayEmitter.createPriority<IOnRenderEvent>());
     public readonly onRender = this._onRender.registerListener;
     
-    private readonly _onDidRender = this.__register(new RelayEmitter<IOnDidRenderEvent>());
+    private readonly _onDidRender = this.__register(RelayEmitter.createPriority<IOnDidRenderEvent>());
     public readonly onDidRender = this._onDidRender.registerListener;
     
-    private readonly _onDidSelectionChange = this.__register(new RelayEmitter<IOnDidSelectionChangeEvent>());
+    private readonly _onDidSelectionChange = this.__register(RelayEmitter.createPriority<IOnDidSelectionChangeEvent>());
     public readonly onDidSelectionChange = this._onDidSelectionChange.registerListener;
     
-    private readonly _onDidContentChange = this.__register(new RelayEmitter<IOnDidContentChangeEvent>());
+    private readonly _onDidContentChange = this.__register(RelayEmitter.createPriority<IOnDidContentChangeEvent>());
     public readonly onDidContentChange = this._onDidContentChange.registerListener;
 
-    private readonly _onClick = this.__register(new RelayEmitter<IOnClickEvent>());
+    private readonly _onClick = this.__register(RelayEmitter.createPriority<IOnClickEvent>());
     public readonly onClick = this._onClick.registerListener;
 
-    private readonly _onDidClick = this.__register(new RelayEmitter<IOnDidClickEvent>());
+    private readonly _onDidClick = this.__register(RelayEmitter.createPriority<IOnDidClickEvent>());
     public readonly onDidClick = this._onDidClick.registerListener;
 
-    private readonly _onDoubleClick = this.__register(new RelayEmitter<IOnDoubleClickEvent>());
+    private readonly _onDoubleClick = this.__register(RelayEmitter.createPriority<IOnDoubleClickEvent>());
     public readonly onDoubleClick = this._onDoubleClick.registerListener;
 
-    private readonly _onDidDoubleClick = this.__register(new RelayEmitter<IOnDidDoubleClickEvent>());
+    private readonly _onDidDoubleClick = this.__register(RelayEmitter.createPriority<IOnDidDoubleClickEvent>());
     public readonly onDidDoubleClick = this._onDidDoubleClick.registerListener;
 
-    private readonly _onTripleClick = this.__register(new RelayEmitter<IOnTripleClickEvent>());
+    private readonly _onTripleClick = this.__register(RelayEmitter.createPriority<IOnTripleClickEvent>());
     public readonly onTripleClick = this._onTripleClick.registerListener;
 
-    private readonly _onDidTripleClick = this.__register(new RelayEmitter<IOnDidTripleClickEvent>());
+    private readonly _onDidTripleClick = this.__register(RelayEmitter.createPriority<IOnDidTripleClickEvent>());
     public readonly onDidTripleClick = this._onDidTripleClick.registerListener;
 
-    private readonly _onKeydown = this.__register(new RelayEmitter<IOnKeydownEvent>());
+    private readonly _onKeydown = this.__register(RelayEmitter.createPriority<IOnKeydownEvent>());
     public readonly onKeydown = this._onKeydown.registerListener;
 
-    private readonly _onKeypress = this.__register(new RelayEmitter<IOnKeypressEvent>());
-    public readonly onKeypress = this._onKeypress.registerListener;
-
-    private readonly _onTextInput = this.__register(new RelayEmitter<IOnTextInputEvent>());
+    private readonly _onTextInput = this.__register(RelayEmitter.createPriority<IOnTextInputEvent>());
     public readonly onTextInput = this._onTextInput.registerListener;
+    
+    private readonly _onCompositionStart = this.__register(RelayEmitter.createPriority<CompositionEvent>());
+    public readonly onCompositionStart = this._onCompositionStart.registerListener;
+    
+    private readonly _onCompositionEnd = this.__register(RelayEmitter.createPriority<CompositionEvent>());
+    public readonly onCompositionEnd = this._onCompositionEnd.registerListener;
 
-    private readonly _onMouseOver = this.__register(new RelayEmitter<IEditorMouseEvent>());
+
+    private readonly _onMouseOver = this.__register(RelayEmitter.createPriority<IEditorMouseEvent>());
     public readonly onMouseOver = this._onMouseOver.registerListener;
     
-    private readonly _onMouseOut = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    private readonly _onMouseOut = this.__register(RelayEmitter.createPriority<IEditorMouseEvent>());
     public readonly onMouseOut = this._onMouseOut.registerListener;
     
-    private readonly _onMouseEnter = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    private readonly _onMouseEnter = this.__register(RelayEmitter.createPriority<IEditorMouseEvent>());
     public readonly onMouseEnter = this._onMouseEnter.registerListener;
     
-    private readonly _onMouseLeave = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    private readonly _onMouseLeave = this.__register(RelayEmitter.createPriority<IEditorMouseEvent>());
     public readonly onMouseLeave = this._onMouseLeave.registerListener;
     
-    private readonly _onMouseDown = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    private readonly _onMouseDown = this.__register(RelayEmitter.createPriority<IEditorMouseEvent>());
     public readonly onMouseDown = this._onMouseDown.registerListener;
     
-    private readonly _onMouseUp = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    private readonly _onMouseUp = this.__register(RelayEmitter.createPriority<IEditorMouseEvent>());
     public readonly onMouseUp = this._onMouseUp.registerListener;
     
-    private readonly _onMouseMove = this.__register(new RelayEmitter<IEditorMouseEvent>());
+    private readonly _onMouseMove = this.__register(RelayEmitter.createPriority<IEditorMouseEvent>());
     public readonly onMouseMove = this._onMouseMove.registerListener;
     
-    private readonly _onPaste = this.__register(new RelayEmitter<IOnPasteEvent>());
+    private readonly _onPaste = this.__register(RelayEmitter.createPriority<IOnPasteEvent>());
     public readonly onPaste = this._onPaste.registerListener;
 
-    private readonly _onDrop = this.__register(new RelayEmitter<IOnDropEvent>());
+    private readonly _onDrop = this.__register(RelayEmitter.createPriority<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
     
-    private readonly _onDropOverlay = this.__register(new RelayEmitter<IEditorDragEvent>());
+    private readonly _onDropOverlay = this.__register(RelayEmitter.createPriority<IEditorDragEvent>());
     public readonly onDropOverlay = this._onDropOverlay.registerListener;
     
-    private readonly _onDrag = this.__register(new RelayEmitter<IEditorDragEvent>());
+    private readonly _onDrag = this.__register(RelayEmitter.createPriority<IEditorDragEvent>());
     public readonly onDrag = this._onDrag.registerListener;
     
-    private readonly _onDragStart = this.__register(new RelayEmitter<IEditorDragEvent>());
+    private readonly _onDragStart = this.__register(RelayEmitter.createPriority<IEditorDragEvent>());
     public readonly onDragStart = this._onDragStart.registerListener;
     
-    private readonly _onDragEnd = this.__register(new RelayEmitter<IEditorDragEvent>());
+    private readonly _onDragEnd = this.__register(RelayEmitter.createPriority<IEditorDragEvent>());
     public readonly onDragEnd = this._onDragEnd.registerListener;
     
-    private readonly _onDragOver = this.__register(new RelayEmitter<IEditorDragEvent>());
+    private readonly _onDragOver = this.__register(RelayEmitter.createPriority<IEditorDragEvent>());
     public readonly onDragOver = this._onDragOver.registerListener;
     
-    private readonly _onDragEnter = this.__register(new RelayEmitter<IEditorDragEvent>());
+    private readonly _onDragEnter = this.__register(RelayEmitter.createPriority<IEditorDragEvent>());
     public readonly onDragEnter = this._onDragEnter.registerListener;
     
-    private readonly _onDragLeave = this.__register(new RelayEmitter<IEditorDragEvent>());
+    private readonly _onDragLeave = this.__register(RelayEmitter.createPriority<IEditorDragEvent>());
     public readonly onDragLeave = this._onDragLeave.registerListener;
     
-    private readonly _onWheel = this.__register(new RelayEmitter<WheelEvent>());
+    private readonly _onWheel = this.__register(RelayEmitter.createPriority<WheelEvent>());
     public readonly onWheel = this._onWheel.registerListener;
 
-    // #region [constructor]
+    // region - [constructor]
 
     constructor(
         container: HTMLElement,
@@ -272,7 +298,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._editorData = null;
 
         this._options    = instantiationService.createInstance(EditorOptionController, options);
-        this._contextHub = instantiationService.createInstance(EditorContextHub, this);
+        this._contextHub = instantiationService.createInstance(EditorContextController, this);
         this._extensions = instantiationService.createInstance(EditorExtensionController, this, extensions);
 
         this.__registerListeners();
@@ -280,17 +306,18 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this.__register(this._extensions);
     }
 
-    // #region [getter]
+    // region - [getter]
 
     get initialized(): boolean { return !!this._model; }
 
     get model(): IEditorModel { return assert(this._model); }
+    get viewModel(): IEditorViewModel { return assert(this._viewModel); }
     get view(): IEditorView { return assert(this._view); }
 
     get readonly(): boolean { return !this._options.getOptions().writable.value; }
     get renderMode(): EditorType | null { return null; } // TODO
 
-    // #region [public methods]
+    // region - [public]
 
     public async open(source: URI): Promise<Result<void, Error>> {
         const currSource = this._model?.source;
@@ -328,11 +355,15 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         );
 
         // listeners
-        this.__registerMVVMListeners(this._model, this._view);
+        this.__registerMVVMListeners(this._model, this._viewModel, this._view);
 
         // cache data
         this._editorData = this.__register(new EditorData(this._model, this._viewModel, this._view, undefined));
         return ok();
+    }
+
+    public isOpened(): boolean {
+        return !!this._model && !!this._viewModel && !!this._view;
     }
 
     public save(): AsyncResult<void, Error> {
@@ -369,7 +400,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         return this._contextHub.updateContext(name, value);
     }
 
-    // #region [editor-model methods]
+    // region - [model]
 
     get source(): URI { return this.__assertModel().source; }
     get dirty(): boolean { return assert(this._model).dirty; }
@@ -382,7 +413,11 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         return this.__assertModel().deleteAt(textOffset, length);
     }
 
-    // #region [private helper methods]
+    public destroy(): void {
+        return this.dispose();
+    }
+
+    // region - [private]
 
     private __detachData(): void {
         this.release(this._editorData);
@@ -393,6 +428,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     private __assertModel(): EditorModel {
         return assert(this._model, '[EditorWidget] EditorModel is not initialized.');
+    }
+    
+    private __assertViewModel(): EditorViewModel {
+        return assert(this._viewModel, '[EditorWidget] EditorViewModel is not initialized.');
     }
     
     private __assertView(): EditorView {
@@ -410,7 +449,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         }));
     }
 
-    private __registerMVVMListeners(model: IEditorModel, view: IEditorView): void {
+    private __registerMVVMListeners(model: IEditorModel, viewModel: IEditorViewModel, view: IEditorView): void {
 
         // binding to the model
         this._onDidStateChange.setInput(model.onDidStateChange);
@@ -435,9 +474,11 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this._onDidTripleClick.setInput(this.view.onDidTripleClick);
         
         this._onKeydown.setInput(this.view.onKeydown);
-        this._onKeypress.setInput(this.view.onKeypress);
         this._onTextInput.setInput(this.view.onTextInput);
         
+        this._onCompositionStart.setInput(this.view.onCompositionStart);
+        this._onCompositionEnd.setInput(this.view.onCompositionEnd);
+
         this._onMouseOver.setInput(this.view.onMouseOver);
         this._onMouseOut.setInput(this.view.onMouseOut);
         this._onMouseEnter.setInput(this.view.onMouseEnter);
@@ -461,6 +502,8 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     }
 }
 
+// region - private
+
 class EditorData extends Disposable {
 
     constructor(
@@ -479,11 +522,13 @@ class EditorData extends Disposable {
     }
 }
 
+// region - EditorContextController
+
 /**
  * @class Once the class is constructed, the {@link IContextKey} relates to 
  * editor will be self-updated.
  */
-class EditorContextHub extends Disposable {
+class EditorContextController extends Disposable {
 
     // [context]
 
@@ -542,6 +587,8 @@ class EditorContextHub extends Disposable {
     }
 }
 
+// region - EditorExtension
+
 class EditorExtensionController extends Disposable {
 
     // [fields]
@@ -587,6 +634,8 @@ class EditorExtensionController extends Disposable {
         }
     }
 }
+
+// region - EditorOption
 
 class EditorOptionController {
 

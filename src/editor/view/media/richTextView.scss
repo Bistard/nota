@@ -14,11 +14,6 @@
         background-color: #ddedff;
     }
 
-    // make sure every block always have a small space before touching the end
-    & > * {
-        padding-right: 22px;
-    }
-
     // border-radius
     & blockquote, & code, & .cm-editor, & .math-block, & .math-inline, & .pre {
         border-radius: 3px;
@@ -92,7 +87,7 @@
     & .cm-editor {
         background-color: #f9f9f9;
         outline: none;
-        padding: 22px;
+        padding: 18px;
         & .cm-line {
             font-family: 'Consolas', monospace;
             // Consolas looks bigger than normal text, we reduce for 1 px to maintain balance.

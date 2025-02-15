@@ -1,7 +1,7 @@
 import { IDisposable, toDisposable } from "src/base/common/dispose";
 import { Result, err, ok } from "src/base/common/result";
 import { mixin } from "src/base/common/utilities/object";
-import { errorToMessage, panic } from "src/base/common/utilities/panic";
+import { errorToMessage, IpcErrorTag, panic } from "src/base/common/utilities/panic";
 import { isObject, isPromise, isString } from "src/base/common/utilities/type";
 
 type IErrorCallback = (error: any) => void;
@@ -173,11 +173,6 @@ export function toIPCTransferableError(error?: Error): Error | undefined {
 
     return <Error>newErr;
 }
-
-/**
- * Give client a chance to distinguish between the real Error.
- */
-export const IpcErrorTag = '__$ipcTransferable';
 
 /**
  * @description Executes the given function and returns its result. If an error 

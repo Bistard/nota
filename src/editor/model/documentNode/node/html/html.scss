@@ -1,0 +1,27 @@
+
+
+.html {
+    cursor: pointer;
+
+    // animation: background color
+    background-color: transparent;
+    transition: background-color 0.3s ease;
+    &:hover {
+        background-color: #f0f0f0;
+        cursor: pointer;
+    }
+
+    & > .placeholder {
+        display: flex;
+        justify-content: center; // horizontal align
+        align-items: center; // vertical align
+
+        min-height: 50px;
+        
+        font-family: 'sans-serif';
+        font-style: italic;
+        font-size: 18px;
+
+        padding: 8px;
+    }
+}

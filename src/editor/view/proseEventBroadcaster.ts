@@ -1,9 +1,12 @@
-import { DomEmitter, EventType } from "src/base/browser/basic/dom";
+import { EventType } from "src/base/browser/basic/dom";
+import { DomEmitter } from "src/base/common/event";
 import { Disposable, IDisposable } from "src/base/common/dispose";
-import { Emitter, Event, Register } from "src/base/common/event";
+import { Emitter, Event, PriorityEmitter, PriorityRegister, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent } from "src/base/common/keyboard";
 import { memoize } from "src/base/common/memoization";
 import { ProseDirectEditorProperty, ProseEditorProperty, ProseEditorView, ProseNode, ProseResolvedPos, ProseSlice, ProseTransaction } from "src/editor/common/proseMirror";
+
+// region - interface
 
 type __TransactionEventBase = {
     readonly view: ProseEditorView;
@@ -44,18 +47,17 @@ export interface IOnKeydownEvent {
 
     /**
      * Whenever a command is executed by any listeners, we need to invoke 
-     * `markAsExecuted` to tell prosemirror to prevent default behavior of the 
+     * `preventDefault` to tell prosemirror to prevent default behavior of the 
      * browser.
      * 
      * @see https://discuss.prosemirror.net/t/question-allselection-weird-behaviours-when-the-document-contains-a-non-text-node-at-the-end/7749/3
      */
-    markAsExecuted: () => void;
+    preventDefault: () => void;
 }
 
-export interface IOnKeypressEvent {
+export interface IOnFocusEvent {
     readonly view: ProseEditorView;
-    readonly event: IStandardKeyboardEvent;
-    preventDefault(): void;
+    readonly event: FocusEvent;
 }
 
 export interface IOnTextInputEvent {
@@ -127,6 +129,8 @@ export interface IEditorDragEvent extends IEditorMouseEvent {
     readonly dataTransfer?: DataTransfer;
 }
 
+// region - ProseEventBroadcaster
+
 /**
  * An interface only for {@link ProseEventBroadcaster}.
  */
@@ -135,23 +139,23 @@ export interface IProseEventBroadcaster extends IDisposable {
     /** 
 	 * Fires when the component is either blurred.
 	 */
-    readonly onDidBlur: Register<void>;
+    readonly onDidBlur: PriorityRegister<IOnFocusEvent>;
     
     /** 
 	 * Fires when the component is either focused.
 	 */
-    readonly onDidFocus: Register<void>;
+    readonly onDidFocus: PriorityRegister<IOnFocusEvent>;
 
     /**
      * Fires before next rendering on DOM tree. The client has a chance to 
      * prevent the render action.
      */
-    readonly onBeforeRender: Register<IOnBeforeRenderEvent>;
+    readonly onBeforeRender: PriorityRegister<IOnBeforeRenderEvent>;
     
     /**
      * Fires right before a rendering action is taken on DOM tree.
      */
-    readonly onRender: Register<IOnRenderEvent>;
+    readonly onRender: PriorityRegister<IOnRenderEvent>;
 
     /**
      * Fires after a rendering action is taken on DOM tree. 
@@ -160,69 +164,67 @@ export interface IProseEventBroadcaster extends IDisposable {
      *      2. {@link onDidDocumentChange} 
      * will also trigger this event.
      */
-    readonly onDidRender: Register<IOnDidRenderEvent>;
+    readonly onDidRender: PriorityRegister<IOnDidRenderEvent>;
     
     /**
      * Fires whenever the selection of the editor changes.
      */
-    readonly onDidSelectionChange: Register<IOnDidSelectionChangeEvent>;
+    readonly onDidSelectionChange: PriorityRegister<IOnDidSelectionChangeEvent>;
     
     /**
      * Fires whenever the content of the document of the editor changes.
      */
-    readonly onDidContentChange: Register<IOnDidContentChangeEvent>;
+    readonly onDidContentChange: PriorityRegister<IOnDidContentChangeEvent>;
 
     /**
      * Fires for each node around a click, from the inside out. The direct flag 
      * will be true for the inner node.
      */
-    readonly onClick: Register<IOnClickEvent>;
+    readonly onClick: PriorityRegister<IOnClickEvent>;
 
     /**
      * Fires when the editor is clicked, after 'onClick' event have been called.
      */
-    readonly onDidClick: Register<IOnDidClickEvent>;
+    readonly onDidClick: PriorityRegister<IOnDidClickEvent>;
 
     /**
      * Fires for each node around a double click, from the inside out. The 
      * direct flag will be true for the inner node.
      */
-    readonly onDoubleClick: Register<IOnDoubleClickEvent>;
+    readonly onDoubleClick: PriorityRegister<IOnDoubleClickEvent>;
 
     /**
      * Fires when the editor is double clicked, after 'onDoubleClick' event have 
      * been called.
      */
-    readonly onDidDoubleClick: Register<IOnDidDoubleClickEvent>;
+    readonly onDidDoubleClick: PriorityRegister<IOnDidDoubleClickEvent>;
 
     /**
      * Fires for each node around a triple click, from the inside out. The 
      * direct flag will be true for the inner node.
      */
-    readonly onTripleClick: Register<IOnTripleClickEvent>;
+    readonly onTripleClick: PriorityRegister<IOnTripleClickEvent>;
 
     /**
      * Fires when the editor is triple clicked, after 'onDoubleClick' event have 
      * been called.
      */
-    readonly onDidTripleClick: Register<IOnDidTripleClickEvent>;
+    readonly onDidTripleClick: PriorityRegister<IOnDidTripleClickEvent>;
 
     /**
      * Fires when the editor encounters a keydown event.
      */
-    readonly onKeydown: Register<IOnKeydownEvent>;
-
-    /**
-     * Fires when the editor encounters a keypress event.
-     */
-    readonly onKeypress: Register<IOnKeypressEvent>;
+    readonly onKeydown: PriorityRegister<IOnKeydownEvent>;
 
     /**
      * Fires whenever the user directly inputs some text, this event is called 
      * before the input is applied. If the `preventDefault` is invoked, the 
      * default behavior of inserting the text is prevented.
      */
-    readonly onTextInput: Register<IOnTextInputEvent>;
+    readonly onTextInput: PriorityRegister<IOnTextInputEvent>;
+
+    readonly onCompositionStart: PriorityRegister<CompositionEvent>;
+    readonly onCompositionEnd: PriorityRegister<CompositionEvent>;
 
     readonly onMouseOver: Register<IEditorMouseEvent>;
     readonly onMouseOut: Register<IEditorMouseEvent>;
@@ -263,6 +265,8 @@ export interface IProseEventBroadcaster extends IDisposable {
     readonly onWheel: Register<WheelEvent>;
 }
 
+// region - implementation
+
 /**
  * @class Given either a prosemirror view, or a property object from an 
  * extension, the broadcaster will bind all the event emitter from prosemirror 
@@ -291,77 +295,77 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
 
     // [event]
 
-    private readonly _onDidBlur = this.__register(new Emitter<void>());
-    public readonly onDidBlur = this._onDidBlur.registerListener;
+    private readonly _onDidBlur = this.__register(new PriorityEmitter<IOnFocusEvent>());
+    public readonly onDidBlur = this._onDidBlur.registerListenerPriority;
     
-    private readonly _onDidFocus = this.__register(new Emitter<void>());
-    public readonly onDidFocus = this._onDidFocus.registerListener;
+    private readonly _onDidFocus = this.__register(new PriorityEmitter<IOnFocusEvent>());
+    public readonly onDidFocus = this._onDidFocus.registerListenerPriority;
 
-    private readonly _onBeforeRender = this.__register(new Emitter<IOnBeforeRenderEvent>());
-    public readonly onBeforeRender = this._onBeforeRender.registerListener;
+    private readonly _onBeforeRender = this.__register(new PriorityEmitter<IOnBeforeRenderEvent>());
+    public readonly onBeforeRender = this._onBeforeRender.registerListenerPriority;
     
-    private readonly _onRender = this.__register(new Emitter<IOnRenderEvent>());
-    public readonly onRender = this._onRender.registerListener;
+    private readonly _onRender = this.__register(new PriorityEmitter<IOnRenderEvent>());
+    public readonly onRender = this._onRender.registerListenerPriority;
     
-    private readonly _onDidRender = this.__register(new Emitter<IOnDidRenderEvent>());
-    public readonly onDidRender = this._onDidRender.registerListener;
+    private readonly _onDidRender = this.__register(new PriorityEmitter<IOnDidRenderEvent>());
+    public readonly onDidRender = this._onDidRender.registerListenerPriority;
     
-    private readonly _onDidSelectionChange = this.__register(new Emitter<IOnDidSelectionChangeEvent>());
-    public readonly onDidSelectionChange = this._onDidSelectionChange.registerListener;
+    private readonly _onDidSelectionChange = this.__register(new PriorityEmitter<IOnDidSelectionChangeEvent>());
+    public readonly onDidSelectionChange = this._onDidSelectionChange.registerListenerPriority;
     
-    private readonly _onDidContentChange = this.__register(new Emitter<IOnDidContentChangeEvent>());
-    public readonly onDidContentChange = this._onDidContentChange.registerListener;
+    private readonly _onDidContentChange = this.__register(new PriorityEmitter<IOnDidContentChangeEvent>());
+    public readonly onDidContentChange = this._onDidContentChange.registerListenerPriority;
 
-    private readonly _onClick = this.__register(new Emitter<IOnClickEvent>());
-    public readonly onClick = this._onClick.registerListener;
+    private readonly _onClick = this.__register(new PriorityEmitter<IOnClickEvent>());
+    public readonly onClick = this._onClick.registerListenerPriority;
 
-    private readonly _onDidClick = this.__register(new Emitter<IOnDidClickEvent>());
-    public readonly onDidClick = this._onDidClick.registerListener;
+    private readonly _onDidClick = this.__register(new PriorityEmitter<IOnDidClickEvent>());
+    public readonly onDidClick = this._onDidClick.registerListenerPriority;
 
-    private readonly _onDoubleClick = this.__register(new Emitter<IOnDoubleClickEvent>());
-    public readonly onDoubleClick = this._onDoubleClick.registerListener;
+    private readonly _onDoubleClick = this.__register(new PriorityEmitter<IOnDoubleClickEvent>());
+    public readonly onDoubleClick = this._onDoubleClick.registerListenerPriority;
 
-    private readonly _onDidDoubleClick = this.__register(new Emitter<IOnDidDoubleClickEvent>());
-    public readonly onDidDoubleClick = this._onDidDoubleClick.registerListener;
+    private readonly _onDidDoubleClick = this.__register(new PriorityEmitter<IOnDidDoubleClickEvent>());
+    public readonly onDidDoubleClick = this._onDidDoubleClick.registerListenerPriority;
 
-    private readonly _onTripleClick = this.__register(new Emitter<IOnTripleClickEvent>());
-    public readonly onTripleClick = this._onTripleClick.registerListener;
+    private readonly _onTripleClick = this.__register(new PriorityEmitter<IOnTripleClickEvent>());
+    public readonly onTripleClick = this._onTripleClick.registerListenerPriority;
 
-    private readonly _onDidTripleClick = this.__register(new Emitter<IOnDidTripleClickEvent>());
-    public readonly onDidTripleClick = this._onDidTripleClick.registerListener;
+    private readonly _onDidTripleClick = this.__register(new PriorityEmitter<IOnDidTripleClickEvent>());
+    public readonly onDidTripleClick = this._onDidTripleClick.registerListenerPriority;
 
-    private readonly _onKeydown = this.__register(new Emitter<IOnKeydownEvent>());
-    public readonly onKeydown = this._onKeydown.registerListener;
+    private readonly _onKeydown = this.__register(new PriorityEmitter<IOnKeydownEvent>());
+    public readonly onKeydown = this._onKeydown.registerListenerPriority;
 
-    private readonly _onKeypress = this.__register(new Emitter<IOnKeypressEvent>());
-    public readonly onKeypress = this._onKeypress.registerListener;
+    private readonly _onTextInput = this.__register(new PriorityEmitter<IOnTextInputEvent>());
+    public readonly onTextInput = this._onTextInput.registerListenerPriority;
+
+    @memoize get onCompositionStart() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.compositionStart)).registerListener, e => e); }
+    @memoize get onCompositionEnd() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.compositionEnd)).registerListener, e => e); }
+
+    @memoize get onMouseOver() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.mouseover)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseOut() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.mouseout)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseEnter() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.mouseenter)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseLeave() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.mouseleave)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseDown() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.mousedown)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseUp() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.mouseup)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
+    @memoize get onMouseMove() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.mousemove)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
     
-    private readonly _onTextInput = this.__register(new Emitter<IOnTextInputEvent>());
-    public readonly onTextInput = this._onTextInput.registerListener;
+    @memoize get onDrag() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.drag)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDragStart() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.dragstart)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDragEnd() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.dragend)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDragOver() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.dragover)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDragEnter() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.dragenter)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDragLeave() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.dragleave)).registerListener, e => __standardizeDragEvent(e, this._view)); }
 
-    @memoize get onMouseOver() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseover)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseOut() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseout)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseEnter() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseenter)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseLeave() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseleave)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseDown() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mousedown)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseUp() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mouseup)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    @memoize get onMouseMove() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.mousemove)).registerListener, e => __standardizeMouseEvent(e, this._view)); }
-    
-    @memoize get onDrag() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.drag)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-    @memoize get onDragStart() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragstart)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-    @memoize get onDragEnd() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragend)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-    @memoize get onDragOver() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragover)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-    @memoize get onDragEnter() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragenter)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-    @memoize get onDragLeave() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.dragleave)).registerListener, e => __standardizeDragEvent(e, this._view)); }
-
-    private readonly _onPaste = this.__register(new Emitter<IOnPasteEvent>());
+    private readonly _onPaste = this.__register(new PriorityEmitter<IOnPasteEvent>());
     public readonly onPaste = this._onPaste.registerListener;
 
-    private readonly _onDrop = this.__register(new Emitter<IOnDropEvent>());
+    private readonly _onDrop = this.__register(new PriorityEmitter<IOnDropEvent>());
     public readonly onDrop = this._onDrop.registerListener;
-    @memoize get onDropOverlay() { return Event.map(this.__register(new DomEmitter(this._$container, EventType.drop)).registerListener, e => __standardizeDragEvent(e, this._view)); }
+    @memoize get onDropOverlay() { return Event.map(this.__register(DomEmitter.createPriority(this._$container, EventType.drop)).registerListener, e => __standardizeDragEvent(e, this._view)); }
 
-    @memoize get onWheel() { return this.__register(new DomEmitter(this._$container, EventType.wheel)).registerListener; }
+    @memoize get onWheel() { return this.__register(DomEmitter.createPriority(this._$container, EventType.wheel)).registerListener; }
 
     // [constructor]
 
@@ -409,8 +413,8 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
         // dom event listeners
         property.handleDOMEvents = {
             ...property.handleDOMEvents,
-            focus: () => this._onDidFocus.fire(),
-            blur: () => this._onDidBlur.fire(),
+            focus: (view, event) => this._onDidFocus.fire({ view, event }),
+            blur: (view, event) => this._onDidBlur.fire({ view, event }),
         };
 
         // on before click
@@ -483,23 +487,10 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
             this._onKeydown.fire({
                 view: view,
                 event: createStandardKeyboardEvent(event),
-                markAsExecuted: () => { anyExecuted = true; },
+                preventDefault: () => { anyExecuted = true; },
             });
 
             return anyExecuted;
-        };
-        
-        // on key press
-        property.handleKeyPress = (view, event) => {
-            let prevented = false;
-            
-            this._onKeypress.fire({
-                view: view,
-                event: createStandardKeyboardEvent(event),
-                preventDefault: () => prevented = true,
-            });
-
-            return prevented;
         };
         
         // on text input
@@ -547,6 +538,8 @@ export class ProseEventBroadcaster extends Disposable implements IProseEventBroa
         };
     }
 }
+
+// region - private
 
 function __standardizeMouseEvent(e: MouseEvent, view: ProseEditorView): IEditorMouseEvent {
     const pos = view.posAtCoords({
