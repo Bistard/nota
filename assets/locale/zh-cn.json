@@ -33,6 +33,9 @@
             "html": "HTML",
             "image": "图片",
             "mathBlock": "数学公式"
+        },
+        "editor/model/documentNode/node/html/html": {
+            "empty": "空HTML"
         }
     }
 }

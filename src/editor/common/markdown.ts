@@ -3,7 +3,7 @@ import type { BlockquoteAttrs } from "src/editor/model/documentNode/node/blockqu
 import type { CodeBlockAttrs } from "src/editor/model/documentNode/node/codeBlock/codeBlock";
 import type { HeadingAttrs } from "src/editor/model/documentNode/node/heading";
 import type { HorizontalRuleAttrs } from "src/editor/model/documentNode/node/horizontalRule";
-import type { HTMLAttrs } from "src/editor/model/documentNode/node/html";
+import type { HTMLAttrs } from "src/editor/model/documentNode/node/html/html";
 import type { ImageAttrs } from "src/editor/model/documentNode/node/image";
 import type { ListAttrs } from "src/editor/model/documentNode/node/list";
 import type { MathBlockAttrs } from "src/editor/model/documentNode/node/mathBlock";

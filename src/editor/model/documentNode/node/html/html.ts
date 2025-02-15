@@ -1,3 +1,4 @@
+import "src/editor/model/documentNode/node/html/html.scss";
 import { memoize } from "src/base/common/memoization";
 import { assert } from "src/base/common/utilities/panic";
 import { Strings, HtmlTagType } from "src/base/common/utilities/string";
@@ -11,12 +12,13 @@ import { IDocumentParseState } from "src/editor/model/parser";
 import { createDomOutputFromOptions } from "src/editor/model/schema";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
 import { IWorkspaceService } from "src/workbench/parts/workspace/workspaceService";
+import { II18nService } from "src/platform/i18n/browser/i18nService";
 
 // region - HTML
 
 export type HTMLAttrs = {
     /**
-     * @default
+     * @default ''
      */
     readonly text?: '';
 
@@ -34,6 +36,7 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
 
     constructor(
         @IWorkspaceService private readonly workspaceService: IWorkspaceService,
+        @II18nService private readonly i18nService: II18nService,
     ) {
         super(TokenEnum.HTML);
     }
@@ -49,9 +52,7 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
             },
             toDOM: (node) => { 
                 const text = node.attrs['text'] as string;
-                const dom = document.createElement('div');
-                dom.innerHTML = text;
-
+                const dom = this.__renderHTML(text);
                 this.__fixImageLocalRelativeSource(dom);
 
                 return dom;
@@ -114,7 +115,28 @@ export class HTML extends DocumentNode<EditorTokens.HTML> {
         state.write(text);
     };
 
-    // [private]
+    // region - [private]
+
+    private __renderHTML(text: string): HTMLElement {
+        const dom = document.createElement('div');
+        dom.classList.add('html');
+    
+        // normal case
+        if (text.length > 0) {
+            dom.innerHTML = text;
+        }
+        // empty case (placeholder)
+        else {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'placeholder';
+
+            const text = this.i18nService.localize('empty', 'Empty HTML Block');
+            placeholder.textContent = `<${text}>`;
+            dom.appendChild(placeholder);
+        }
+
+        return dom;
+    }
 
     /**
      * @description If the given html has <img>, we check if it is a local 

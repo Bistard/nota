@@ -14,7 +14,7 @@ import { CodeBlock } from "src/editor/model/documentNode/node/codeBlock/codeBloc
 import { Escape } from "src/editor/model/documentNode/node/escape";
 import { Heading } from "src/editor/model/documentNode/node/heading";
 import { HorizontalRule } from "src/editor/model/documentNode/node/horizontalRule";
-import { HTML, InlineHTML } from "src/editor/model/documentNode/node/html";
+import { HTML, InlineHTML } from "src/editor/model/documentNode/node/html/html";
 import { Image } from "src/editor/model/documentNode/node/image";
 import { LineBreak } from "src/editor/model/documentNode/node/lineBreak";
 import { List, ListItem } from "src/editor/model/documentNode/node/list";
