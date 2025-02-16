@@ -326,7 +326,7 @@ abstract class AbstractEmitter<
  * To trigger the event occurs and notifies all the listeners, use this.fire(event) 
  * where `event` has the type T.
  * 
- * @throws The unexpected caught by `fire()` error will be caught by {@link ErrorHandler.onUnexpectedError}.
+ * @throws The unexpected error caught by `fire()` will be caught by {@link ErrorHandler.onUnexpectedError}.
  */
 export class Emitter<T> extends AbstractEmitter<T, Register<T>, __Listener<T>, LinkedList<__Listener<T>>, ListNode<__Listener<T>>> implements IEmitter<T> {
     

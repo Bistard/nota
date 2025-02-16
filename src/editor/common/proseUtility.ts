@@ -88,7 +88,7 @@ function __isCursor(selection: ProseSelection): selection is ProseCursor {
  * @description If the current cursor is on an empty text block.
  */
 function __isOnEmpty(cursor: ProseCursor): boolean {
-    const parent = cursor.$from.parent;
+    const { parent } = cursor.$from;
     return parent.isTextblock && parent.textContent === '';
 }
 
@@ -101,10 +101,9 @@ function __getCurrNode(cursor: ProseCursor, state: ProseEditorState): ProseNode 
 }
 
 function __setCursorAt(state: ProseEditorState, position: number): ProseTransaction {
-    const tr = state.tr;
+    const { tr } = state;
     const $pos = state.doc.resolve(position);
-    tr.setSelection(ProseSelection.near($pos));
-    return tr;
+    return tr.setSelection(ProseSelection.near($pos));
 }
 
 function __isFullSelection(state: ProseEditorState): boolean {

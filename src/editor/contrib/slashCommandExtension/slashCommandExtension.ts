@@ -271,8 +271,7 @@ class SlashMenuRenderer extends Disposable {
         if (!position) {
             return;
         }
-        const editor = this.editorWidget.view.editor;
-        const parentElement = editor.overlayContainer;
+        const { overlayContainer: parentElement } = this.editorWidget.view.editor;
 
         this.contextMenuService.showContextMenuCustom({
             getActions: () => this.__obtainSlashCommandContent(),
