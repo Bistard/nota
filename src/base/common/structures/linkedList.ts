@@ -78,9 +78,6 @@ export interface ILinkedList<T> extends IIterable<T> {
     exist(data: T): boolean;
 }
 
-/**
- * @internal
- */
 class ListNode<T> {
 
     constructor(

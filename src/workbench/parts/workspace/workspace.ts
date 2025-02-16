@@ -14,14 +14,21 @@ import { IFileService } from 'src/platform/files/common/fileService';
 import { detectEncodingFromFile } from 'src/base/common/files/encoding';
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from 'src/platform/lifecycle/browser/browserLifecycleService';
 import { ensureLoadKaTeXCssStyles } from 'src/workbench/contrib/richTextEditor/richTextEditor';
+import { Emitter } from 'src/base/common/event';
 
 export class Workspace extends Component implements IWorkspaceService {
 
     declare _serviceMarker: undefined;
 
+    // [event]
+
+    private readonly _onDidOpen = this.__register(new Emitter<EditorPaneModel | null>());
+    public readonly onDidOpen = this._onDidOpen.registerListener;
+
     // [field]
 
     private _groupView?: EditorGroupView;
+    private _currentOpenedEditor: null | URI;
 
     // [constructor]
 
@@ -32,6 +39,13 @@ export class Workspace extends Component implements IWorkspaceService {
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
     ) {
         super('workspace', null, instantiationService);
+        this._currentOpenedEditor = null;
+    }
+
+    // [public]
+
+    public getCurrentEditor(): URI | null {
+        return this._currentOpenedEditor;
     }
 
     public override dispose(): void {
@@ -84,6 +98,10 @@ export class Workspace extends Component implements IWorkspaceService {
         // resolved model, we open it in groups.
         const groupView = assert(this._groupView);
         await groupView.openEditor(resolved, options);
+
+        // let the client knows
+        this._currentOpenedEditor = resolved.resource ?? null;
+        this._onDidOpen.fire(resolved);
     }
     
     // [private helper methods]

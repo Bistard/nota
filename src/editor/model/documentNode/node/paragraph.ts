@@ -1,10 +1,15 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
+import { GetProseAttrs, ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
+import { memoize } from "src/base/common/memoization";
+
+export type ParagraphAttrs = {
+    // noop for now
+};
 
 /**
  * @class A plain paragraph textblock. Represented in the DOM as a `<p>` 
@@ -16,10 +21,12 @@ export class Paragraph extends DocumentNode<EditorTokens.Paragraph> {
         super(TokenEnum.Paragraph);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return {
             group: 'block',
             content: 'inline*',
+            attrs: {} satisfies GetProseAttrs<ParagraphAttrs>,
             toDOM: () => { 
                 return createDomOutputFromOptions({
                     type: 'node',

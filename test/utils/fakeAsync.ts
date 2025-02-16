@@ -418,7 +418,7 @@ private readonly _pqueue: PriorityQueue<ITaskWithID>;
     }
 
     private __consume(): void {
-        if (this._pqueue.isEmpty()) {
+        if (this._pqueue.empty()) {
             this._executing = false;
             this._onEmptyQueue.fire();
             return;

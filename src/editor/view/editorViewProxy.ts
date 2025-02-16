@@ -2,8 +2,10 @@ import { IProseEventBroadcaster, ProseEventBroadcaster } from "src/editor/view/p
 import { ProseEditorView, ProseEditorState, ProseNode, ProseExtension, ProseSchema } from "src/editor/common/proseMirror";
 import { ViewContext } from "src/editor/view/editorView";
 import { fillMapFromArray } from "src/base/common/structures/map";
-import { ProseUtils } from "src/editor/common/proseUtility";
+import { ProseTools } from "src/editor/common/proseUtility";
 import { printNaryTreeLike } from "src/base/common/utilities/string";
+
+// region - interface
 
 export interface IEditorViewProxy extends IProseEventBroadcaster {
 
@@ -51,15 +53,15 @@ export interface IEditorViewProxy extends IProseEventBroadcaster {
     printDocumentTree(): void;
 }
 
+// region - EditorViewProxy
+
 export class EditorViewProxy extends ProseEventBroadcaster implements IEditorViewProxy {
 
     // [fields]
 
     protected readonly _ctx: ViewContext;
     
-    /**
-     * Mapping from ID to view extensions.
-     */
+    /** Mapping from ID to view extensions. */
     protected readonly _extensionMap: Map<string, ProseExtension>;
 
     // [constructor]
@@ -124,7 +126,7 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
             this._view.state.doc, 
             node => node.type.name,
             node => node.childCount > 0,
-            node => [...ProseUtils.iterateChild(node)].map(item => item.node)
+            node => [...ProseTools.Node.iterateChild(node)].map(item => item.node)
         );
     }
 
@@ -141,4 +143,6 @@ export class EditorViewProxy extends ProseEventBroadcaster implements IEditorVie
             plugins: extensions,
         });
     }
+
+    // [private helper methods]
 }

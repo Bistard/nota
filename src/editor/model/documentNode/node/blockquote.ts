@@ -1,12 +1,17 @@
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
+import { GetProseAttrs, ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { createDomOutputFromOptions } from "../../schema";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
 import { Strings } from "src/base/common/utilities/string";
 import { assert } from "src/base/common/utilities/panic";
+import { memoize } from "src/base/common/memoization";
+
+export type BlockquoteAttrs = {
+    // noop for now
+};
 
 /**
  * @class A blockquote (`<blockquote>`) wrapping one or more blocks.
@@ -17,6 +22,7 @@ export class Blockquote extends DocumentNode<EditorTokens.Blockquote> {
         super(TokenEnum.Blockquote);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return {
             group: 'block',
@@ -24,7 +30,7 @@ export class Blockquote extends DocumentNode<EditorTokens.Blockquote> {
             defining: true,
             attrs: {
                 delimiters: { default: [] },
-            },
+            } satisfies GetProseAttrs<BlockquoteAttrs>,
             toDOM: () => { 
                 return createDomOutputFromOptions({
                     type: 'node',

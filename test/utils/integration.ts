@@ -1,6 +1,8 @@
 import { Schemas, URI } from "src/base/common/files/uri";
 import { ILogService } from "src/base/common/logger";
 import { IRecentOpenService, RecentOpenService } from "src/platform/app/browser/recentOpenService";
+import { BrowserClipboardService } from "src/platform/clipboard/browser/clipboardService";
+import { IClipboardService } from "src/platform/clipboard/common/clipboard";
 import { CommandRegistrant } from "src/platform/command/common/commandRegistrant";
 import { CommandService, ICommandService } from "src/platform/command/common/commandService";
 import { BrowserConfigurationService } from "src/platform/configuration/browser/browserConfigurationService";
@@ -22,6 +24,8 @@ import { ProductService, IProductService } from "src/platform/product/common/pro
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { RegistrantService, IRegistrantService } from "src/platform/registrant/common/registrantService";
 import { MainStatusService, IMainStatusService } from "src/platform/status/electron/mainStatusService";
+import { Workspace } from "src/workbench/parts/workspace/workspace";
+import { IWorkspaceService } from "src/workbench/parts/workspace/workspaceService";
 import { KeyboardService, IKeyboardService } from "src/workbench/services/keyboard/keyboardService";
 import { ILayoutService } from "src/workbench/services/layout/layoutService";
 import { INotificationService } from "src/workbench/services/notification/notification";
@@ -61,6 +65,8 @@ export interface IIntegrationOptions {
     readonly keyboardService?: boolean;
     readonly shortcutService?: boolean;
     readonly recentOpenService?: boolean;
+    readonly clipboardService?: boolean;
+    readonly workspaceService?: boolean;
 }
 
 /**
@@ -154,6 +160,16 @@ export async function createIntegration(options: IIntegrationOptions): Promise<I
         ? di.createInstance(RecentOpenService)
         : nullObject();
     di.store(IRecentOpenService, recentOpenService);
+
+    const clipboardService = options.clipboardService
+        ? di.createInstance(BrowserClipboardService)
+        : nullObject();
+    di.store(IClipboardService, clipboardService);
+
+    const workspaceService = options.workspaceService
+        ? di.createInstance(Workspace)
+        : nullObject();
+    di.store(IWorkspaceService, workspaceService);
 
     return di;
 }

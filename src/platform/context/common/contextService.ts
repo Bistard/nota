@@ -134,6 +134,11 @@ export class ContextService extends Disposable implements IContextServiceFriends
         return this._contextKeys;
     }
 
+    public override dispose(): void {
+        super.dispose();
+        this._contextKeys.length = 0;
+    }
+
     // [private helper methods]
 
     private __assertDisposed(): void {

@@ -1,8 +1,11 @@
 import type { IO } from "src/base/common/utilities/functional";
 import { LinkedList } from "src/base/common/structures/linkedList";
-import { Disposable, DisposableBucket, IDisposable, LooseDisposableBucket, toDisposable, untrackDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableBucket, IDisposable, isDisposable, LooseDisposableBucket, toDisposable, untrackDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { panic } from "src/base/common/utilities/panic";
+import { PriorityQueue } from "src/base/common/structures/priorityQueue";
+import { nullable } from "src/base/common/utilities/type";
+import { DomEventMap } from "src/base/browser/basic/dom";
 
 /*******************************************************************************
  * This file contains a series event emitters and related tools for communications 
@@ -14,9 +17,12 @@ import { panic } from "src/base/common/utilities/panic";
  *  - {@link AsyncEmitter}
  *  - {@link RelayEmitter}
  *  - {@link NodeEventEmitter}
- * 
+ *  - {@link DomEmitter}
+ *  - {@link PriorityEmitter}
  *  - {@link Event}
  ******************************************************************************/
+
+// region - types
 
 /** 
  * @readonly A listener is a callback function that once the callback is invoked,
@@ -24,6 +30,7 @@ import { panic } from "src/base/common/utilities/panic";
  */
 export type Listener<E> = (e: E) => any;
 export type AsyncListener<E> = (e: E) => Promise<any>;
+export type PriorityListener<E> = (e: E) => boolean | void | nullable;
 
 /**
  * Retrieve the event type T from the {@link Register}.
@@ -31,21 +38,55 @@ export type AsyncListener<E> = (e: E) => Promise<any>;
 export type GetEventType<R> = R extends Register<infer T> ? T : never;
 
 /**
- * @readonly A register is essentially a function that registers a listener to 
- * the event type T.
+ * @description A register is essentially a function that registers a listener 
+ * to the event type T.
  * @param listener The `listener` to be registered.
- * @param disposables The `disposables` is used to store all the `listener`s as 
- * disposables after registrations.
- * @param thisObject The object to be used as the `this` object.
+ * @param thisObject The object to be used as the `this` object when executing
+ *                   the listener.
  */
 export type Register<T> = {
-	(listener: Listener<T>, disposables?: IDisposable[], thisObject?: any): IDisposable;
+	(listener: Listener<T>, thisObject?: object): IDisposable;
+};
+
+/**
+ * @description Two Differences compared with normal {@link Register<T>}:
+ *  1. The first paramter is a number indicates the priority of the listener.
+ *     The higher the number, the higher the priority. If not provided, defaults 
+ *     to {@link Priority['Normal']}
+ *  2. The listener may return a boolean to indicates if the event is handled.
+ *     If `true` returned, the emitter will stop propagation to other listeners.
+ */
+export type PriorityRegister<T> = {
+    (listener: PriorityListener<T>, thisObject?: object, priority?: number): IDisposable;
 };
 
 export type AsyncRegister<T> = {
-    (listener: AsyncListener<T>, disposables?: IDisposable[], thisObject?: any): IDisposable;
+    (listener: AsyncListener<T>, thisObject?: object): IDisposable;
 };
 
+export const enum EventStrategy {
+    FIFO = 'FIFO',
+    Priority = 'priority',
+}
+
+export type StrategyEmitter<T, S extends EventStrategy> = {
+    [EventStrategy.FIFO]: Emitter<T>;
+    [EventStrategy.Priority]: PriorityEmitter<T>;
+}[S];
+
+export function createStrategyEmitter<T, S extends EventStrategy>(strategy: S | undefined, options?: IEmitterOptions): StrategyEmitter<T, S> {
+    if (strategy === EventStrategy.Priority) {
+        return new PriorityEmitter(options) as StrategyEmitter<T, S>;
+    } 
+    // default: EventStrategy.FIFO
+    else {
+        return new Emitter(options) as StrategyEmitter<T, S>;
+    }
+}
+
+/**
+ * A common emitter interface.
+ */
 export interface IEmitter<T> {
     /**
      * @description For the purpose of registering new listener.
@@ -92,7 +133,7 @@ class __Listener<T> {
     constructor(
         public readonly callback: Listener<T>, 
         public readonly thisObject: any,
-        private readonly _options?: IEmitterOptions,
+        protected readonly _options?: IEmitterOptions,
     ) {}
 
     public fire(e: T): void {
@@ -135,70 +176,95 @@ export interface IEmitterOptions {
 
     // [emitter]
 
+    /** {@link onFire} will be invoked even there is no listeners. */
     readonly onFire?: IO<void>;
+    /** {@link onDidFire} will be invoked even there is no listeners. */
     readonly onDidFire?: IO<void>;
 }
 
+// region - AbstractEmitter
+
+interface IListenerContainer<TListener> extends Iterable<TListener> {
+    size(): number;
+    add(listener: TListener): any;
+    remove(token: any): void;
+    empty(): boolean;
+    clear(): void;
+}
+
 /**
- * @class An event emitter binds to a specific event T. All the listeners who is 
- * listening to the event T will be notified once the event occurs.
+ * @description This abstract class serves as a flexible foundation for creating 
+ * various kinds of event emitters.
  * 
- * To listen to this event T, use this.registerListener(listener) where `listener` 
- * is essentially a callback function.
+ * 1. **Why abstract the methods?**
+ *  - One derived emitter might store its listeners in a linked list, another 
+ *    in a set, and yet another in a tree-based structure—each approach would 
+ *    have its own way to insert, remove, and iterate listeners.
+ *  - By defining these methods as abstract, we can ensure that derived 
+ *    classes provide **their own handling**.
  * 
- * To trigger the event occurs and notifies all the listeners, use this.fire(event) 
- * where `event` has the type T.
- * 
- * @throws The unexpected caught by `fire()` error will be caught by {@link ErrorHandler.onUnexpectedError}.
+ * 2. **What are those template types?**
+ *  - `TEvent`: The type of the event that will be fired (e.g., a string, object, etc.).
+ *  - `TRegister`: The specific function signature for registering a listener.
+ *  - `TListener`: (internal usage) The type of an actual listener.
  */
-export class Emitter<T> extends Disposable implements IEmitter<T> {
-    
+abstract class AbstractEmitter<
+    TEvent,
+    TRegister extends (...args: any[]) => IDisposable, 
+    TListener,
+> extends Disposable {
+
     // [field]
 
-    /** stores all the listeners to this event. */
-    protected _listeners: LinkedList<__Listener<T>> = new LinkedList();
+    protected readonly _listeners: IListenerContainer<TListener>;
+    protected _register?: TRegister;
+    protected _opts?: IEmitterOptions;
 
-    /** sing function closures here. */
-    private _register?: Register<T>;
+    // [constructor]
 
-    /** stores all the options. */
-    private _opts?: IEmitterOptions;
-
-    // constructor
-
-    constructor(opts?: IEmitterOptions) {
+    constructor(options?: IEmitterOptions,) {
         super();
-        this._opts = opts;
+        this._opts = options;
+        this._listeners = this.__constructContainer();
+        if (isDisposable(this._listeners)) {
+            this.__register(this._listeners);
+        }
     }
 
-    // [method]
-	
-    get registerListener(): Register<T> {
-        
-        // cannot register to a disposed emitter
+    // [abstract]
+
+    protected abstract __fire(listeners: IListenerContainer<TListener>, event: TEvent): void;
+    protected abstract __constructListener(...args: Parameters<TRegister>): TListener;
+    protected abstract __constructContainer(): IListenerContainer<TListener>;
+
+    // [public]
+
+    get registerListener(): TRegister {
         if (this.isDisposed()) {
             panic('emitter is already disposed, cannot register a new listener.');
         }
 
-        this._register ??= (listener: Listener<T>, disposables?: IDisposable[], thisObject?: any) => {
-
+        this._register ??= <any>((...args: Parameters<TRegister>) => {
+            
             // before first add callback
             if (this._opts?.onFirstListenerAdd && this._listeners.empty()) {
                 this._opts.onFirstListenerAdd();
             }
 
             // register the listener (callback)
-            const listenerWrapper = new __Listener(listener, thisObject, this._opts);
+            const listener = this.__constructListener(...args);
+            
             this._opts?.onListenerWillAdd?.();
-            const node = this._listeners.push_back(listenerWrapper);
+            const node = this._listeners.add(listener);
             this._opts?.onListenerDidAdd?.();
-            let listenerRemoved = false;
-            let listenerRemoving = false;
-
+            
             // after first add callback
             if (this._opts?.onFirstListenerDidAdd && this._listeners.size() === 1) {
                 this._opts.onFirstListenerDidAdd();
             }
+
+            let listenerRemoved = false;
+            let listenerRemoving = false;
 
             // returns a disposable in order to decide when to stop listening (unregister)
             const unRegister = toDisposable(() => {
@@ -219,40 +285,81 @@ export class Emitter<T> extends Disposable implements IEmitter<T> {
                 }
             });
 
-            if (disposables) {
-                disposables.push(unRegister);
-            }
-
             return unRegister;
-        };
-        
-		return this._register;
+        });
+
+        return this._register!;
     }
 
-    public fire(event: T): void {
-        this._opts?.onFire?.();
+    // [public methods]
 
-        for (const listener of this._listeners) {
+    public hasListeners(): boolean {
+        return this._listeners.size() > 0;
+    }
+
+    public fire(event: TEvent): void {
+        this._opts?.onFire?.();
+        
+        if (this._listeners.empty() === false) {
+            this.__fire(this._listeners, event);
+        }
+        
+        this._opts?.onDidFire?.();
+	}
+
+    public override dispose(): void {
+        super.dispose();
+        this._listeners.clear();
+        this._opts?.onLastListenerDidRemove?.();
+	}
+}
+
+// region - Emitter
+
+/**
+ * @class An event emitter binds to a specific event T. All the listeners who is 
+ * listening to the event T will be notified once the event occurs.
+ * 
+ * To listen to this event T, use this.registerListener(listener) where `listener` 
+ * is essentially a callback function.
+ * 
+ * To trigger the event occurs and notifies all the listeners, use this.fire(event) 
+ * where `event` has the type T.
+ * 
+ * @throws The unexpected error caught by `fire()` will be caught by {@link ErrorHandler.onUnexpectedError}.
+ */
+export class Emitter<T> extends AbstractEmitter<T, Register<T>, __Listener<T>> implements IEmitter<T> {
+    
+    // [method]
+
+    protected override __fire(listeners: IListenerContainer<__Listener<T>>, event: T): void {
+        for (const listener of listeners) {
             try {
                 listener.fire(event);
             } catch (error) {
                 ErrorHandler.onUnexpectedError(error);
             }
         }
+    }
 
-        this._opts?.onDidFire?.();
-	}
+    protected override __constructListener(listener: Listener<T>, thisObject?: object): __Listener<T> {
+        return new __Listener(listener, thisObject, this._opts);
+    }
 
-    public override dispose(): void {
-        super.dispose();
-		this._listeners.clear();
-        this._opts?.onLastListenerDidRemove?.();
-	}
-
-    public hasListeners(): boolean {
-        return this._listeners.size() > 0;
+    protected override __constructContainer(): IListenerContainer<__Listener<T>> {
+        const list = new LinkedList<__Listener<T>>();
+        return {
+            add: (listener) => list.push_back(listener),
+            remove: (token) => list.remove(token),
+            clear: () => list.clear(),
+            empty: () => list.empty(),
+            size: () => list.size(),
+            [Symbol.iterator]: list[Symbol.iterator].bind(list),
+        };
     }
 }
+
+// region - PauseableEmitter
 
 /**
  * @class An {@link Emitter} that is pauseable and resumable. Note that 
@@ -286,6 +393,8 @@ export class PauseableEmitter<T> extends Emitter<T> {
     }
 
 }
+
+// region - DelayableEmitter
 
 /**
  * @class An {@link Emitter} that works the same as {@link PauseableEmitter},
@@ -345,6 +454,8 @@ export class DelayableEmitter<T> extends Emitter<T> {
 
 }
 
+// region - SignalEmitter
+
 /**
  * @class A {@link SignalEmitter} consumes a series of {@link Register} and
  * fires a new type of event under a provided logic processing.
@@ -352,7 +463,7 @@ export class DelayableEmitter<T> extends Emitter<T> {
  * The {@link SignalEmitter} consumes a series of event with type T, and fires 
  * the event with type E.
  */
-export class SignalEmitter<T, E> extends Emitter<E> { 
+export class SignalEmitter<T, E> extends Emitter<E> {
 
     private logicHandler: (event: T) => E;
 
@@ -373,6 +484,8 @@ export class SignalEmitter<T, E> extends Emitter<E> {
         );
     }
 }
+
+// region - AsyncEmitter
 
 /**
  * @class Same as {@link Emitter<T>} with extra method `fireAsync()`.
@@ -401,17 +514,33 @@ export class AsyncEmitter<T> extends Emitter<T> {
     }
 }
 
+// region - RelayEmitter
+
 /**
  * @class A {@link RelayEmitter} works like a event pipe and the input may be 
- * changed at any time.
+ * changed at any time. Act like a mutable event proxy.
  * 
  * @example When the listeners: A, B and C were listening to this relay emitter 
  * and the input event T1 is from the emitter E1. Later on, the input event may 
  * be switched to the input event T2 from the emitter E2 and all the listeners 
  * now are listening to emitter E2.
+ * 
+ * @note The constructor accepts a parameter `strategy`. Default is set equal to 
+ *       {@link EventStrategy.FIFO}, which cannot accept {@link PriorityEmitter}
+ *       as input. You must set to {@link EventStrategy.Priority} instead.
  */
-export class RelayEmitter<T> extends Disposable {
+export class RelayEmitter<T, S extends EventStrategy = EventStrategy.FIFO> extends Disposable {
     
+    // [static]
+
+    public static createFIFO<T>(): RelayEmitter<T, EventStrategy.FIFO> {
+        return new RelayEmitter(EventStrategy.FIFO);
+    }
+    
+    public static createPriority<T>(): RelayEmitter<T, EventStrategy.Priority> {
+        return new RelayEmitter(EventStrategy.Priority);
+    }
+
     // [field]
 
     /** The input emitter */
@@ -423,25 +552,36 @@ export class RelayEmitter<T> extends Disposable {
     private _listening: boolean = false;
 
     /** The relay (pipeline) emitter */
-    private readonly _relay = this.__register(new Emitter<T>({
-        onFirstListenerAdd: () => {
-            this._inputUnregister.register(this._inputRegister(e => this._relay.fire(e)));
-            this._listening = true;
-        },
-        onLastListenerDidRemove: () => {
-            this._inputUnregister.dispose();
-            this._listening = false;
-        }
-    }));
+    private readonly _relay: StrategyEmitter<T, S>;
 
     // [event]
 
-    public readonly registerListener = this._relay.registerListener;
+    get registerListener() { return this._relay.registerListener; }
+    
+    /**
+     * This API only provided when the strategy is {@link EventStrategy.Priority}.
+     */
+    get registerListenerPriority(): S extends EventStrategy.Priority ? PriorityRegister<T> : never {
+        return (<any>this._relay).registerListenerPriority; // hacky
+    }
 
     // [constructor]
 
-    constructor() {
+    constructor(strategy?: S) {
         super();
+        this._relay = this.__register(createStrategyEmitter<T, S>(
+            strategy, 
+            {
+                onFirstListenerAdd: () => {
+                    this._inputUnregister.register(this._inputRegister(e => this._relay.fire(e)));
+                    this._listening = true;
+                },
+                onLastListenerDidRemove: () => {
+                    this._inputUnregister.dispose();
+                    this._listening = false;
+                }
+            }
+        ));
     }
 
     // [method]
@@ -459,6 +599,8 @@ export class RelayEmitter<T> extends Disposable {
         }
     }
 }
+
+// region - NodeEventEmitter
 
 export interface INodeEventEmitter {
     on(eventName: string | symbol, listener: IO<void>): any;
@@ -499,11 +641,169 @@ export class NodeEventEmitter<T> extends Disposable {
     }
 }
 
-export const enum Priority {
-    Low,
-    Normal,
-    High
+// region - DomEmitter
+
+/**
+ * @class A Simple class for register callback on a given HTMLElement using an
+ * {@link Emitter} instead of using raw *addEventListener()* method.
+ *
+ * @note LAZY: only start listening when there is one listener presents.
+ */
+export class DomEmitter<T extends keyof DomEventMap, S extends EventStrategy = EventStrategy.FIFO> extends Disposable {
+
+    // [static]
+
+    public static createFIFO<T extends keyof DomEventMap>(element: EventTarget, type: T, useCapture: boolean = false): DomEmitter<T, EventStrategy.FIFO> {
+        return new DomEmitter<T, EventStrategy.FIFO>(element, type, useCapture, EventStrategy.FIFO);
+    }
+    
+    public static createPriority<T extends keyof DomEventMap>(element: EventTarget, type: T, useCapture: boolean = false): DomEmitter<T, EventStrategy.Priority> {
+        return new DomEmitter<T, EventStrategy.Priority>(element, type, useCapture, EventStrategy.Priority);
+    }
+
+    // [field]
+
+    private readonly emitter: StrategyEmitter<DomEventMap[T], S>;
+
+    // [constructor]
+
+	constructor(element: EventTarget, type: T, useCapture: boolean = false, strategy?: S) {
+		super();
+        const fn = (e: any) => this.emitter.fire(e);
+        this.emitter = this.__register(createStrategyEmitter<DomEventMap[T], S>(
+            strategy, 
+            { // lazy loading
+                onFirstListenerAdd: () => element.addEventListener(type, fn, useCapture),
+                onLastListenerDidRemove: () => element.removeEventListener(type, fn, useCapture),
+            }
+        ));
+	}
+
+    // [getter]
+
+	get registerListener(): Register<DomEventMap[T]> {
+		return this.emitter.registerListener;
+	}
+
+    /**
+     * This API only provided when the strategy is {@link EventStrategy.Priority}.
+     */
+    get registerListenerPriority(): S extends EventStrategy.Priority ? PriorityRegister<DomEventMap[T]> : never {
+        return (<any>this.emitter).registerListenerPriority; // hacky
+    }
 }
+
+// region - PriorityEmitter
+
+export const enum Priority {
+    Low = 0,
+    Normal = 100,
+    High = 200,
+}
+
+/**
+ * @class A priority-based event emitter that executes listeners in descending 
+ * order of priority (higher priority values first).
+ * 
+ * @design
+ * 1. Dual Registrations:
+ *   - Standard: `registerListener(listener, thisObject?)`
+ *   - Priority: `registerListenerPriority(priority, listener, thisObject?)`
+ * 2. Prevent Propagation Mechanism:
+ *   - Listeners can return `true` to indicate that the event has been handled. 
+ *     When a listener returns `true`, the emitter stops executing remaining 
+ *     listeners.
+ *   - Listeners registerd via `registerListener` or `registerListenerPriority`
+ *     all have this feature.
+ * 
+ * @example
+ * const emitter = new PriorityEmitter<string>();
+ * 
+ * // Standard registration (default priority: Priority.Normal)
+ * emitter.registerListener((msg) => console.log('Default:', msg));
+ * 
+ * // Priority registration
+ * emitter.registerListenerPriority(Priority.High, (msg) => {
+ *   console.log('Urgent:', msg);
+ *   return true; // Stop propagation
+ * });
+ */
+export class PriorityEmitter<T> extends AbstractEmitter<T, Register<T>, __PriorityListener<T>> implements IEmitter<T> {
+
+    // [methods]
+
+    get registerListenerPriority(): PriorityRegister<T> {
+        /**
+         * @hacky
+         * Since {@link registerListener} and {@link registerListenerPriority}
+         * different only in terms of function parameters (the new parameter is
+         * at the last). We may just return the same function.
+         * {@link __constructListener}.
+         */
+        return this.registerListener as any;
+    }
+
+    // [override]
+
+    protected override __fire(listeners: IListenerContainer<__PriorityListener<T>>, event: T): void {
+        for (const listener of listeners) {
+            try {
+                const handled = listener.fire(event);
+                if (handled === true) {
+                    break;
+                }
+            } catch (error) {
+                ErrorHandler.onUnexpectedError(error);
+            }
+        }
+    }
+
+    protected override __constructListener(listener: Listener<T>, thisObject?: object, priority?: number): __PriorityListener<T> {
+        return new __PriorityListener(priority ?? Priority.Normal, listener, thisObject, this._opts);
+    }
+
+    protected override __constructContainer(): IListenerContainer<__PriorityListener<T>> {
+        const pq = new PriorityQueue<__PriorityListener<T>>(
+            (a, b) => b.priority - a.priority // higher number, higher priority
+        );
+        return {
+            add: (listener) => { pq.enqueue(listener); return listener; },
+            remove: (token) => pq.remove(token),
+            clear: () => pq.clear(),
+            empty: () => pq.empty(),
+            size: () => pq.size(),
+            [Symbol.iterator]: pq[Symbol.iterator].bind(pq),
+        };
+    }
+}
+
+class __PriorityListener<T> extends __Listener<T> {
+    
+    declare public callback: PriorityListener<T>;
+    
+    constructor(
+        public readonly priority: number,
+        callback: PriorityListener<T>,
+        thisObject: any,
+        options?: IEmitterOptions,
+    ) {
+        super(callback, thisObject, options);
+    }
+
+    public override fire(e: T): boolean | nullable | void {
+        try {
+            this._options?.onListenerRun?.();
+            const handled = this.callback.call(this.thisObject, e);
+            this._options?.onListenerDidRun?.();
+            return handled;
+        } catch (err) {
+            const onErr = this._options?.onListenerError ?? ErrorHandler.onUnexpectedError;
+            onErr(err);
+        }
+    }
+}
+
+// region - 'Event' Namespace
 
 /**
  * @description A series helper functions that relates to {@link Emitter} and 
@@ -521,8 +821,8 @@ export namespace Event {
      * @returns The new event register.
      */
     export function map<T, E>(register: Register<T>, to: (e: T) => E): Register<E> {
-        const newRegister = (listener: Listener<E>, disposables?: IDisposable[], thisArgs: any = null): IDisposable => {
-            return register((e) => listener(to(e)), disposables, thisArgs);
+        const newRegister = (listener: Listener<E>, thisArgs?: object): IDisposable => {
+            return register((e) => listener(to(e)), thisArgs);
         };
         return newRegister;
     }
@@ -535,8 +835,8 @@ export namespace Event {
      * @returns The new event register.
      */
     export function each<T>(register: Register<T>, each: (e: T) => T): Register<T> {
-        const newRegister = (listener: Listener<T>, disposables?: IDisposable[], thisArgs: any = null): IDisposable => {
-            return register((e) => listener(each(e)), disposables, thisArgs);
+        const newRegister = (listener: Listener<T>, thisArgs?: object): IDisposable => {
+            return register((e) => listener(each(e)), thisArgs);
         };
         return newRegister;
     }
@@ -551,10 +851,10 @@ export namespace Event {
      * single register with a union of their event types.
      */
     export function any<R extends Register<any>[]>(registers: [...R]): Register<GetEventType<R[number]>> {
-        const newRegister = (listener: Listener<GetEventType<R[number]>>, disposables?: IDisposable[], thisArgs: any = null) => {
+        const newRegister = (listener: Listener<GetEventType<R[number]>>, thisArgs?: object) => {
             const parent = new DisposableBucket();
             registers.map(register => {
-                const disposable = register(listener, disposables, thisArgs);
+                const disposable = register(listener, thisArgs);
                 parent.register(disposable);
                 return disposable;
             });
@@ -570,12 +870,12 @@ export namespace Event {
      * @param fn The filter function.
      */
     export function filter<T>(register: Register<T>, fn: (e: T) => boolean): Register<T> {
-        const newRegister = (listener: Listener<T>, disposables?: IDisposable[], thisArgs: any = null) => {
+        const newRegister = (listener: Listener<T>, thisArgs?: object) => {
             return register(e => {
                 if (fn(e)) {
                     listener.call(thisArgs, e);
                 }
-            }, disposables, thisArgs);
+            }, thisArgs);
         };
         return newRegister;
     }
@@ -587,7 +887,7 @@ export namespace Event {
      * @returns A new event register that only fire once.
      */
     export function once<T>(register: Register<T>): Register<T> {
-        return (listener: Listener<T>, disposables?: IDisposable[], thisObject: any = null) => {
+        return (listener: Listener<T>, thisObject: any = null) => {
             let fired = false;
             const oldListener = register((event) => {
                 if (fired) {
@@ -597,7 +897,7 @@ export namespace Event {
                 fired = true;
                 return listener.call(thisObject, event);
 
-            }, disposables, thisObject);
+            }, thisObject);
 
             if (fired) {
                 oldListener.dispose();
@@ -613,9 +913,9 @@ export namespace Event {
      * disposed.
      */
     export function onceSafe<T>(register: Register<T>): Register<T> {
-        return (listener: Listener<T>, disposables?: IDisposable[], thisObject: any = null) => {
+        return (listener: Listener<T>, thisObject: any = null) => {
             return untrackDisposable(
-                Event.once(register)(listener, disposables, thisObject)
+                Event.once(register)(listener, thisObject)
             );
         };
     }

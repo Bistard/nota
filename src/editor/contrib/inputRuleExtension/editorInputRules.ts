@@ -1,8 +1,10 @@
 import { EditorState, Transaction } from "prosemirror-state";
 import { canJoin, findWrapping } from "prosemirror-transform";
-import { CodeEditorView, minimalSetup } from "src/editor/common/codeMirror";
 import { TokenEnum } from "src/editor/common/markdown";
 import { IEditorInputRuleExtension, InputRuleReplacement } from "src/editor/contrib/inputRuleExtension/inputRuleExtension";
+import { CodeBlockAttrs } from "src/editor/model/documentNode/node/codeBlock/codeBlock";
+import { HeadingAttrs } from "src/editor/model/documentNode/node/heading";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
 export function registerDefaultInputRules(extension: IEditorInputRuleExtension): void {
 
@@ -18,8 +20,10 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
         {
             nodeType: TokenEnum.Heading,
             whenReplace: 'type',
-            getNodeAttribute: (match) => {
-                return { level: match[1]?.length };
+            getNodeAttribute: (match): HeadingAttrs => {
+                return { 
+                    level: match[1]?.length,
+                };
             },
             wrapStrategy: 'WrapTextBlock'
         }
@@ -35,18 +39,14 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
     );
 
     // Code Block Rule: Matches triple backticks
-    extension.registerRule("codeBlockRule", /^```$/, 
+    extension.registerRule("codeBlockRule", /^```(.*)\s*$/, 
         { 
             nodeType: TokenEnum.CodeBlock,
             whenReplace: 'enter',
-            getNodeAttribute: (match) => {
-                const view = new CodeEditorView({
-                    doc: '',
-                    extensions: [minimalSetup],
-                });
-                return { 
-                    view: view,
-                    lang: '',
+            getNodeAttribute: (match): CodeBlockAttrs => {
+                const lang = match[1];
+                return {
+                    lang: lang ?? 'Unknown',
                 };
             },
             wrapStrategy: 'WrapTextBlock'
@@ -128,7 +128,7 @@ export class InputRule implements IInputRule {
 
     // [constructor]
 
-    constructor(id: string, pattern: RegExp, replacement: InputRuleReplacement) {
+    constructor(id: string, pattern: RegExp, replacement: InputRuleReplacement, private readonly instantiationService: IInstantiationService) {
         this.id = id;
         this.pattern = pattern;
         this.replacement = replacement;
@@ -181,7 +181,7 @@ export class InputRule implements IInputRule {
             return null;
         }
     
-        const attrs = replacement.getNodeAttribute?.(match);
+        const attrs = replacement.getNodeAttribute?.(match, this.instantiationService);
         const tr = state.tr.delete(start, end);
         const $start = tr.doc.resolve(start);
         const range = $start.blockRange();
@@ -218,7 +218,7 @@ export class InputRule implements IInputRule {
             return null;
         }
     
-        const attrs = replacement.getNodeAttribute?.(match);
+        const attrs = replacement.getNodeAttribute?.(match, this.instantiationService);
         const $start = state.doc.resolve(start);
         if (!$start.node(-1).canReplaceWith($start.index(-1), $start.indexAfter(-1), nodeType)) {
             return null;

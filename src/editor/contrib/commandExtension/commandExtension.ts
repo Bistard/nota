@@ -11,6 +11,7 @@ import { Command } from "src/platform/command/common/command";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IRegistrantService } from "src/platform/registrant/common/registrantService";
+import { Priority } from "src/base/common/event";
 
 /**
  * An interface only for {@link EditorCommandExtension}.
@@ -61,6 +62,9 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
          *  1. we look up for any registered command (from the map), 
          *  2. if found any, we execute that command from the standard command 
          *     system: {@link CommandService}.
+         * 
+         * @note Registered with {@link Priority.Low}. Make other extensions has
+         *       possibility to handle the keydown event first.
          */
         this.__register(this.onKeydown(event => {
             const keyEvent = event.event;
@@ -71,7 +75,7 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
             }
 
             /**
-             * Whenever a command is executed, we need to invoke `markAsExecuted`
+             * Whenever a command is executed, we need to invoke `preventDefault`
              * to tell prosemirror to prevent default behavior of the browser.
              * 
              * @see https://discuss.prosemirror.net/t/question-allselection-weird-behaviours-when-the-document-contains-a-non-text-node-at-the-end/7749/3
@@ -82,12 +86,12 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
                     onError: () => false,
                     onThen: (anyExecuted) => {
                         if (anyExecuted) {
-                            event.markAsExecuted();
+                            event.preventDefault();
                         }
                     }
                 }
             );
-        }));
+        }, undefined, Priority.Low));
     }
 
     // [protected override methods]

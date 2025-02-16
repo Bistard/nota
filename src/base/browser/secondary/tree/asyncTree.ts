@@ -349,7 +349,6 @@ export class AsyncTree<T, TFilter> extends Disposable implements IAsyncTree<T, T
     get onTouchstart(): Register<ITreeTouchEvent<T>> { return this._tree.onTouchstart; }
     get onKeydown(): Register<IStandardKeyboardEvent> { return this._tree.onKeydown; }
     get onKeyup(): Register<IStandardKeyboardEvent> { return this._tree.onKeyup; }
-    get onKeypress(): Register<IStandardKeyboardEvent> { return this._tree.onKeypress; }
     get onContextmenu(): Register<ITreeContextmenuEvent<T>> { return this._tree.onContextmenu; }
 
     // [getter]

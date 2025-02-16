@@ -1,10 +1,14 @@
-import { Strings } from "src/base/common/utilities/string";
+import { memoize } from "src/base/common/memoization";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
-import { ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
+import { GetProseAttrs, ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
 import { DocumentNode, IParseTokenStatus } from "src/editor/model/documentNode/documentNode";
 import { IDocumentParseState } from "src/editor/model/parser";
 import { IMarkdownSerializerState } from "src/editor/model/serializer";
+
+export type HorizontalRuleAttrs = {
+    // noop
+};
 
 export const enum HrType {
     Dash = 'dash',
@@ -21,11 +25,12 @@ export class HorizontalRule extends DocumentNode<EditorTokens.Hr> {
         super(TokenEnum.HorizontalRule);
     }
 
+    @memoize
     public getSchema(): ProseNodeSpec {
         return <ProseNodeSpec>{
             group: 'block',
             content: undefined,
-            attrs: {
+            attrs: <GetProseAttrs<HorizontalRuleAttrs>>{
                 type: { default: HrType.Dash },
                 raw: { default: '---' }
             },

@@ -1,10 +1,13 @@
 import "src/base/browser/basic/contextMenu/contextMenu.scss";
-import { addDisposableListener, DomUtility, EventType } from "src/base/browser/basic/dom";
+import { DomUtility } from "src/base/browser/basic/dom";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { AnchorAbstractPosition, AnchorMode, calcViewPositionAlongAxis, IAnchorBox } from "src/base/browser/basic/view";
 import { Disposable, LooseDisposableBucket, IDisposable } from "src/base/common/dispose";
+import { Emitter, Register } from "src/base/common/event";
 import { Range } from "src/base/common/structures/range";
 import { IDomBox, IPosition } from "src/base/common/utilities/size";
+
+// region - interface
 
 export interface IAnchor {
     readonly x: number;
@@ -92,11 +95,6 @@ export interface IContextMenuDelegate extends IContextMenuDelegateBase {
     render(container: HTMLElement): IDisposable | undefined;
 
     /**
-     * @description Invokes before the context menu gets destroyed (hidden).
-     */
-    onBeforeDestroy(): void;
-
-    /**
      * @description Invokes when the context menu is focused.
      */
     onFocus?(): void;
@@ -106,7 +104,17 @@ export interface IContextMenuDelegate extends IContextMenuDelegateBase {
  * An interface only for {@link ContextMenuView}.
  */
 export interface IContextMenu extends IDisposable {
-    
+
+    /**
+     * The entire wrapper element of the context menu.
+     */
+    readonly element: HTMLElement;
+
+    /**
+     * Fires before the context menu is about to destroy.
+     */
+    readonly onDestroy: Register<void>;
+
     /**
      * @description Place the context menu under the given container.
      * @param container The container that contains the context menu.
@@ -133,16 +141,19 @@ export interface IContextMenu extends IDisposable {
     visible(): boolean;
 }
 
+// region - ContextMenuView
+
 /**
  * @class A {@link ContextMenuView} can be placed under a given container for 
  * later rendering. The rendering implementation of a {@link ContextMenuView} is 
- * abstracted out as a {@link IContextMenuDelegate}. Usually is rendered based 
- * on {@link IMenu}.
+ * entirely abstracted out as a {@link IContextMenuDelegate}. Usually is 
+ * rendered based on {@link IMenu}.
  * 
+ * @note A {@link ContextMenuView} encapsulates how to calculate the position of
+ *       such a view.
  * @note When showing a {@link ContextMenuView}, the position of the view will 
- * be adjusted due to the anchor position and the viewport size to ensure the 
- * view is properly fit in and overlap avoided.
- * 
+ *       be adjusted due to the anchor position and the viewport size to ensure 
+ *       the view is properly fit in and overlap avoided.
  * @note The default position type is 'absolute'.
  */
 export class ContextMenuView extends Disposable implements IContextMenu {
@@ -150,6 +161,11 @@ export class ContextMenuView extends Disposable implements IContextMenu {
     // [constants]
 
     public static readonly CLASS_NAME = 'context-menu';
+
+    // [event]
+
+    private readonly _onDestroy = this.__register(new Emitter<void>());
+    public readonly onDestroy = this._onDestroy.registerListener;
 
     // [fields]
 
@@ -161,8 +177,6 @@ export class ContextMenuView extends Disposable implements IContextMenu {
 
     /** The delegate that handles external business logics */
     private _currDelegate?: IContextMenuDelegate;
-    
-    private readonly _currContainerLifecycle: LooseDisposableBucket;
     private readonly _currRenderContentLifecycle: LooseDisposableBucket;
 
     // [constructor]
@@ -173,12 +187,15 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         this._element.setClassName(ContextMenuView.CLASS_NAME);
         this._element.setPosition('absolute');
 
-        this._currContainerLifecycle = this.__register(new LooseDisposableBucket());
         this._currRenderContentLifecycle = this.__register(new LooseDisposableBucket());
 
         DomUtility.Modifiers.hide(this._element.raw);
         this.setContainer(container);
     }
+
+    // [getter]
+
+    get element() { return this._element.raw; }
 
     // [public methods]
 
@@ -186,7 +203,6 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         
         // remove the context menu from the old container
         if (this._currContainer) {
-            this._currContainerLifecycle.dispose();
             this._currContainer.removeChild(this._element.raw);
             this._currContainer = undefined;
         }
@@ -194,17 +210,6 @@ export class ContextMenuView extends Disposable implements IContextMenu {
         // set the new container
         this._currContainer = newContainer;
         this._currContainer.appendChild(this._element.raw);
-        
-        // register the context menu events
-        {
-            this._currContainerLifecycle.register(
-                addDisposableListener(this._element.raw, EventType.click, (e) => {
-                    if (!DomUtility.Elements.isAncestor(this._element.raw, <Node>e.target)) {
-                        this.destroy();
-                    }
-                })
-            );
-        }
     }
 
     public show(delegate: IContextMenuDelegate): void {
@@ -239,13 +244,10 @@ export class ContextMenuView extends Disposable implements IContextMenu {
     }
 
     public destroy(): void {
-        const oldDelegate = this._currDelegate;
         this._currDelegate = undefined;
 
-        // tells the delegate before actual hidden
-        if (oldDelegate?.onBeforeDestroy) {
-            oldDelegate.onBeforeDestroy();
-        }
+        // tells the client before actual destroy
+        this._onDestroy.fire();
 
         // unrender
         this._currRenderContentLifecycle.dispose();
@@ -268,7 +270,6 @@ export class ContextMenuView extends Disposable implements IContextMenu {
     }
 
     private __layout(delegate: IContextMenuDelegate): void {
-        
         if (!this.visible()) {
             return;
         }

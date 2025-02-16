@@ -1,7 +1,7 @@
 import "src/base/browser/basic/menu/menu.scss";
 import { FocusTracker } from "src/base/browser/basic/focusTracker";
-import { CheckMenuItem, IMenuAction, IMenuItem, MenuAction, MenuItemType, MenuSeparatorItem as MenuSeparatorItem, SimpleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
-import { ActionList, ActionRunner, IAction, IActionItemProvider, IActionList, IActionListOptions, IActionRunEvent } from "src/base/common/action";
+import { CheckMenuItem, IMenuAction, IMenuItem, MenuAction, MenuItem, MenuItemType, MenuSeparatorItem as MenuSeparatorItem, SimpleMenuItem, SubmenuItem } from "src/base/browser/basic/menu/menuItem";
+import { ActionList, ActionRunner, IActionItemProvider, IActionList, IActionListOptions, IActionRunEvent } from "src/base/common/action";
 import { addDisposableListener, DirectionX, DomEventHandler, DomUtility, EventType } from "src/base/browser/basic/dom";
 import { Emitter, Register } from "src/base/common/event";
 import { createStandardKeyboardEvent, IStandardKeyboardEvent, KeyCode } from "src/base/common/keyboard";
@@ -13,6 +13,8 @@ import { Disposable, LooseDisposableBucket } from "src/base/common/dispose";
 import { FastElement } from "src/base/browser/basic/fastElement";
 import { panic } from "src/base/common/utilities/panic";
 
+// region - interface
+
 export interface IMenuActionRunEvent extends IActionRunEvent {
     readonly action: IMenuAction;
 }
@@ -20,7 +22,7 @@ export interface IMenuActionRunEvent extends IActionRunEvent {
 /**
  * An interface only for {@link BaseMenu}.
  */
-export interface IMenu extends IActionList<MenuAction, IMenuItem> {
+export interface IMenu extends IActionList<MenuAction, MenuItem> {
 
     /**
      * The HTMLElement of the {@link IMenu}.
@@ -45,7 +47,7 @@ export interface IMenu extends IActionList<MenuAction, IMenuItem> {
     /**
      * Fires when the menu is blurred.
      */
-    readonly onDidBlur: Register<void>;
+    readonly onDidBlur: Register<FocusEvent>;
 
     /**
      * Fires when the menu is closed.
@@ -69,6 +71,18 @@ export interface IMenu extends IActionList<MenuAction, IMenuItem> {
     focus(index?: number): void;
 
     /**
+     * @description Programmatically focus the previous item. If currently no 
+     * focused item, focus the first item.
+     */
+    focusPrev(): void;
+
+    /**
+     * @description Programmatically focus the next item. If currently no 
+     * focused item, focus the first item.
+     */
+    focusNext(): void;
+
+    /**
      * @description If the menu has any focused item.
      */
     anyFocused(): boolean;
@@ -87,7 +101,7 @@ export interface IMenu extends IActionList<MenuAction, IMenuItem> {
 /**
  * Interface for {@link BaseMenu} construction.
  */
-export interface IMenuOptions extends IActionListOptions<IMenuAction, IMenuItem> {
+export interface IMenuOptions extends IActionListOptions<IMenuAction, MenuItem> {
     
     /**
      * A list of possible trigger keys to determine which keys can execute the 
@@ -97,6 +111,8 @@ export interface IMenuOptions extends IActionListOptions<IMenuAction, IMenuItem>
     readonly triggerKeys?: KeyCode[];
 }
 
+// region - BaseMenu
+
 /**
  * @class A {@link BaseMenu} is build on top of {@link ActionList}, provides a 
  * UI-related component that represents a 'menu list'. Each {@link IMenuAction} 
@@ -105,14 +121,14 @@ export interface IMenuOptions extends IActionListOptions<IMenuAction, IMenuItem>
  * @note The {@link BaseMenu} do not handle the concrete construction of each
  * {@link IMenuItem}. Instead, the inheritance should handle it.
  */
-export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> implements IMenu {
+export abstract class BaseMenu extends ActionList<MenuAction, MenuItem> implements IMenu {
 
     // [fields]
 
     public static readonly CLASS_NAME = 'menu';
 
     private readonly _element: HTMLElement;
-    declare protected readonly _items: IMenuItem[];
+    declare protected readonly _items: MenuItem[];
     
     private readonly _focusTracker: FocusTracker;
     private _currFocusedIndex: number; // index, -1 means no focused items.
@@ -124,7 +140,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
 
     // [events]
 
-    private readonly _onDidBlur = this.__register(new Emitter<void>());
+    private readonly _onDidBlur = this.__register(new Emitter<FocusEvent>());
     public readonly onDidBlur = this._onDidBlur.registerListener;
 
     private readonly _onDidClose = this.__register(new Emitter<void>());
@@ -205,6 +221,14 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
         return this._currFocusedIndex;
     }
 
+    public focusPrev(): void {
+        this.__focusByOffset(-1);
+    }
+
+    public focusNext(): void {
+        this.__focusByOffset(1);
+    }
+
     public override dispose(): void {
         super.dispose();
     }
@@ -245,7 +269,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
         }));
 
         // Blur event
-        this.__register(this._focusTracker.onDidBlur(() => {
+        this.__register(this._focusTracker.onDidBlur(e => {
             const activeNode = DomUtility.Elements.getActiveElement();
             
             /**
@@ -258,7 +282,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
             }
 
             this._currFocusedIndex = -1;
-            this._onDidBlur.fire();
+            this._onDidBlur.fire(e);
         }));
 
         // Keydown event
@@ -280,11 +304,11 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
                     break;
                 }
                 case KeyCode.UpArrow: {
-                    this.__focusPrevious();
+                    this.focusPrev();
                     break;
                 }
                 case KeyCode.DownArrow: {
-                    this.__focusNext();
+                    this.focusNext();
                     break;
                 }
                 default:
@@ -317,14 +341,6 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
         }));
     }
 
-    private __focusPrevious(): void {
-        this.__focusByOffset(-1);
-    }
-
-    private __focusNext(): void {
-        this.__focusByOffset(1);
-    }
-
     private __focusByOffset(offset: -1 | 1): void {
         if (this._items.length === 0) {
             return;
@@ -340,7 +356,7 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
         }
 
         let actualIndex = this._currFocusedIndex;
-        let actualItem: IMenuItem;
+        let actualItem: MenuItem;
         do {
             actualIndex = ((actualIndex + offset) + this._items.length) % this._items.length;
             actualItem = this._items[actualIndex]!;
@@ -378,9 +394,10 @@ export abstract class BaseMenu extends ActionList<MenuAction, IMenuItem> impleme
     }
 }
 
+// region - Menu
+
 /**
- * @class A basic implementation over {@link BaseMenu}. It only provides two
- * concrete item implementations.
+ * @class A basic implementation over {@link BaseMenu}.
  */
 export class Menu extends BaseMenu {
 
@@ -404,6 +421,8 @@ export class Menu extends BaseMenu {
     }
 }
 
+// region - MenuDecorator
+
 export abstract class MenuDecorator extends Disposable implements IMenu {
 
     // [fields]
@@ -412,10 +431,10 @@ export abstract class MenuDecorator extends Disposable implements IMenu {
 
     // [events]
 
-    public readonly onDidInsert: Register<IMenuItem[]>;
+    public readonly onDidInsert: Register<MenuItem[]>;
     public readonly onBeforeRun: Register<IMenuActionRunEvent>;
     public readonly onDidRun: Register<IMenuActionRunEvent>;
-    public readonly onDidBlur: Register<void>;
+    public readonly onDidBlur: Register<FocusEvent>;
     public readonly onDidClose: Register<void>;
 
     // [constructor]
@@ -448,7 +467,7 @@ export abstract class MenuDecorator extends Disposable implements IMenu {
         this._menu.build(actions);
     }
 
-    public addActionItemProvider(provider: IActionItemProvider<MenuAction, IMenuItem>): void {
+    public addActionItemProvider(provider: IActionItemProvider<MenuAction, MenuItem>): void {
         this._menu.addActionItemProvider(provider);
     }
 
@@ -464,35 +483,51 @@ export abstract class MenuDecorator extends Disposable implements IMenu {
         return this._menu.getCurrFocusIndex();
     }
 
+    public focusPrev(): void {
+        return this._menu.focusPrev();
+    }
+    
+    public focusNext(): void {
+        return this._menu.focusNext();
+    }
+
     public run(index: number): void;
-    public run(action: IAction): void;
+    public run(action: MenuAction): void;
     public run(id: string): void;
-    public run(arg: IAction | number | string): void {
+    public run(arg: MenuAction | number | string): void {
         this._menu.run(arg);
     }
 
-    public get(index: number): IAction | undefined;
-    public get(id: string): IAction | undefined;
-    public get(arg: string | number): IAction | undefined {    
+    public get(index: number): MenuAction | undefined;
+    public get(id: string): MenuAction | undefined;
+    public get(arg: string | number): MenuAction | undefined;
+    public get(arg: string | number): MenuAction | undefined {    
         return this._menu.get(arg);
     }
 
+    public getItem(index: number): MenuItem | undefined;
+    public getItem(id: string): MenuItem | undefined;
+    public getItem(arg: number | string): MenuItem | undefined;
+    public getItem(arg: number | string): MenuItem | undefined {
+        return this._menu.getItem(arg);
+    }
+
     public has(id: string): boolean;
-    public has(action: IAction): boolean;
-    public has(arg: string | IAction): boolean {
+    public has(action: MenuAction): boolean;
+    public has(arg: string | MenuAction): boolean {
         return this._menu.has(arg);
     }
 
-    public insert(action: IAction[], index?: number | undefined): void;
-    public insert(action: IAction, index?: number | undefined): void;
-    public insert(arg: IAction | IAction[], index?: number | undefined): void {
+    public insert(action: MenuAction[], index?: number | undefined): void;
+    public insert(action: MenuAction, index?: number | undefined): void;
+    public insert(arg: MenuAction | MenuAction[], index?: number | undefined): void {
         this._menu.insert(arg, index);
     }
 
     public delete(index: number): boolean;
     public delete(id: string): boolean;
-    public delete(action: IAction): boolean;
-    public delete(arg: string | number | IAction): boolean {
+    public delete(action: MenuAction): boolean;
+    public delete(arg: string | number | MenuAction): boolean {
         return this._menu.delete(arg);
     }
 
@@ -504,6 +539,8 @@ export abstract class MenuDecorator extends Disposable implements IMenu {
         return this._menu.size();
     }
 }
+
+// region - MenuWithSubmenu
 
 /**
  * @class With additional to {@link Menu}, the class supports to construct a
@@ -530,15 +567,14 @@ export class MenuWithSubmenu extends MenuDecorator {
             if (action.type === MenuItemType.Submenu) {
                 
                 const item = new SubmenuItem(action, {
-                    closeCurrSubmenu: this.__closeCurrSubmenu.bind(this),
-                    openNewSubmenu: this.__openNewSubmenu.bind(this),
+                    closeCurrSubmenu: this.closeCurrSubmenu.bind(this),
+                    openNewSubmenu: this.openNewSubmenu.bind(this),
                     isSubmenuActive: () => !!this._submenu,
                     focusParentMenu: this.__focusParentMenu.bind(this),
                 });
 
                 // bind the item-run to the action-run.
                 action.onRun = item.run.bind(item);
-
                 return item;
             }
             return undefined;
@@ -549,12 +585,10 @@ export class MenuWithSubmenu extends MenuDecorator {
 
     public override dispose(): void {
         super.dispose();
-        this.__closeCurrSubmenu();
+        this.closeCurrSubmenu();
     }
 
-    // [private helper methods]
-
-    private __closeCurrSubmenu(): void {
+    public closeCurrSubmenu(): void {
         this.release(this._submenu);
         this._submenu = undefined;
 
@@ -564,7 +598,7 @@ export class MenuWithSubmenu extends MenuDecorator {
         this.release(this._submenuLifecycle);
     }
 
-    private __openNewSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
+    public openNewSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
         
         /**
          * If there is already a submenu, we simply focus it instead of recreate 
@@ -578,6 +612,8 @@ export class MenuWithSubmenu extends MenuDecorator {
         this.__constructSubmenu(anchor, actions);
         this.__submenuEventRegistration();
     }
+
+    // [private helper methods]
 
     private __constructSubmenu(anchor: HTMLElement, actions: IMenuAction[]): void {
         const submenuContainer = this.__register(new FastElement(document.createElement('div')));
@@ -689,19 +725,21 @@ export class MenuWithSubmenu extends MenuDecorator {
             // left-arrow
             if (event.key === KeyCode.LeftArrow) {
                 DomEventHandler.stop(event, true);
-                this.__closeCurrSubmenu();
+                this.closeCurrSubmenu();
                 this.__focusParentMenu();
             }
         }));
 
         // on-did-close
         this._submenuLifecycle.register(this._submenu.onDidClose(() => {
-            this.__closeCurrSubmenu();
+            this.closeCurrSubmenu();
         }));
     }
 
     private __focusParentMenu(): void {
         
+        // fix: parent menu didn't focused somehow
+
         /**
          * When focusing the parent menu making sure there is no existing 
          * focused item.
