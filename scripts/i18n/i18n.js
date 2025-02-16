@@ -183,6 +183,7 @@ class localizationGenerator {
         this.otherLocales.forEach((locale) => {
             const localeFileName = `${locale}.json`;
             const localeFilePath = path.join(this.localeOutputPath, localeFileName);
+            log('info', `[Localization] validating: ${localeFileName}...`);
     
             let localeData;
     
@@ -200,6 +201,12 @@ class localizationGenerator {
                 if (extraFound) {
                     fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
                     this.logError(`[Localization] file update: Updated ${localeFileName} by removing extra keys.`);
+                }
+                // check version
+                else if (localeData.version !== enData.version) {
+                    localeData.version = enData.version;
+                    fs.writeFileSync(localeFilePath, JSON.stringify(localeData, null, 4), 'utf-8');
+                    this.logError(`[Localization] file update: Updated ${localeFileName} version to match EN.`);
                 }
             }
         });
@@ -249,8 +256,6 @@ class localizationGenerator {
         }
     
         localeData.contents ??= {};
-        localeData.version = enData.version;
-    
         let missingFound = false;
         for (const [filePath, enKeys] of Object.entries(enContents)) {
             localeData.contents[filePath] ??= {};
