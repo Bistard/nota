@@ -25,7 +25,9 @@ interface IEditorInfo extends Tag {
 }
 
 const di = await createIntegration({ 
-    i18nService: true 
+    i18nService: true,
+    workspaceService: true,
+    clipboardService: true,
 });
 
 export namespace ProseUtilsTest {
