@@ -78,7 +78,7 @@ export interface ILinkedList<T> extends IIterable<T> {
     exist(data: T): boolean;
 }
 
-export class ListNode<T> {
+class ListNode<T> {
 
     constructor(
         public readonly data: T,

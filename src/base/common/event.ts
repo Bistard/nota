@@ -1,5 +1,5 @@
 import type { IO } from "src/base/common/utilities/functional";
-import { LinkedList, ListNode } from "src/base/common/structures/linkedList";
+import { LinkedList } from "src/base/common/structures/linkedList";
 import { Disposable, DisposableBucket, IDisposable, isDisposable, LooseDisposableBucket, toDisposable, untrackDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { panic } from "src/base/common/utilities/panic";
@@ -184,6 +184,14 @@ export interface IEmitterOptions {
 
 // region - AbstractEmitter
 
+interface IListenerContainer<TListener> extends Iterable<TListener> {
+    size(): number;
+    add(listener: TListener): any;
+    remove(token: any): void;
+    empty(): boolean;
+    clear(): void;
+}
+
 /**
  * @description This abstract class serves as a flexible foundation for creating 
  * various kinds of event emitters.
@@ -199,29 +207,25 @@ export interface IEmitterOptions {
  *  - `TEvent`: The type of the event that will be fired (e.g., a string, object, etc.).
  *  - `TRegister`: The specific function signature for registering a listener.
  *  - `TListener`: (internal usage) The type of an actual listener.
- *  - `TListenerContainer`: (internal usage) The data structure that holds the listeners (e.g., array, map, linked list).
- *  - `TListenerNode`: (internal usage) A helper type representing the individual node or element within `TListenerContainer`. 
  */
 abstract class AbstractEmitter<
     TEvent,
     TRegister extends (...args: any[]) => IDisposable, 
-    TListener, 
-    TListenerContainer extends { size(): number, empty(): boolean, }, 
-    TListenerNode,
+    TListener,
 > extends Disposable {
 
     // [field]
 
-    protected readonly _listeners: TListenerContainer;
+    protected readonly _listeners: IListenerContainer<TListener>;
     protected _register?: TRegister;
     protected _opts?: IEmitterOptions;
 
     // [constructor]
 
-    constructor(options?: IEmitterOptions) {
+    constructor(options?: IEmitterOptions,) {
         super();
         this._opts = options;
-        this._listeners = this.__initStructure();
+        this._listeners = this.__constructContainer();
         if (isDisposable(this._listeners)) {
             this.__register(this._listeners);
         }
@@ -229,13 +233,9 @@ abstract class AbstractEmitter<
 
     // [abstract]
 
-    protected abstract __fire(listeners: TListenerContainer, event: TEvent): void;
+    protected abstract __fire(listeners: IListenerContainer<TListener>, event: TEvent): void;
     protected abstract __constructListener(...args: Parameters<TRegister>): TListener;
-    
-    protected abstract __initStructure(): TListenerContainer;
-    protected abstract __clearStructure(listeners: TListenerContainer): void;
-    protected abstract __addIntoStructure(listeners: TListenerContainer, listener: TListener): TListenerNode;
-    protected abstract __delFromStructure(listeners: TListenerContainer, node: TListenerNode): void;
+    protected abstract __constructContainer(): IListenerContainer<TListener>;
 
     // [public]
 
@@ -255,7 +255,7 @@ abstract class AbstractEmitter<
             const listener = this.__constructListener(...args);
             
             this._opts?.onListenerWillAdd?.();
-            const node = this.__addIntoStructure(this._listeners, listener);
+            const node = this._listeners.add(listener);
             this._opts?.onListenerDidAdd?.();
             
             // after first add callback
@@ -272,7 +272,7 @@ abstract class AbstractEmitter<
                     listenerRemoving = true;
 
                     this._opts?.onListenerWillRemove?.();
-                    this.__delFromStructure(this._listeners, node);
+                    this._listeners.remove(node);
                     this._opts?.onListenerDidRemove?.();
             
                     // last remove callback
@@ -309,7 +309,7 @@ abstract class AbstractEmitter<
 
     public override dispose(): void {
         super.dispose();
-        this.__clearStructure(this._listeners);
+        this._listeners.clear();
         this._opts?.onLastListenerDidRemove?.();
 	}
 }
@@ -328,11 +328,11 @@ abstract class AbstractEmitter<
  * 
  * @throws The unexpected error caught by `fire()` will be caught by {@link ErrorHandler.onUnexpectedError}.
  */
-export class Emitter<T> extends AbstractEmitter<T, Register<T>, __Listener<T>, LinkedList<__Listener<T>>, ListNode<__Listener<T>>> implements IEmitter<T> {
+export class Emitter<T> extends AbstractEmitter<T, Register<T>, __Listener<T>> implements IEmitter<T> {
     
     // [method]
 
-    protected override __fire(listeners: LinkedList<__Listener<T>>, event: T): void {
+    protected override __fire(listeners: IListenerContainer<__Listener<T>>, event: T): void {
         for (const listener of listeners) {
             try {
                 listener.fire(event);
@@ -345,17 +345,17 @@ export class Emitter<T> extends AbstractEmitter<T, Register<T>, __Listener<T>, L
     protected override __constructListener(listener: Listener<T>, thisObject?: object): __Listener<T> {
         return new __Listener(listener, thisObject, this._opts);
     }
-    protected override __initStructure(): LinkedList<__Listener<T>> {
-        return new LinkedList();
-    }
-    protected override __clearStructure(listeners: LinkedList<__Listener<T>>): void {
-        listeners.clear();
-    }
-    protected override __addIntoStructure(listeners: LinkedList<__Listener<T>>, listener: __Listener<T>): ListNode<__Listener<T>> {
-        return listeners.push_back(listener);
-    }
-    protected override __delFromStructure(listeners: LinkedList<__Listener<T>>, node: ListNode<__Listener<T>>): void {
-        listeners.remove(node);
+
+    protected override __constructContainer(): IListenerContainer<__Listener<T>> {
+        const list = new LinkedList<__Listener<T>>();
+        return {
+            add: (listener) => list.push_back(listener),
+            remove: (token) => list.remove(token),
+            clear: () => list.clear(),
+            empty: () => list.empty(),
+            size: () => list.size(),
+            [Symbol.iterator]: list[Symbol.iterator].bind(list),
+        };
     }
 }
 
@@ -728,7 +728,7 @@ export const enum Priority {
  *   return true; // Stop propagation
  * });
  */
-export class PriorityEmitter<T> extends AbstractEmitter<T, Register<T>, __PriorityListener<T>, PriorityQueue<__PriorityListener<T>>, __PriorityListener<T>> implements IEmitter<T> {
+export class PriorityEmitter<T> extends AbstractEmitter<T, Register<T>, __PriorityListener<T>> implements IEmitter<T> {
 
     // [methods]
 
@@ -745,7 +745,7 @@ export class PriorityEmitter<T> extends AbstractEmitter<T, Register<T>, __Priori
 
     // [override]
 
-    protected override __fire(listeners: PriorityQueue<__PriorityListener<T>>, event: T): void {
+    protected override __fire(listeners: IListenerContainer<__PriorityListener<T>>, event: T): void {
         for (const listener of listeners) {
             try {
                 const handled = listener.fire(event);
@@ -762,24 +762,18 @@ export class PriorityEmitter<T> extends AbstractEmitter<T, Register<T>, __Priori
         return new __PriorityListener(priority ?? Priority.Normal, listener, thisObject, this._opts);
     }
 
-    protected override __initStructure(): PriorityQueue<__PriorityListener<T>> {
-        return new PriorityQueue<__PriorityListener<T>>(
-            // higher number, higher priority
-            (a, b) => b.priority - a.priority
+    protected override __constructContainer(): IListenerContainer<__PriorityListener<T>> {
+        const pq = new PriorityQueue<__PriorityListener<T>>(
+            (a, b) => b.priority - a.priority // higher number, higher priority
         );
-    }
-
-    protected override __clearStructure(listeners: PriorityQueue<__PriorityListener<T>>): void {
-        listeners.clear();
-    }
-
-    protected override __addIntoStructure(listeners: PriorityQueue<__PriorityListener<T>>, listener: __PriorityListener<T>): __PriorityListener<T> {
-        listeners.enqueue(listener);
-        return listener;
-    }
-
-    protected override __delFromStructure(listeners: PriorityQueue<__PriorityListener<T>>, node: __PriorityListener<T>): void {
-        listeners.remove(node);
+        return {
+            add: (listener) => { pq.enqueue(listener); return listener; },
+            remove: (token) => pq.remove(token),
+            clear: () => pq.clear(),
+            empty: () => pq.empty(),
+            size: () => pq.size(),
+            [Symbol.iterator]: pq[Symbol.iterator].bind(pq),
+        };
     }
 }
 
