@@ -8,7 +8,7 @@ import { IWidgetBar, WidgetBar } from "src/base/browser/secondary/widgetBar/widg
 import { addDisposableListener, EventType, Orientation } from "src/base/browser/basic/dom";
 import { RequestAnimateController, requestAtNextAnimationFrame } from "src/base/browser/basic/animation";
 import { Event } from "src/base/common/event";
-import { ProseEditorView, ProseTextSelection } from "src/editor/common/proseMirror";
+import { ProseEditorView, ProseTextSelection, ProseTransaction } from "src/editor/common/proseMirror";
 import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
 import { Button, IButtonOptions } from "src/base/browser/basic/button/button";
 import { Markdown, TokenEnum } from "src/editor/common/markdown";
@@ -17,6 +17,7 @@ import { Disposable } from "src/base/common/dispose";
 import { BlockInsertPalette } from "src/editor/view/widget/blockInsertPalette/blockInsertPalette";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IPosition } from "src/base/common/utilities/size";
+import { ProseTools } from "src/editor/common/proseUtility";
 
 // region - EditorBlockHandleExtension
 
@@ -82,7 +83,7 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
             
             // not the top-level node, do nothing.
             const pos = e.view.state.doc.resolve(e.target.resolvedPosition);
-            if (pos.depth !== 0) { // review: shouldn't it compare to 1?
+            if (pos.depth !== 0) {
                 return;
             }
 
@@ -276,15 +277,26 @@ class AddBlockButton extends AbstractBlockHandleButton {
                 return;
             }
 
-            // insert an empty paragraph right below the current block
-            const insertPosition = currentDropPosition + currentNode.nodeSize;
-            const paragraph = assert(Markdown.Create.empty(state, TokenEnum.Paragraph, {}));
-            let newTr = state.tr.insert(insertPosition, paragraph);
+            let newTr: ProseTransaction;
+            let insertPosition: number;
 
-            // set selection to it
-            const newPos = insertPosition + 1;
-            if (newPos <= newTr.doc.content.size) {
-                newTr = newTr.setSelection(ProseTextSelection.create(newTr.doc, newPos));
+            /**
+             * If the current node is non-empty, insert an empty paragraph right 
+             * below the current block.
+             */
+            if (!ProseTools.Node.isEmptyTextBlock(currentNode)) {
+                insertPosition = currentDropPosition + currentNode.nodeSize;
+                const paragraph = assert(Markdown.Create.empty(state, TokenEnum.Paragraph, {}));
+                newTr = state.tr.insert(insertPosition, paragraph);
+                const newPos = insertPosition + 1;
+                if (newPos <= newTr.doc.content.size) {
+                    newTr = newTr.setSelection(ProseTextSelection.create(newTr.doc, newPos));
+                }
+            }
+            // If the current node is empty text, we simply select it.
+            else {
+                insertPosition = currentDropPosition + 1;
+                newTr = state.tr.setSelection(ProseTextSelection.create(state.tr.doc, insertPosition));
             }
 
             // update to view
