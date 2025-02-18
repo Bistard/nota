@@ -284,7 +284,7 @@ class AddBlockButton extends AbstractBlockHandleButton {
              * If the current node is non-empty, insert an empty paragraph right 
              * below the current block.
              */
-            if (!ProseTools.Node.isEmptyTextBlock(currentNode)) {
+            if (!currentNode.isTextblock || currentNode.textContent !== '') {
                 insertPosition = currentDropPosition + currentNode.nodeSize;
                 const paragraph = assert(Markdown.Create.empty(state, TokenEnum.Paragraph, {}));
                 newTr = state.tr.insert(insertPosition, paragraph);
