@@ -76,7 +76,7 @@ export class MathInline extends DocumentNode<EditorTokens.MathInline> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.Image>): void {
+    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.MathInline>): void {
         const token = status.token;
         state.activateNode(this.ctor, status, {
             attrs: {

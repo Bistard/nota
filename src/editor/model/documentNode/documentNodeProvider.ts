@@ -2,6 +2,7 @@ import { IO } from "src/base/common/utilities/functional";
 import { panic } from "src/base/common/utilities/panic";
 import { Mutable } from "src/base/common/utilities/type";
 import { TokenEnum, MarkEnum } from "src/editor/common/markdown";
+import { EditorToken } from "src/editor/common/model";
 import { ProseNodeType, ProseMarkType } from "src/editor/common/proseMirror";
 import { DocumentNode, DocumentMark } from "src/editor/model/documentNode/documentNode";
 import { Codespan } from "src/editor/model/documentNode/mark/codespan";
@@ -105,11 +106,11 @@ export class DocumentNodeProvider {
         this._marks.set(mark.name, mark);
     }
 
-    public getNode<TToken>(name: TokenEnum | string): DocumentNode<TToken> | undefined {
+    public getNode<TToken = EditorToken>(name: TokenEnum | string): DocumentNode<TToken> | undefined {
         return this._nodes.get(name);
     }
 
-    public getMark<TToken>(name: MarkEnum | string): DocumentMark<TToken> | undefined {
+    public getMark<TToken = EditorToken>(name: MarkEnum | string): DocumentMark<TToken> | undefined {
         return this._marks.get(name);
     }
 
