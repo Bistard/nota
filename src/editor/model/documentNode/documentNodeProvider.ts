@@ -21,7 +21,6 @@ import { LineBreak } from "src/editor/model/documentNode/node/lineBreak";
 import { List, ListItem } from "src/editor/model/documentNode/node/list";
 import { MathBlock } from "src/editor/model/documentNode/node/mathBlock";
 import { Paragraph } from "src/editor/model/documentNode/node/paragraph";
-import { Space } from "src/editor/model/documentNode/node/space";
 import { Text } from "src/editor/model/documentNode/node/text";
 import { EditorSchema, TOP_NODE_NAME } from "src/editor/model/schema";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
@@ -58,7 +57,6 @@ export class DocumentNodeProvider {
              */
             register: () => {
                 // nodes
-                provider.registerNode(instantiationService.createInstance(Space));
                 provider.registerNode(instantiationService.createInstance(Text));
                 provider.registerNode(instantiationService.createInstance(Escape));
                 provider.registerNode(instantiationService.createInstance(Paragraph));

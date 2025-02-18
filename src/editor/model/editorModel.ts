@@ -19,6 +19,7 @@ import { IFileService } from "src/platform/files/common/fileService";
 import { history } from "prosemirror-history";
 import { IOnDidContentChangeEvent } from "src/editor/view/proseEventBroadcaster";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { TokenEnum } from "src/editor/common/markdown";
 
 export class EditorModel extends Disposable implements IEditorModel {
 
@@ -76,6 +77,8 @@ export class EditorModel extends Disposable implements IEditorModel {
         this._docParser = this.__register(new DocumentParser(this._schema, this._nodeProvider, /* options */));
         this.__register(this._docParser.onLog(event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additional)));
         this._docSerializer = new MarkdownSerializer(this._nodeProvider, { strict: true, escapeExtraCharacters: undefined, });
+
+        this.__initialization();
 
         logService.debug('EditorModel', 'Constructed');
     }
@@ -219,6 +222,21 @@ export class EditorModel extends Disposable implements IEditorModel {
         const newState = event.view.state;
         this._editorState = newState;
         this._onDidStateChange.fire();
+    }
+
+    private __initialization(): void {
+        /**
+         * Mapping token: {@link TokenEnum.Space} to {@link TokenEnum.Paragraph}
+         * Because `space` are just special cases for `paragraph`.
+         */
+        this._docParser.registerMapToken(TokenEnum.Space, (from) => {
+            return {
+                type: TokenEnum.Paragraph,
+                text: '',
+                raw: '',
+                tokens: []
+            };
+        });
     }
 
     private __tokenizeAndParse(raw: string): ProseNode {
