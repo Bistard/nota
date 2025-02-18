@@ -42,6 +42,7 @@ export interface IWidgetBar<T extends IWidget> extends IDisposable {
      *  as default.
      * 
      * @note Method will invoke `item.item.render()` automatically.
+     * @note The lifecycle of the provided item will be bond with the widget bar.
      */
     addItem(item: IWidgetBarItem<T>, index?: number): void;
     
