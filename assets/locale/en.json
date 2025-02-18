@@ -24,7 +24,7 @@
             "rendering": "Rendering...",
             "error": "Error Equations"
         },
-        "editor/contrib/blockPlaceHolderExtension/blockPlaceHolderExtension": {
+        "editor/contrib/blockPlaceHolder/blockPlaceHolder": {
             "emptyBlockPlaceHolder": "Start typing, or press '@' for AI, '/' for commands..."
         },
         "editor/model/documentNode/node/html/html": {

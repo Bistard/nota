@@ -1,4 +1,4 @@
-import type { IEditorCommandExtension } from "src/editor/contrib/commandExtension/commandExtension";
+import type { IEditorCommandExtension } from "src/editor/contrib/command/command";
 import type { IEditorWidget } from "src/editor/editorWidget";
 import { ReplaceAroundStep, canJoin, canSplit, liftTarget, replaceStep } from "prosemirror-transform";
 import { ILogService } from "src/base/common/logger";
@@ -7,7 +7,6 @@ import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelecti
 import { ProseTools } from "src/editor/common/proseUtility";
 import { EditorSchema } from "src/editor/model/schema";
 import { Command, ICommandSchema, buildChainCommand } from "src/platform/command/common/command";
-import { ICommandService } from "src/platform/command/common/commandService";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { EditorContextKeys } from "src/editor/common/editorContextKeys";

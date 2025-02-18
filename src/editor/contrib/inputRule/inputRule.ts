@@ -8,7 +8,7 @@ import { Dictionary, isString } from "src/base/common/utilities/type";
 import { ProseEditorView, ProseNode, ProseResolvedPos, ProseTextSelection } from "src/editor/common/proseMirror";
 import { KeyCode } from "src/base/common/keyboard";
 import { TokenEnum } from "src/editor/common/markdown";
-import { IInputRule, InputRule, registerDefaultInputRules } from "src/editor/contrib/inputRuleExtension/editorInputRules";
+import { IInputRule, InputRule, registerDefaultInputRules } from "src/editor/contrib/inputRule/editorInputRules";
 import { IInstantiationService, IServiceProvider } from "src/platform/instantiation/common/instantiation";
 
 /**

@@ -1,13 +1,13 @@
 import { Constructor } from "src/base/common/utilities/type";
 import { EditorExtension } from "src/editor/common/editorExtension";
-import { EditorCommandExtension } from "src/editor/contrib/commandExtension/commandExtension";
-import { EditorAutoSaveExtension } from "src/editor/contrib/autoSaveExtension";
-import { EditorInputRuleExtension } from "src/editor/contrib/inputRuleExtension/inputRuleExtension";
-import { EditorDragAndDropExtension } from "src/editor/contrib/dragAndDropExtension/dragAndDropExtension";
-import { EditorBlockHandleExtension } from "src/editor/contrib/blockHandleExtension/blockHandleExtension";
-import { EditorBlockPlaceHolderExtension } from "src/editor/contrib/blockPlaceHolderExtension/blockPlaceHolderExtension";
-import { EditorSlashCommandExtension } from "src/editor/contrib/slashCommandExtension/slashCommandExtension";
-// import { EditorHistoryExtension } from "src/editor/contrib/historyExtension/historyExtension";
+import { EditorCommandExtension } from "src/editor/contrib/command/command";
+import { EditorAutoSaveExtension } from "src/editor/contrib/autoSave";
+import { EditorInputRuleExtension } from "src/editor/contrib/inputRule/inputRule";
+import { EditorDragAndDropExtension } from "src/editor/contrib/dragAndDrop/dragAndDrop";
+import { EditorBlockHandleExtension } from "src/editor/contrib/blockHandle/blockHandle";
+import { EditorBlockPlaceHolderExtension } from "src/editor/contrib/blockPlaceHolder/blockPlaceHolder";
+import { EditorSlashCommandExtension } from "src/editor/contrib/slashCommand/slashCommand";
+// import { EditorHistoryExtension } from "src/editor/contrib/history/history";
 
 export const enum EditorExtensionIDs {
     Command   = 'editor-command-extension',

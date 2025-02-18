@@ -1,7 +1,7 @@
 import { EditorState, Transaction } from "prosemirror-state";
 import { canJoin, findWrapping } from "prosemirror-transform";
 import { TokenEnum } from "src/editor/common/markdown";
-import { IEditorInputRuleExtension, InputRuleReplacement } from "src/editor/contrib/inputRuleExtension/inputRuleExtension";
+import { IEditorInputRuleExtension, InputRuleReplacement } from "src/editor/contrib/inputRule/inputRule";
 import { CodeBlockAttrs } from "src/editor/model/documentNode/node/codeBlock/codeBlock";
 import { HeadingAttrs } from "src/editor/model/documentNode/node/heading";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";

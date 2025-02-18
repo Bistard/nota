@@ -1,4 +1,4 @@
-import "src/editor/contrib/blockHandleExtension/blockHandleExtension.scss";
+import "src/editor/contrib/blockHandle/blockHandle.scss";
 import { Icons } from "src/base/browser/icon/icons";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
