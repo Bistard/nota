@@ -138,22 +138,17 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
             orientation: Orientation.Horizontal,
         });
         
-        // add-new-block
-        const addButtonBucket = new DisposableBucket();
-        const addButton = addButtonBucket.register(new AddBlockButton());
-        widget.addItem({
-            id: addButton.id,
-            data: addButton,
-            disposable: addButtonBucket,
-        });
-
-        // drag-handle
-        const dragButtonLifecycle = new DisposableBucket();
-        const dragButton = dragButtonLifecycle.register(new DragHandleButton(view, this._editorWidget, this));
-        widget.addItem({
-            id: dragButton.id,
-            data: dragButton,
-            disposable: dragButtonLifecycle,
+        [
+            AddBlockButton,
+            DragHandleButton,
+        ]
+        .forEach(buttonCtor => {
+            const button = new buttonCtor(view, this._editorWidget, this);
+            widget.addItem({
+                id: button.id,
+                data: button,
+                disposable: button,
+            });
         });
 
         return widget;
@@ -229,7 +224,11 @@ class DragHandleButton extends AbstractBlockHandleButton {
 
 class AddBlockButton extends AbstractBlockHandleButton {
 
-    constructor() {
+    constructor(
+        private readonly view: ProseEditorView,
+        private readonly editorWidget: IEditorWidget,
+        private readonly extension: EditorBlockHandleExtension,
+    ) {
         super({ 
             id: 'add-new-block', 
             icon: Icons.AddNew, 
@@ -237,5 +236,12 @@ class AddBlockButton extends AbstractBlockHandleButton {
         });
     }
 
-    // TODO
+    protected override __render(element: HTMLElement): void {
+        super.__render(element);
+
+        this.__register(this.onDidClick(() => {
+
+            // create
+        }));
+    }
 }
