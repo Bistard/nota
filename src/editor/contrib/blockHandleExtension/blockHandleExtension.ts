@@ -8,10 +8,12 @@ import { IWidgetBar, WidgetBar } from "src/base/browser/secondary/widgetBar/widg
 import { addDisposableListener, EventType, Orientation } from "src/base/browser/basic/dom";
 import { RequestAnimateController, requestAtNextAnimationFrame } from "src/base/browser/basic/animation";
 import { Event } from "src/base/common/event";
-import { ProseEditorView } from "src/editor/common/proseMirror";
+import { ProseEditorView, ProseTextSelection } from "src/editor/common/proseMirror";
 import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
 import { DisposableBucket } from "src/base/common/dispose";
 import { Button, IButtonOptions } from "src/base/browser/basic/button/button";
+import { Markdown, TokenEnum } from "src/editor/common/markdown";
+import { assert } from "src/base/common/utilities/panic";
 
 /**
  * An interface only for {@link EditorBlockHandleExtension}.
@@ -240,8 +242,39 @@ class AddBlockButton extends AbstractBlockHandleButton {
         super.__render(element);
 
         this.__register(this.onDidClick(() => {
+            
+            // pre-condition checks
+            const currentDropPosition = this.extension.currDropPosition;
+            if (currentDropPosition === undefined) {
+                return;
+            }
 
-            // create
+            const { state } = this.view;
+            const $pos = state.doc.resolve(currentDropPosition);
+            if ($pos.depth !== 0) {
+                return;
+            }
+
+            const currentNode = $pos.nodeAfter;
+            if (!currentNode) {
+                return;
+            }
+
+            // insert an empty paragraph right below the current block
+            const insertPosition = currentDropPosition + currentNode.nodeSize;
+            const paragraph = assert(Markdown.Create.empty(state, TokenEnum.Paragraph, {}));
+            let newTr = state.tr.insert(insertPosition, paragraph);
+
+            // set selection to it
+            const newPos = insertPosition + 1;
+            if (newPos <= newTr.doc.content.size) {
+                newTr = newTr.setSelection(ProseTextSelection.create(newTr.doc, newPos));
+            }
+
+            // update to view
+            this.view.dispatch(newTr);
+            this.view.focus();
+
         }));
     }
 }
