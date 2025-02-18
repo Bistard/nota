@@ -1,13 +1,15 @@
 import { AnchorPrimaryAxisAlignment, AnchorVerticalPosition } from "src/base/browser/basic/contextMenu/contextMenu";
-import { MenuAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
-import { Disposable } from "src/base/common/dispose";
+import { MenuAction, MenuItemType, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
+import { Disposable, DisposableBucket, IDisposable, safeDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
-import { Emitter } from "src/base/common/event";
+import { Emitter, Priority } from "src/base/common/event";
+import { KeyCode } from "src/base/common/keyboard";
 import { Arrays } from "src/base/common/utilities/array";
 import { IPosition } from "src/base/common/utilities/size";
 import { getTokenReadableName, Markdown, TokenEnum } from "src/editor/common/markdown";
-import { ProseAttrs, ProseTextSelection } from "src/editor/common/proseMirror";
+import { ProseAttrs, ProseEditorView, ProseTextSelection } from "src/editor/common/proseMirror";
 import { ProseTools } from "src/editor/common/proseUtility";
+import { EditorSlashCommandExtension } from "src/editor/contrib/slashCommandExtension/slashCommandExtension";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { II18nService } from "src/platform/i18n/browser/i18nService";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
@@ -33,20 +35,23 @@ export class BlockInsertPalette extends Disposable {
 
     private readonly _menuRenderer: SlashMenuRenderer;
     private readonly _menuController: SlashMenuController;
+    private readonly _keyboardController: SlashKeyboardController;
 
     // [constructor]
 
     constructor(
-        editorWidget: IEditorWidget,
+        private readonly editorWidget: IEditorWidget,
         @IContextMenuService private readonly contextMenuService: IContextMenuService,
         @II18nService i18nService: II18nService,
     ) {
         super();
         this._menuController = new SlashMenuController(editorWidget);
         this._menuRenderer = this.__register(new SlashMenuRenderer(editorWidget, contextMenuService, i18nService));
+        this._keyboardController = this.__register(new SlashKeyboardController(editorWidget, this));
 
         // always back to normal
         this.__register(this._menuRenderer.onMenuDestroy(() => {
+            this._keyboardController.unlisten();
             editorWidget.view.editor.focus();
         }));
 
@@ -61,6 +66,7 @@ export class BlockInsertPalette extends Disposable {
 
     public render(position: IPosition): void {
         this._menuRenderer.show(position);
+        this._keyboardController.listen(this.editorWidget.view.editor.internalView);
     }
 
     public focusPrev(): void {
@@ -264,5 +270,158 @@ class SlashMenuController {
 
         // update
         view.dispatch(tr);
+    }
+}
+
+// region - SlashKeyboardController
+
+class SlashKeyboardController implements IDisposable {
+    
+    private _ongoing?: IDisposable;
+
+    private _triggeredNode?: {
+        readonly pos: number;
+        readonly depth: number;
+        readonly nodeType: string;
+    };
+
+    constructor(
+        private readonly editorWidget: IEditorWidget,
+        private readonly palette: BlockInsertPalette,
+    ) {
+        this._triggeredNode = undefined;
+    }
+
+    public dispose(): void {
+        this._ongoing?.dispose();
+        this._ongoing = undefined;
+        this._triggeredNode = undefined;
+    }
+
+    public unlisten(): void {
+        this.dispose();
+    }
+
+    /**
+     * Invoked whenever a menu is rendererd, we handle the keyboard logic here.
+     */
+    public listen(view: ProseEditorView): void {
+        this.__trackCurrentNode(view);
+
+        this._ongoing?.dispose();
+        const bucket = (this._ongoing = safeDisposable(new DisposableBucket()));
+
+        /** 
+         * Capture certain key down we handle it by ourselves.
+         * @note Registered with {@link Priority.High} 
+         */
+        bucket.register(this.editorWidget.onKeydown(e => {
+            const pressed = e.event.key;
+            const captureKey = [
+                KeyCode.UpArrow, 
+                KeyCode.DownArrow,
+                KeyCode.LeftArrow, 
+                KeyCode.RightArrow,
+                
+                KeyCode.Escape,
+                KeyCode.Enter,
+            ];
+            
+            // do nothing if non-capture key pressed.
+            if (!captureKey.includes(pressed)) {
+                return false;
+            }
+            
+            // escape: destroy the slash command
+            if (pressed === KeyCode.Escape) {
+                this.palette.destroy();
+            }
+            // handle up/down arrows
+            else if (pressed === KeyCode.UpArrow) {
+                this.palette.focusPrev();
+            } else if (pressed === KeyCode.DownArrow) {
+                this.palette.focusNext();
+            } 
+            // handle right/left arrows
+            else if (pressed === KeyCode.RightArrow || pressed === KeyCode.LeftArrow) {
+                const index = this.palette.getFocus();
+                const currAction = this.palette.getAction(index);
+                if (!currAction || currAction.type !== MenuItemType.Submenu) {
+                    return false;
+                }
+                
+                if (pressed === KeyCode.RightArrow) {
+                    const opened = this.palette.tryOpenSubmenu();
+                    return opened;
+                } else {
+                    return false;
+                }
+            }
+            // enter
+            else if (pressed === KeyCode.Enter) {
+                const hasFocus = this.palette.hasFocus();
+                if (!hasFocus) {
+                    this.palette.destroy();
+                    return false;
+                }
+                this.palette.runFocus();
+            }
+            
+            // make sure to re-focus back to editor
+            view.focus();
+            
+            // tell the editor we handled this event, stop propagation.
+            e.preventDefault();
+            return true;
+            
+        }, undefined, Priority.High));
+
+        /**
+         * Whenever current textblock back to empty state, destroy the slash 
+         * command.
+         */
+        bucket.register(this.editorWidget.onDidContentChange(() => {
+            const { $from } = view.state.selection;
+            const isEmptyBlock = ProseTools.Node.isEmptyTextBlock($from.parent);
+            if (isEmptyBlock) {
+                this.palette.destroy();
+            }
+        }));
+
+        /**
+         * Destroy slash command whenever the selection changes to other blocks.
+         */
+        bucket.register(this.editorWidget.onDidSelectionChange(e => {
+            const menu = this.palette;
+            const triggeredNode = this._triggeredNode;
+            if (!triggeredNode) {
+                return;
+            }
+            
+            // obtain current selection's node info
+            const currSelection = e.transaction.selection;
+            const $current = currSelection.$from;
+            const mappedPos = e.transaction.mapping.map(triggeredNode.pos);
+
+            const isSameNode = (
+                $current.parent.type.name === triggeredNode.nodeType &&
+                $current.before() === mappedPos &&
+                $current.depth === triggeredNode.depth
+            );
+
+            if (!isSameNode) {
+                menu.destroy();
+            }
+        }));
+    }
+
+    private __trackCurrentNode(view: ProseEditorView): void {
+        const { state } = view;
+        const $pos = state.selection.$from;
+        this._triggeredNode = {
+            pos: $pos.before(),
+            depth: $pos.depth,
+            nodeType: $pos.parent.type.name,
+        };
     }
 }
