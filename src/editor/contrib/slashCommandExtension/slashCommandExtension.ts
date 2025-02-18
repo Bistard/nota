@@ -4,7 +4,7 @@ import { ProseTools } from "src/editor/common/proseUtility";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { IOnTextInputEvent } from "src/editor/view/proseEventBroadcaster";
-import { BlockInsertPalette } from "src/editor/view/widget/blockInsertPalette/blockInsertPlette";
+import { BlockInsertPalette } from "src/editor/view/widget/blockInsertPalette/blockInsertPalette";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
 interface IEditorSlashCommandExtension extends IEditorExtension {

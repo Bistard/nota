@@ -14,7 +14,7 @@ import { Button, IButtonOptions } from "src/base/browser/basic/button/button";
 import { Markdown, TokenEnum } from "src/editor/common/markdown";
 import { assert } from "src/base/common/utilities/panic";
 import { Disposable } from "src/base/common/dispose";
-import { BlockInsertPalette } from "src/editor/view/widget/blockInsertPalette/blockInsertPlette";
+import { BlockInsertPalette } from "src/editor/view/widget/blockInsertPalette/blockInsertPalette";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IPosition } from "src/base/common/utilities/size";
 
