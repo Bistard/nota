@@ -10,10 +10,15 @@ import { RequestAnimateController, requestAtNextAnimationFrame } from "src/base/
 import { Event } from "src/base/common/event";
 import { ProseEditorView, ProseTextSelection } from "src/editor/common/proseMirror";
 import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
-import { DisposableBucket } from "src/base/common/dispose";
 import { Button, IButtonOptions } from "src/base/browser/basic/button/button";
 import { Markdown, TokenEnum } from "src/editor/common/markdown";
 import { assert } from "src/base/common/utilities/panic";
+import { Disposable } from "src/base/common/dispose";
+import { BlockInsertPalette } from "src/editor/view/widget/blockInsertPalette/blockInsertPlette";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { IPosition } from "src/base/common/utilities/size";
+
+// region - EditorBlockHandleExtension
 
 /**
  * An interface only for {@link EditorBlockHandleExtension}.
@@ -38,11 +43,16 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
 
     private _widget?: IWidgetBar<AbstractBlockHandleButton>;
     private readonly _renderController: RequestAnimateController<{ event: IEditorMouseEvent }>;
+    private readonly _paletteRenderer: PaletteRenderer;
 
     // [constructor]
 
-    constructor(editorWidget: IEditorWidget) {
+    constructor(
+        editorWidget: IEditorWidget,
+        @IInstantiationService instantiationService: IInstantiationService,
+    ) {
         super(editorWidget);
+        this._paletteRenderer = this.__register(new PaletteRenderer(editorWidget, instantiationService));
         
         // render widget when possible
         this.__register(this.onMouseMove(e => {
@@ -118,6 +128,10 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
         });
     }
 
+    public renderPalette(position: IPosition): void {
+        this._paletteRenderer.render(position);
+    }
+
     // [private methods]
 
     private __renderWidgetWithoutTarget(e: IEditorMouseEvent): void {
@@ -156,6 +170,8 @@ export class EditorBlockHandleExtension extends EditorExtension implements IEdit
         return widget;
     }
 }
+
+// region - Buttons
 
 class AbstractBlockHandleButton extends Button {
 
@@ -271,10 +287,43 @@ class AddBlockButton extends AbstractBlockHandleButton {
                 newTr = newTr.setSelection(ProseTextSelection.create(newTr.doc, newPos));
             }
 
+            // render palette
+            const domPosition = this.view.coordsAtPos(insertPosition);
+            this.extension.renderPalette(domPosition);
+
             // update to view
             this.view.dispatch(newTr);
             this.view.focus();
-
         }));
+    }
+}
+
+// region - PaletteRenderer
+
+class PaletteRenderer extends Disposable {
+
+    // [field]
+
+    private _palette?: BlockInsertPalette;
+
+    // [constructor]
+
+    constructor(
+        private readonly editorWidget: IEditorWidget,
+        private readonly instantiationService: IInstantiationService,
+    ) {
+        super();
+    }
+
+    // [public methods]
+
+    public render(position: IPosition): void {
+        this.destroy();
+        this._palette = this.instantiationService.createInstance(BlockInsertPalette, this.editorWidget);
+        this._palette.render(position);
+    }
+
+    public destroy(): void {
+        this._palette?.destroy();
     }
 }
