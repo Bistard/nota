@@ -18,6 +18,7 @@ export const enum EditorExtensionIDs {
     BlockHandle = 'editor-block-handle-extension',
     BlockPlaceHolder = 'editor-block-place-holder-extension',
     SlashCommand = 'editor-slash-command-extension',
+    AskAI = 'editor-ask-AI',
 }
 
 /**
