@@ -287,12 +287,14 @@ class AddBlockButton extends AbstractBlockHandleButton {
                 newTr = newTr.setSelection(ProseTextSelection.create(newTr.doc, newPos));
             }
 
+            // update to view
+            this.view.dispatch(newTr);
+
             // render palette
             const domPosition = this.view.coordsAtPos(insertPosition);
             this.extension.renderPalette(domPosition);
 
-            // update to view
-            this.view.dispatch(newTr);
+            // re-focus
             this.view.focus();
         }));
     }
@@ -304,7 +306,7 @@ class PaletteRenderer extends Disposable {
 
     // [field]
 
-    private _palette?: BlockInsertPalette;
+    private readonly _palette: BlockInsertPalette;
 
     // [constructor]
 
@@ -313,13 +315,13 @@ class PaletteRenderer extends Disposable {
         private readonly instantiationService: IInstantiationService,
     ) {
         super();
+        this._palette = this.__register(this.instantiationService.createInstance(BlockInsertPalette, this.editorWidget));
     }
 
     // [public methods]
 
     public render(position: IPosition): void {
         this.destroy();
-        this._palette = this.instantiationService.createInstance(BlockInsertPalette, this.editorWidget);
         this._palette.render(position);
     }
 
