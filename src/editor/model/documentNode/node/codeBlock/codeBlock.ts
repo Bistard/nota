@@ -33,7 +33,6 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
     public getSchema(): ProseNodeSpec {
         return <ProseNodeSpec>{
             group: 'block',
-            content: 'text*',
             marks: '', // disallow any marks
             code: true,
             defining: true,
