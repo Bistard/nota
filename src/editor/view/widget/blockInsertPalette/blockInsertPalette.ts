@@ -9,7 +9,6 @@ import { IPosition } from "src/base/common/utilities/size";
 import { getTokenReadableName, Markdown, TokenEnum } from "src/editor/common/markdown";
 import { ProseAttrs, ProseEditorView, ProseTextSelection } from "src/editor/common/proseMirror";
 import { ProseTools } from "src/editor/common/proseUtility";
-import { EditorSlashCommandExtension } from "src/editor/contrib/slashCommand/slashCommand";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { II18nService } from "src/platform/i18n/browser/i18nService";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";

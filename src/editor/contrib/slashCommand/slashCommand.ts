@@ -29,12 +29,12 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
         this._palette = this.__register(instantiationService.createInstance(BlockInsertPalette, editorWidget));
 
         // slash-command rendering
-        this.__register(this.onTextInput(e => this.__tryShowSlashCommand(e)));
+        this.__register(this.onTextInput(e => this.tryShowSlashCommand(e)));
     }
 
-    // [private methods]
+    // [public methods]
 
-    private __tryShowSlashCommand(e: IOnTextInputEvent): void {
+    public tryShowSlashCommand(e: IOnTextInputEvent): void {
         const { text, view } = e;
         const { selection } = view.state;
 
