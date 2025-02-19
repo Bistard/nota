@@ -59,9 +59,6 @@ export class EditorAskAIExtension extends EditorExtension implements IEditorAskA
             return;
         }
 
-        // prevent actual insert '@' character
-        e.preventDefault();
-
         // show ask-AI palette
         const position = view.coordsAtPos(selection.$from.pos);
         this._palette.render(position);

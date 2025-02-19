@@ -11,8 +11,21 @@ export class AskAIProvider {
     ) {}
 
     public getContent(): MenuAction[] {
+        const contents: MenuAction[] = [];
 
-        // TODO
-        return [];
+        [
+            'Continue Writing',
+            'Make a Summary',
+            'Make a Outline',
+        ]
+        .forEach(name => {
+            contents.push(new SimpleMenuAction({
+                id: name,
+                enabled: true,
+                callback: () => {},
+            }));
+        });
+        
+        return contents;
     }
 }
