@@ -13,18 +13,12 @@ import { IEditorWidget } from "src/editor/editorWidget";
 import { II18nService } from "src/platform/i18n/browser/i18nService";
 import { IContextMenuService } from "src/workbench/services/contextMenu/contextMenuService";
 
-// region - BlockInsertPalette
+// region - EditorPalette
 
 /**
- * {@link BlockInsertPalette} A contextual command palette component that 
- * provides quick insertion of various document block types at the current 
- * cursor position. The palette renders as a vertical menu containing:
- * 
- * - Common block types (paragraphs, headings, code blocks etc.)
- * - Nested submenus for complex block variations
- * - Localized display names based on document schema
+ * {@link EditorPalette} // TODO
  */
-export class BlockInsertPalette extends Disposable {
+export class EditorPalette extends Disposable {
 
     // [event]
 
@@ -286,7 +280,7 @@ class SlashKeyboardController implements IDisposable {
 
     constructor(
         private readonly editorWidget: IEditorWidget,
-        private readonly palette: BlockInsertPalette,
+        private readonly palette: EditorPalette,
     ) {
         this._triggeredNode = undefined;
     }
