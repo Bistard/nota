@@ -1,6 +1,6 @@
 import { ContextMenuView, IAnchor, IContextMenu, IContextMenuDelegate, IContextMenuDelegateBase } from "src/base/browser/basic/contextMenu/contextMenu";
 import { DomUtility, EventType } from "src/base/browser/basic/dom";
-import { DomEmitter } from "src/base/common/event";
+import { DomEmitter, Register } from "src/base/common/event";
 import { IMenu, IMenuActionRunEvent, Menu, MenuWithSubmenu } from "src/base/browser/basic/menu/menu";
 import { CheckMenuAction, MenuAction, MenuItemType, MenuSeparatorAction, SimpleMenuAction, SubmenuAction } from "src/base/browser/basic/menu/menuItem";
 import { Disposable, DisposableBucket, IDisposable } from "src/base/common/dispose";
@@ -106,6 +106,9 @@ export interface IContextMenuService extends IService {
      * no context menu is presented.
      */
     readonly contextMenu: {
+        readonly onActionRun: Register<IMenuActionRunEvent>;
+        readonly onDidActionRun: Register<IMenuActionRunEvent>;
+
         /**
          * @description Destroy the current context menu.
          */
@@ -221,6 +224,8 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
             getFocus: ensureExist(() => this._internalDelegate?.getFocus()),
             getAction: ensureExist((arg: number | string) => this._internalDelegate?.getAction(arg)),
             tryOpenSubmenu: ensureExist((index?: number) => this._internalDelegate?.tryOpenSubmenu(index)),
+            onActionRun: ensureExist(() => this._internalDelegate?.onBeforeActionRun),
+            onDidActionRun: ensureExist(() => this._internalDelegate?.onDidActionRun),
         };
     }
 
@@ -348,6 +353,11 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
 // region - [private]
 
 class __ContextMenuDelegate implements IContextMenuDelegate {
+
+    // [event]
+
+    get onBeforeActionRun() { return this._menu?.onBeforeRun; }
+    get onDidActionRun() { return this._menu?.onDidRun; }
 
     // [fields]
 
