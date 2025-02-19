@@ -3,6 +3,9 @@ import { ProseTools } from "src/editor/common/proseUtility";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { IOnTextInputEvent } from "src/editor/view/proseEventBroadcaster";
+import { AskAIProvider } from "src/editor/view/widget/palette/askAIProvider";
+import { EditorPalette } from "src/editor/view/widget/palette/palette";
+import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
 interface IEditorAskAIExtension extends IEditorExtension {
     
@@ -16,14 +19,25 @@ export class EditorAskAIExtension extends EditorExtension implements IEditorAskA
     // [field]
     
     public override readonly id = EditorExtensionIDs.AskAI;
+    private readonly _palette: EditorPalette;
 
     // [constructor]
 
     constructor(
         editorWidget: IEditorWidget,
+        @IInstantiationService instantiationService: IInstantiationService,
     ) {
         super(editorWidget);
+        const provider = instantiationService.createInstance(AskAIProvider, editorWidget);
+        this._palette = this.__register(instantiationService.createInstance(
+            EditorPalette, 
+            editorWidget, 
+            {
+                contentProvider: () => provider.getContent(),
+            }
+        ));
 
+        // show event
         this.__register(this.onTextInput(e => this.tryShowAskAI(e)));
     }
 
@@ -45,9 +59,12 @@ export class EditorAskAIExtension extends EditorExtension implements IEditorAskA
             return;
         }
 
+        // prevent actual insert '@' character
+        e.preventDefault();
+
         // show ask-AI palette
         const position = view.coordsAtPos(selection.$from.pos);
-        // TODO: render palette
+        this._palette.render(position);
 
         // re-focus back to editor, not the slash command.
         view.focus();

@@ -7,6 +7,7 @@ import { EditorDragAndDropExtension } from "src/editor/contrib/dragAndDrop/dragA
 import { EditorBlockHandleExtension } from "src/editor/contrib/blockHandle/blockHandle";
 import { EditorBlockPlaceHolderExtension } from "src/editor/contrib/blockPlaceHolder/blockPlaceHolder";
 import { EditorSlashCommandExtension } from "src/editor/contrib/slashCommand/slashCommand";
+import { EditorAskAIExtension } from "src/editor/contrib/askAI/askAI";
 // import { EditorHistoryExtension } from "src/editor/contrib/history/history";
 
 export const enum EditorExtensionIDs {
@@ -33,6 +34,7 @@ export function getBuiltInExtension(): { id: string, ctor: Constructor<EditorExt
         { id: EditorExtensionIDs.BlockHandle, ctor: EditorBlockHandleExtension },
         { id: EditorExtensionIDs.BlockPlaceHolder, ctor: EditorBlockPlaceHolderExtension },
         { id: EditorExtensionIDs.SlashCommand, ctor: EditorSlashCommandExtension },
+        { id: EditorExtensionIDs.AskAI, ctor: EditorAskAIExtension },
         // { id: EditorExtensionIDs.History, ctor: EditorHistoryExtension }, // TODO: unfinished (shit mountain)
     ];
 }
