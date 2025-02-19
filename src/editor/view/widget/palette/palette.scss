@@ -1,6 +1,7 @@
-.editor-slash-command.context-menu {
+
+.editor-palette.context-menu {
     max-height: 260px;
-    overflow-y: scroll;
+    overflow-y: auto;
 
     &::-webkit-scrollbar {
         width: 10px;

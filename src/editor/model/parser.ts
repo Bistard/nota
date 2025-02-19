@@ -1,4 +1,4 @@
-import { Disposable, IDisposable } from "src/base/common/dispose";
+import { Disposable } from "src/base/common/dispose";
 import { Emitter, Register } from "src/base/common/event";
 import { ILogEvent, LogLevel } from "src/base/common/logger";
 import { Stack } from "src/base/common/structures/stack";
@@ -45,6 +45,15 @@ export interface IDocumentParser {
      * @param type The token type.
      */
     isTokenIgnored(type: TokenEnum | MarkEnum | string): boolean;
+
+    /**
+     * @description Register a converter that transfroms a token into another 
+     * one.
+     * @param from The input token type name.
+     * @param converter The converter function.
+     */
+    registerMapToken(from: string, converter: (from: EditorToken) => EditorToken): void;
+    mapToken(token: EditorToken): EditorToken;
 }
 
 /**
@@ -57,6 +66,7 @@ export class DocumentParser extends Disposable implements IDocumentParser {
 
     private readonly _state: DocumentParseState;
     private readonly _ignored: Set<string>;
+    private readonly _mapping: Map<string, (fromToken: EditorToken) => EditorToken>;
 
     // [event]
 
@@ -70,6 +80,7 @@ export class DocumentParser extends Disposable implements IDocumentParser {
     ) {
         super();
         this._ignored = new Set();
+        this._mapping = new Map();
         this._state = this.__register(new DocumentParseState(this, schema, nodeProvider));
         this.onLog = this._state.onLog;
     }
@@ -81,6 +92,14 @@ export class DocumentParser extends Disposable implements IDocumentParser {
         const documentRoot = this._state.complete();
         this._state.clean();
         return documentRoot;
+    }
+
+    public registerMapToken(from: string, converter: (from: EditorToken) => EditorToken): void {
+        this._mapping.set(from, converter);
+    }
+
+    public mapToken(token: EditorToken): EditorToken {
+        return this._mapping.get(token.type)?.(token) ?? token;
     }
 
     public ignoreToken(type: TokenEnum | MarkEnum | string, ignore?: boolean): void {
@@ -297,7 +316,7 @@ class DocumentParseState extends Disposable implements IDocumentParseState {
 
     public parseTokens(level: number, tokens: EditorToken[], parent: EditorToken | null): void {
         for (let i = 0; i < tokens.length; i++) {
-            const token = tokens[i]!;
+            const token = this._parser.mapToken(tokens[i]!);
             
             const name = token.type;
             if (this._parser.isTokenIgnored(name)) {

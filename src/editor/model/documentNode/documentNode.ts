@@ -77,7 +77,7 @@ export interface IDocumentNode<TCtor, TSpec, TToken = EditorToken, TNode extends
      * parsing process.
      * 
      */
-    parseFromToken(state: IDocumentParseState, status: IParseTokenStatus): void;
+    parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<TToken>): void;
 
     /**
      * An option that defines how the serialization behavior of {@link DocumentMark}.
@@ -91,7 +91,7 @@ abstract class DocumentNodeBase<TCtor, TSpec, TToken, TNode extends ProseNode | 
     public abstract getSchema(): TSpec;
     
     // parser
-    public abstract parseFromToken(state: IDocumentParseState, status: IParseTokenStatus): void;
+    public abstract parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<TToken>): void;
 
     // serializer
     public abstract readonly serializer: TNode extends ProseMark ? IDocumentMarkSerializationOptions : Serializer<TNode, void>;
@@ -100,10 +100,10 @@ abstract class DocumentNodeBase<TCtor, TSpec, TToken, TNode extends ProseNode | 
 /**
  * @class A document node that represents an actual node in the DOM.
  */
-export abstract class DocumentNode<TToken> extends DocumentNodeBase<ProseNodeType, ProseNodeSpec, TToken, ProseNode> {}
+export abstract class DocumentNode<TToken = EditorToken> extends DocumentNodeBase<ProseNodeType, ProseNodeSpec, TToken, ProseNode> {}
 
 /**
  * @class A document mark that represents a mark. Such as 'strong', 'emphasis',
  * 'link' and so on.
  */
-export abstract class DocumentMark<TToken> extends DocumentNodeBase<ProseMarkType, ProseMarkSpec, TToken, ProseMark> {}
+export abstract class DocumentMark<TToken = EditorToken> extends DocumentNodeBase<ProseMarkType, ProseMarkSpec, TToken, ProseMark> {}

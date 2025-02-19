@@ -310,7 +310,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     get initialized(): boolean { return !!this._model; }
 
-    get model(): IEditorModel { return assert(this._model); }
+    get model(): IEditorModel { return this.__assertModel(); }
     get viewModel(): IEditorViewModel { return assert(this._viewModel); }
     get view(): IEditorView { return assert(this._view); }
 
@@ -402,15 +402,19 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     // region - [model]
 
-    get source(): URI { return this.__assertModel().source; }
+    get source(): URI { return this.model.source; }
     get dirty(): boolean { return assert(this._model).dirty; }
 
     public insertAt(textOffset: number, text: string): void {
-        return this.__assertModel().insertAt(textOffset, text);
+        return this.model.insertAt(textOffset, text);
     }
     
     public deleteAt(textOffset: number, length: number): void {
-        return this.__assertModel().deleteAt(textOffset, length);
+        return this.model.deleteAt(textOffset, length);
+    }
+
+    public insertAtSelection(text: string): void {
+        return this.model.insertAtSelection(text);
     }
 
     public destroy(): void {

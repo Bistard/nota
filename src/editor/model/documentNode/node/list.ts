@@ -1,5 +1,5 @@
 import { memoize } from "src/base/common/memoization";
-import { Strings } from "src/base/common/utilities/string";
+import { isString } from "src/base/common/utilities/type";
 import { TokenEnum } from "src/editor/common/markdown";
 import { EditorTokens } from "src/editor/common/model";
 import { GetProseAttrs, ProseNode, ProseNodeSpec } from "src/editor/common/proseMirror";
@@ -17,6 +17,13 @@ export type ListAttrs = {
      * @default false
      */
     readonly tight?: boolean;
+
+    /**
+     * If {@link ordered=true}, this indicates the starting number of an ordered
+     * list.
+     * @default 1
+     */
+    readonly start?: number;
 };
 
 /**
@@ -38,7 +45,6 @@ export class List extends DocumentNode<EditorTokens.List> {
                 ordered: { default: false },
                 tight: { default: false },
                 start: { default: 1, },
-                bullet: { default: '*', }
             },
             toDOM(node) { 
                 const { ordered, tight } = node.attrs;
@@ -55,8 +61,7 @@ export class List extends DocumentNode<EditorTokens.List> {
             attrs: {
                 ordered: token.ordered,
                 tight: !token.loose,
-                start: token.start,
-                bullet: Strings.firstNonSpaceChar(token.raw, 0).char,
+                start: isString(token.start) ? 1 : token.start,
             }
         });
         state.parseTokens(status.level + 1, token.items, token);
@@ -65,12 +70,12 @@ export class List extends DocumentNode<EditorTokens.List> {
 
     public serializer = (state: IMarkdownSerializerState, node: ProseNode) => {
         const isOrdered = node.attrs['ordered'] as boolean;
-        const bullet = node.attrs['bullet'] as string;
-        const start = node.attrs['start'] as string;
+        const tight = node.attrs['tight'] as boolean;
+        const start = node.attrs['start'] as number;
 
         // un-ordered
         if (isOrdered === false) {
-            state.serializeList(node, '  ', () => (bullet + ' '));
+            state.serializeList(node, '  ', () => ('* '));
         }
         // ordered
         else {

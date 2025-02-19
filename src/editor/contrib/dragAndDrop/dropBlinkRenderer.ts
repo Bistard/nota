@@ -1,4 +1,4 @@
-import "src/editor/contrib/dragAndDropExtension/dropBlinkRenderer.scss";
+import "src/editor/contrib/dragAndDrop/dropBlinkRenderer.scss";
 import { Disposable, IDisposable } from "src/base/common/dispose";
 import { ProseDecoration, ProseDecorationSet, ProseEditorView } from "src/editor/common/proseMirror";
 import { IEditorWidget } from "src/editor/editorWidget";

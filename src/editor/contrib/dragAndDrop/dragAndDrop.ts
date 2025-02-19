@@ -1,4 +1,4 @@
-import "src/editor/contrib/dragAndDropExtension/dragAndDropExtension.scss";
+import "src/editor/contrib/dragAndDrop/dragAndDrop.scss";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
 import { ProseDecorationSource, ProseEditorState, ProseEditorView } from "src/editor/common/proseMirror";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
@@ -6,11 +6,11 @@ import { IEditorWidget } from "src/editor/editorWidget";
 import { EditorDragState, getDropExactPosition } from "src/editor/common/cursorDrop";
 import { IContextService } from "src/platform/context/common/contextService";
 import { EditorContextKeys } from "src/editor/common/editorContextKeys";
-import { DropCursorRenderer } from "src/editor/contrib/dragAndDropExtension/dropCursorRenderer";
+import { DropCursorRenderer } from "src/editor/contrib/dragAndDrop/dropCursorRenderer";
 import { IEditorDragEvent } from "src/editor/view/proseEventBroadcaster";
 import { Numbers } from "src/base/common/utilities/number";
-import { DropBlinkRenderer } from "src/editor/contrib/dragAndDropExtension/dropBlinkRenderer";
-import { ScrollOnEdgeController } from "src/editor/contrib/dragAndDropExtension/scrollOnEdgeController";
+import { DropBlinkRenderer } from "src/editor/contrib/dragAndDrop/dropBlinkRenderer";
+import { ScrollOnEdgeController } from "src/editor/contrib/dragAndDrop/scrollOnEdgeController";
 import { nullable } from "src/base/common/utilities/type";
 
 export interface IEditorDragAndDropExtension extends IEditorExtension {

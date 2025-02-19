@@ -2,6 +2,7 @@ import { IO } from "src/base/common/utilities/functional";
 import { panic } from "src/base/common/utilities/panic";
 import { Mutable } from "src/base/common/utilities/type";
 import { TokenEnum, MarkEnum } from "src/editor/common/markdown";
+import { EditorToken } from "src/editor/common/model";
 import { ProseNodeType, ProseMarkType } from "src/editor/common/proseMirror";
 import { DocumentNode, DocumentMark } from "src/editor/model/documentNode/documentNode";
 import { Codespan } from "src/editor/model/documentNode/mark/codespan";
@@ -20,7 +21,6 @@ import { LineBreak } from "src/editor/model/documentNode/node/lineBreak";
 import { List, ListItem } from "src/editor/model/documentNode/node/list";
 import { MathBlock } from "src/editor/model/documentNode/node/mathBlock";
 import { Paragraph } from "src/editor/model/documentNode/node/paragraph";
-import { Space } from "src/editor/model/documentNode/node/space";
 import { Text } from "src/editor/model/documentNode/node/text";
 import { EditorSchema, TOP_NODE_NAME } from "src/editor/model/schema";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
@@ -57,7 +57,6 @@ export class DocumentNodeProvider {
              */
             register: () => {
                 // nodes
-                provider.registerNode(instantiationService.createInstance(Space));
                 provider.registerNode(instantiationService.createInstance(Text));
                 provider.registerNode(instantiationService.createInstance(Escape));
                 provider.registerNode(instantiationService.createInstance(Paragraph));
@@ -105,11 +104,11 @@ export class DocumentNodeProvider {
         this._marks.set(mark.name, mark);
     }
 
-    public getNode<TToken>(name: TokenEnum | string): DocumentNode<TToken> | undefined {
+    public getNode<TToken = EditorToken>(name: TokenEnum | string): DocumentNode<TToken> | undefined {
         return this._nodes.get(name);
     }
 
-    public getMark<TToken>(name: MarkEnum | string): DocumentMark<TToken> | undefined {
+    public getMark<TToken = EditorToken>(name: MarkEnum | string): DocumentMark<TToken> | undefined {
         return this._marks.get(name);
     }
 

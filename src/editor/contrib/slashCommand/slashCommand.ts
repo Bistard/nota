@@ -1,11 +1,11 @@
-import "src/editor/contrib/slashCommandExtension/slashCommand.scss";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
 import { ProseTools } from "src/editor/common/proseUtility";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { IOnTextInputEvent } from "src/editor/view/proseEventBroadcaster";
-import { BlockInsertPalette } from "src/editor/view/widget/blockInsertPalette/blockInsertPalette";
+import { EditorPalette } from "src/editor/view/widget/palette/palette";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { BlockInsertProvider } from "src/editor/view/widget/palette/blockInsertProvider";
 
 interface IEditorSlashCommandExtension extends IEditorExtension {
     
@@ -19,22 +19,31 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
     // [fields]
 
     public override readonly id = EditorExtensionIDs.SlashCommand;
-    private readonly _palette: BlockInsertPalette;
+    private readonly _palette: EditorPalette;
+    private readonly _contentProvider: BlockInsertProvider;
 
     constructor(
         editorWidget: IEditorWidget,
         @IInstantiationService instantiationService: IInstantiationService,
     ) {
         super(editorWidget);
-        this._palette = this.__register(instantiationService.createInstance(BlockInsertPalette, editorWidget));
+        this._contentProvider = instantiationService.createInstance(BlockInsertProvider, editorWidget);
+
+        this._palette = this.__register(instantiationService.createInstance(
+            EditorPalette, 
+            editorWidget,
+            {
+                contentProvider: () => this._contentProvider.getContent(),
+            }
+        ));
 
         // slash-command rendering
-        this.__register(this.onTextInput(e => this.__tryShowSlashCommand(e)));
+        this.__register(this.onTextInput(e => this.tryShowSlashCommand(e)));
     }
 
-    // [private methods]
+    // [public methods]
 
-    private __tryShowSlashCommand(e: IOnTextInputEvent): void {
+    public tryShowSlashCommand(e: IOnTextInputEvent): void {
         const { text, view } = e;
         const { selection } = view.state;
 

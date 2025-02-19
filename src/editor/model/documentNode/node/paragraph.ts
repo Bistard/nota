@@ -47,7 +47,13 @@ export class Paragraph extends DocumentNode<EditorTokens.Paragraph> {
     }
 
     public serializer = (state: IMarkdownSerializerState, node: ProseNode, parent: ProseNode, index: number) => {
-        state.serializeInline(node);
+        if (node.childCount > 0) {
+            state.serializeInline(node);
+        } 
+        // If empty paragraph, simulate as a `space`.
+        else {
+            state.write('\n');
+        }
         state.closeBlock(node);
     };
 }

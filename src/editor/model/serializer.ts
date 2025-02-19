@@ -147,6 +147,7 @@ export interface IMarkdownSerializerState {
     serializeBlock(parent: ProseNode): void;
     serializeInline(parent: ProseNode, fromBlockStart?: boolean): void;
     serializeList(node: ProseNode, delimiter: string, firstDelimiter: (index: number) => string): void;
+    wrapBlock(node: ProseNode, f: () => void, delimiter: string, firstDelimiter?: string): void;
     write(content?: string): void;
     text(text: string, escape?: boolean): void;
     escaping(str: string, startOfLine?: boolean): string;
@@ -155,6 +156,7 @@ export interface IMarkdownSerializerState {
     serializeDelimitedBlock(delimiters: string[], parent: ProseNode): void;
     setDelimiterIncrements(delimiters: string[]): void;
     setDefaultDelimiter(delimiter: string): void;
+    incrementDefaultDelimiter(increment: string): string;
 }
 
 /**
@@ -339,6 +341,10 @@ class MarkdownSerializerState implements IMarkdownSerializerState {
 
     public setDefaultDelimiter(delimiter: string): void {
         this._delimiter.setDefault(delimiter);
+    }
+
+    public incrementDefaultDelimiter(increment: string): string {
+        return this._delimiter.incrementDefault(increment);
     }
 
     // [private methods]
