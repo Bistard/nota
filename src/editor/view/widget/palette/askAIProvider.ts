@@ -1,4 +1,4 @@
-import { MenuAction } from "src/base/browser/basic/menu/menuItem";
+import { MenuAction, SimpleMenuAction } from "src/base/browser/basic/menu/menuItem";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { II18nService } from "src/platform/i18n/browser/i18nService";
 

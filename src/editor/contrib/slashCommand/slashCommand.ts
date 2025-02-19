@@ -1,4 +1,3 @@
-import "src/editor/contrib/slashCommand/slashCommand.scss";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
 import { ProseTools } from "src/editor/common/proseUtility";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";

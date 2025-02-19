@@ -1,3 +1,4 @@
+import "src/editor/view/widget/palette/palette.scss";
 import { AnchorPrimaryAxisAlignment, AnchorVerticalPosition } from "src/base/browser/basic/contextMenu/contextMenu";
 import { MenuAction, MenuItemType } from "src/base/browser/basic/menu/menuItem";
 import { Disposable, DisposableBucket, IDisposable, safeDisposable } from "src/base/common/dispose";
@@ -122,7 +123,7 @@ class PaletteRenderer extends Disposable {
             getActions: () => this.options.contentProvider(),
             getContext: () => undefined,
             getAnchor: () => ({ x: position.left, y: position.top, height: 24 }),
-            getExtraContextMenuClassName: () => 'editor-slash-command',
+            getExtraContextMenuClassName: () => 'editor-palette',
             primaryAlignment: AnchorPrimaryAxisAlignment.Vertical,
             verticalPosition: AnchorVerticalPosition.Below,
 
@@ -201,7 +202,7 @@ class PaletteKeyboardController implements IDisposable {
                 return false;
             }
             
-            // escape: destroy the slash command
+            // escape: destroy the palette
             if (pressed === KeyCode.Escape) {
                 this.palette.destroy();
             }
@@ -246,8 +247,7 @@ class PaletteKeyboardController implements IDisposable {
         }, undefined, Priority.High));
 
         /**
-         * Whenever current textblock back to empty state, destroy the slash 
-         * command.
+         * Whenever current textblock back to empty state, destroy the palette.
          */
         bucket.register(this.editorWidget.onDidContentChange(() => {
             const { $from } = view.state.selection;
@@ -258,7 +258,7 @@ class PaletteKeyboardController implements IDisposable {
         }));
 
         /**
-         * Destroy slash command whenever the selection changes to other blocks.
+         * Destroy palette whenever the selection changes to other blocks.
          */
         bucket.register(this.editorWidget.onDidSelectionChange(e => {
             const menu = this.palette;
