@@ -6,6 +6,7 @@ import { IEditorWidget } from "src/editor/editorWidget";
 import { IOnTextInputEvent } from "src/editor/view/proseEventBroadcaster";
 import { EditorPalette } from "src/editor/view/widget/palette/palette";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
+import { BlockInsertProvider } from "src/editor/view/widget/palette/blockInsertProvider";
 
 interface IEditorSlashCommandExtension extends IEditorExtension {
     
@@ -20,13 +21,22 @@ export class EditorSlashCommandExtension extends EditorExtension implements IEdi
 
     public override readonly id = EditorExtensionIDs.SlashCommand;
     private readonly _palette: EditorPalette;
+    private readonly _contentProvider: BlockInsertProvider;
 
     constructor(
         editorWidget: IEditorWidget,
         @IInstantiationService instantiationService: IInstantiationService,
     ) {
         super(editorWidget);
-        this._palette = this.__register(instantiationService.createInstance(EditorPalette, editorWidget));
+        this._contentProvider = instantiationService.createInstance(BlockInsertProvider, editorWidget);
+
+        this._palette = this.__register(instantiationService.createInstance(
+            EditorPalette, 
+            editorWidget,
+            {
+                contentProvider: () => this._contentProvider.getContent(),
+            }
+        ));
 
         // slash-command rendering
         this.__register(this.onTextInput(e => this.tryShowSlashCommand(e)));

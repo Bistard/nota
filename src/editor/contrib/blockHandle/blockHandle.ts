@@ -18,6 +18,7 @@ import { EditorPalette } from "src/editor/view/widget/palette/palette";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IPosition } from "src/base/common/utilities/size";
 import { ProseTools } from "src/editor/common/proseUtility";
+import { BlockInsertProvider } from "src/editor/view/widget/palette/blockInsertProvider";
 
 // region - EditorBlockHandleExtension
 
@@ -319,6 +320,7 @@ class PaletteRenderer extends Disposable {
     // [field]
 
     private readonly _palette: EditorPalette;
+    private readonly _contentProvider: BlockInsertProvider;
 
     // [constructor]
 
@@ -327,7 +329,14 @@ class PaletteRenderer extends Disposable {
         private readonly instantiationService: IInstantiationService,
     ) {
         super();
-        this._palette = this.__register(this.instantiationService.createInstance(EditorPalette, this.editorWidget));
+        this._contentProvider = instantiationService.createInstance(BlockInsertProvider, editorWidget);
+        this._palette = this.__register(this.instantiationService.createInstance(
+            EditorPalette, 
+            this.editorWidget, 
+            {
+                contentProvider: () => this._contentProvider.getContent(),
+            }
+        ));
     }
 
     // [public methods]
