@@ -94,6 +94,13 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
         preventMarkInheritance: true,
     });
     
+    extension.registerRule("emphasisRule", /\*(.+?)\*$/, {
+        type: 'mark',
+        markType: MarkEnum.Em,
+        whenReplace: 'type',
+        preventMarkInheritance: true,
+    });
+    
 }
 
 /**
