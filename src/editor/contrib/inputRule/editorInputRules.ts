@@ -101,6 +101,14 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
         preventMarkInheritance: true,
     });
     
+    extension.registerRule("codespanRule", /`(.+?)`$/, {
+        type: 'mark',
+        markType: MarkEnum.Codespan,
+        whenReplace: 'type',
+        preventMarkInheritance: true,
+    });
+    
+    
 }
 
 /**
