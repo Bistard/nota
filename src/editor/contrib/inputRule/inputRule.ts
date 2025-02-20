@@ -10,6 +10,7 @@ import { KeyCode } from "src/base/common/keyboard";
 import { TokenEnum } from "src/editor/common/markdown";
 import { IInputRule, InputRule, registerDefaultInputRules } from "src/editor/contrib/inputRule/editorInputRules";
 import { IInstantiationService, IServiceProvider } from "src/platform/instantiation/common/instantiation";
+import { ILogService } from "src/base/common/logger";
 
 /**
  * Defines the replacement behavior for an input rule. An input rule replacement 
@@ -117,6 +118,7 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
     constructor(
         editorWidget: IEditorWidget,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @ILogService private readonly logService: ILogService,
     ) {
         super(editorWidget);
         
@@ -225,6 +227,7 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
 
                 const tr = rule.onMatch(state, match, start, end);
                 if (!tr) {
+                    this.logService.warn('EditorInput', `Unable to achiece replacement for matched input rule: ${rule.id}.`);
                     continue;
                 }
 
