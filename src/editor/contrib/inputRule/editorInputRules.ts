@@ -86,6 +86,14 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
             wrapStrategy: 'WrapBlock'
         }
     );
+
+    extension.registerRule("strongRule", /\*\*(.+?)\*\*$/, {
+        type: 'mark',
+        markType: MarkEnum.Strong,
+        whenReplace: 'type',
+        preventMarkInheritance: true,
+    });
+    
 }
 
 /**
