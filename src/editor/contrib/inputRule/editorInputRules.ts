@@ -2,6 +2,7 @@ import { EditorState, Transaction } from "prosemirror-state";
 import { canJoin, findWrapping } from "prosemirror-transform";
 import { panic } from "src/base/common/utilities/panic";
 import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
+import { ProseNodeSelection } from "src/editor/common/proseMirror";
 import { IEditorInputRuleExtension, InputRuleReplacement, MarkInputRuleReplacement, NodeInputRuleReplacement } from "src/editor/contrib/inputRule/inputRule";
 import { CodeBlockAttrs } from "src/editor/model/documentNode/node/codeBlock/codeBlock";
 import { HeadingAttrs } from "src/editor/model/documentNode/node/heading";
@@ -108,7 +109,14 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
         preventMarkInheritance: true,
     });
     
-    
+    extension.registerRule("mathBlockRule", /^\$\$$/,
+        {
+            type: 'node',
+            nodeType: TokenEnum.MathBlock,
+            whenReplace: 'enter',
+            wrapStrategy: 'ReplaceBlock',
+        }
+    );
 }
 
 /**
@@ -170,7 +178,11 @@ export class InputRule implements IInputRule {
             this._replacementObject = this.replacement;
             if (this.replacement.wrapStrategy === 'WrapTextBlock') {
                 this.onMatch = this.__textblockTypeInputRule;
-            } else {
+            } 
+            else if (this.replacement.wrapStrategy === 'ReplaceBlock') {
+                this.onMatch = this.__replaceBlockInputRule;
+            }
+            else {
                 this.onMatch = this.__wrappingInputRule;
             }
         }
@@ -292,5 +304,38 @@ export class InputRule implements IInputRule {
         return state.tr
             .delete(start, end)
             .setBlockType(start, start, nodeType, attrs);
+    }
+
+    private __replaceBlockInputRule(
+        state: EditorState,
+        match: RegExpExecArray,
+        start: number,
+        end: number
+    ): Transaction | null {
+        const replacement = this.replacement as NodeInputRuleReplacement;
+        const nodeType = state.schema.nodes[replacement.nodeType];
+        if (!nodeType) {
+            console.warn(`Node type "${replacement.nodeType}" not found`);
+            return null;
+        }
+    
+        const $pos = state.doc.resolve(start);
+        const blockRange = $pos.blockRange();
+        if (!blockRange) {
+            return null;
+        }
+    
+        let tr = state.tr.delete(blockRange.start, blockRange.end);
+        
+        const attrs = replacement.getAttribute?.(match, this.instantiationService);
+        const newNode = nodeType.create(attrs);
+        tr = tr.insert(blockRange.start, newNode);
+    
+        // select it
+        const newPos = tr.doc.resolve(blockRange.start);
+        const selection = ProseNodeSelection.near(newPos, -1);
+        tr.setSelection(selection);
+    
+        return tr;
     }
 }

@@ -63,8 +63,9 @@ export type NodeInputRuleReplacement = InputRuleReplacementBase & {
      * Determines the wrapping strategy to use when applying the input rule.
      * - `WrapBlock`: Wraps the matched content as a block-level element.
      * - `WrapTextBlock`: Wraps the matched content as a text block within a block-level container.
+     * - `ReplaceBlock`: Replace the matched block as a new block-level element.
      */
-    readonly wrapStrategy: 'WrapBlock' | 'WrapTextBlock';
+    readonly wrapStrategy: 'WrapBlock' | 'WrapTextBlock' | 'ReplaceBlock';
 
     /**
      * Determines when should the replacement happens.
