@@ -1,7 +1,8 @@
 import { EditorState, Transaction } from "prosemirror-state";
 import { canJoin, findWrapping } from "prosemirror-transform";
-import { TokenEnum } from "src/editor/common/markdown";
-import { IEditorInputRuleExtension, InputRuleReplacement } from "src/editor/contrib/inputRule/inputRule";
+import { panic } from "src/base/common/utilities/panic";
+import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
+import { IEditorInputRuleExtension, InputRuleReplacement, MarkInputRuleReplacement, NodeInputRuleReplacement } from "src/editor/contrib/inputRule/inputRule";
 import { CodeBlockAttrs } from "src/editor/model/documentNode/node/codeBlock/codeBlock";
 import { HeadingAttrs } from "src/editor/model/documentNode/node/heading";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
@@ -18,9 +19,10 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
     // Heading Rule: Matches "#" followed by a space
     extension.registerRule("headingRule", /^(#{1,6})\s$/, 
         {
+            type: 'node',
             nodeType: TokenEnum.Heading,
             whenReplace: 'type',
-            getNodeAttribute: (match): HeadingAttrs => {
+            getAttribute: (match): HeadingAttrs => {
                 return { 
                     level: match[1]?.length,
                 };
@@ -32,6 +34,7 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
     // Blockquote Rule: Matches ">" followed by a space
     extension.registerRule("blockquoteRule", /^>\s$/, 
         { 
+            type: 'node',
             nodeType: TokenEnum.Blockquote,
             whenReplace: 'type',
             wrapStrategy: 'WrapBlock'
@@ -41,9 +44,10 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
     // Code Block Rule: Matches triple backticks
     extension.registerRule("codeBlockRule", /^```(.*)\s*$/, 
         { 
+            type: 'node',
             nodeType: TokenEnum.CodeBlock,
             whenReplace: 'enter',
-            getNodeAttribute: (match): CodeBlockAttrs => {
+            getAttribute: (match): CodeBlockAttrs => {
                 const lang = match[1];
                 return {
                     lang: lang ?? 'Unknown',
@@ -55,9 +59,10 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
 
     extension.registerRule("orderedListRule", /^(\d+)\.\s$/,
          {
+            type: 'node',
             nodeType: TokenEnum.List,
             whenReplace: 'type',
-            getNodeAttribute: (match) => {
+            getAttribute: (match) => {
                 if (match && match[1]) {
                     return { ordered: true, start: parseInt(match[1]) };
                 }
@@ -75,6 +80,7 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
 
     extension.registerRule("bulletListRule", /^\s*([-+*])\s$/,
         {
+            type: 'node',
             nodeType: TokenEnum.List,
             whenReplace: 'type',
             wrapStrategy: 'WrapBlock'
@@ -133,16 +139,23 @@ export class InputRule implements IInputRule {
         this.pattern = pattern;
         this.replacement = replacement;
 
-        if (typeof this.replacement !== 'string') {
+        if (typeof this.replacement === 'string') {
+            this._replacementString = this.replacement;
+            this.onMatch = this.__onSimpleStringMatch;
+        } 
+        else if (this.replacement.type === 'node') {
             this._replacementObject = this.replacement;
             if (this.replacement.wrapStrategy === 'WrapTextBlock') {
                 this.onMatch = this.__textblockTypeInputRule;
             } else {
                 this.onMatch = this.__wrappingInputRule;
             }
+        }
+        else if (this.replacement.type === 'mark') {
+            this._replacementObject = this.replacement;
+            this.onMatch = this.__markInputRule;
         } else {
-            this._replacementString = this.replacement;
-            this.onMatch = this.__onSimpleStringMatch;
+            panic(`Invalid replacement type: ${this.replacement['type']}`);
         }
     }
 
@@ -167,6 +180,35 @@ export class InputRule implements IInputRule {
         }
         return state.tr.insertText(insert, start, end);
     }
+
+    private __markInputRule(
+        state: EditorState,
+        match: RegExpExecArray,
+        start: number,
+        end: number
+    ): Transaction | null {
+        const replacement = this.replacement as MarkInputRuleReplacement;
+        const markType = state.schema.marks[replacement.markType];
+        if (!markType) {
+            console.warn(`Mark type "${replacement.markType}" not found`);
+            return null;
+        }
+
+        const text = match[1]!;
+        const tr = state.tr
+            .delete(start, end)
+            .insertText(text, start);
+        
+        const attrs = replacement.getAttribute?.(match, this.instantiationService);
+        const mark = markType.create(attrs);
+        tr.addMark(start, start + text.length, mark);
+        
+        if (replacement.preventMarkInheritance) {
+            tr.setStoredMarks([]);
+        }
+        
+        return tr;
+    }
     
     private __wrappingInputRule(
         state: EditorState,
@@ -174,14 +216,14 @@ export class InputRule implements IInputRule {
         start: number,
         end: number
     ): Transaction | null {
-        const replacement = this._replacementObject!;
+        const replacement = this._replacementObject as NodeInputRuleReplacement;
         const nodeType = state.schema.nodes[replacement.nodeType];
         if (!nodeType) {
             console.warn(`[EditorInputRuleExtension] Node type "${replacement.nodeType}" not found in schema.`);
             return null;
         }
     
-        const attrs = replacement.getNodeAttribute?.(match, this.instantiationService);
+        const attrs = replacement.getAttribute?.(match, this.instantiationService);
         const tr = state.tr.delete(start, end);
         const $start = tr.doc.resolve(start);
         const range = $start.blockRange();
@@ -211,14 +253,14 @@ export class InputRule implements IInputRule {
         start: number,
         end: number
     ): Transaction | null {
-        const replacement = this._replacementObject!;
+        const replacement = this._replacementObject as NodeInputRuleReplacement;
         const nodeType = state.schema.nodes[replacement.nodeType];
         if (!nodeType) {
             console.warn(`[EditorInputRuleExtension] Node type "${replacement.nodeType}" not found in schema.`);
             return null;
         }
     
-        const attrs = replacement.getNodeAttribute?.(match, this.instantiationService);
+        const attrs = replacement.getAttribute?.(match, this.instantiationService);
         const $start = state.doc.resolve(start);
         if (!$start.node(-1).canReplaceWith($start.index(-1), $start.indexAfter(-1), nodeType)) {
             return null;

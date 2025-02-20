@@ -19,52 +19,74 @@ import { ILogService } from "src/base/common/logger";
  *   2. an object that specifies complicated replacement rule.
  */
 export type InputRuleReplacement = 
-    | string
-    | {
-        /** 
-         * Specifies the type of node to create when replacing. 
-         */
-        readonly nodeType: string | TokenEnum;
+    | string 
+    | MarkInputRuleReplacement 
+    | NodeInputRuleReplacement;
 
-        /**
-         * Determines the wrapping strategy to use when applying the input rule.
-         * - `WrapBlock`: Wraps the matched content as a block-level element.
-         * - `WrapTextBlock`: Wraps the matched content as a text block within a block-level container.
-         */
-        readonly wrapStrategy: 'WrapBlock' | 'WrapTextBlock';
+type InputRuleReplacementBase = {
+    readonly type: string;
 
-        /**
-         * Determines when should the replacement happens.
-         * - `type`: Any keyboard typing will try to match content.
-         * - `enter`: Only when pressing the key `enter` will try to match content.
-         */
-        readonly whenReplace: 'type' | 'enter';
+    readonly whenReplace: 'type' | 'enter';
 
-        /** 
-         * @description A function that generates node attributes based on the 
-         * matched text. The attributes will eventually used for constructing 
-         * the node instance ({@link ProseNode}).
-         * @param matchedText The matched text.
-         * @returns A dictionary of attributes for the new node.
-         * 
-         * @note If not defined, the attributes of the generated node would be `null`.
-         */
-        readonly getNodeAttribute?: (matchedText: RegExpExecArray, serviceProvider: IServiceProvider) => Dictionary<string, any>;
+    /** 
+     * @description A function that generates node/mark attributes based on the 
+     * matched text. The attributes will eventually used for constructing the 
+     * node/mark instance ({@link ProseNode}).
+     * @param matchedText The matched text.
+     * @returns A dictionary of attributes for the new node/mark.
+     * 
+     * @note If not defined, the attributes of the generated node/mark would be 
+     *       `null`.
+     */
+    readonly getAttribute?: (matchedText: RegExpExecArray, serviceProvider: IServiceProvider) => Dictionary<string, any>;
+};
 
-        /** 
-         * @description A predicate function that determines if the new node 
-         * should join with the preceding node.
-         * @param matchedText The matched text.
-         * @param prevNode The previous node in the document, used to determine 
-         *                 if a join is appropriate.
-         * @returns Returns `true` if the new node should join with `prevNode`, 
-         *          otherwise `false`.
-         * 
-         * @note If not defined, as long as {@link canJoin} returns true, the 
-         *       node will be joined with previous node.
-         */
-        readonly shouldJoinWithBefore?: (matchedText: RegExpExecArray, prevNode: ProseNode) => boolean;
-    };
+export type MarkInputRuleReplacement = InputRuleReplacementBase & {
+    readonly type: 'mark';
+    readonly markType: string;
+
+    /**
+     * @description After the mark is applied, should the following typed text
+     * inherit this mark.
+     */
+    readonly preventMarkInheritance: boolean;
+};
+
+export type NodeInputRuleReplacement = InputRuleReplacementBase & {
+    readonly type: 'node';
+    /** 
+     * Specifies the type of node to create when replacing. 
+     */
+    readonly nodeType: string | TokenEnum;
+
+    /**
+     * Determines the wrapping strategy to use when applying the input rule.
+     * - `WrapBlock`: Wraps the matched content as a block-level element.
+     * - `WrapTextBlock`: Wraps the matched content as a text block within a block-level container.
+     */
+    readonly wrapStrategy: 'WrapBlock' | 'WrapTextBlock';
+
+    /**
+     * Determines when should the replacement happens.
+     * - `type`: Any keyboard typing will try to match content.
+     * - `enter`: Only when pressing the key `enter` will try to match content.
+     */
+    readonly whenReplace: 'type' | 'enter';
+
+    /** 
+     * @description A predicate function that determines if the new node 
+     * should join with the preceding node.
+     * @param matchedText The matched text.
+     * @param prevNode The previous node in the document, used to determine 
+     *                 if a join is appropriate.
+     * @returns Returns `true` if the new node should join with `prevNode`, 
+     *          otherwise `false`.
+     * 
+     * @note If not defined, as long as {@link canJoin} returns true, the 
+     *       node will be joined with previous node.
+     */
+    readonly shouldJoinWithBefore?: (matchedText: RegExpExecArray, prevNode: ProseNode) => boolean;
+};
 
 /**
  * An interface only for {@link EditorInputRuleExtension}.
