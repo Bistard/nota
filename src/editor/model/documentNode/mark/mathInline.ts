@@ -63,6 +63,9 @@ export class MathInline extends DocumentNode<EditorTokens.MathInline> {
             group: 'inline',
             inline: true,
             content: undefined,
+            draggable: true,
+            selectable: true,
+            atom: true,
             attrs: {
                 text: { default: '' },
             },
