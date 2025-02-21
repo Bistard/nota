@@ -413,10 +413,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         return this.model.deleteAt(textOffset, length);
     }
 
-    public insertAtSelection(text: string): void {
-        return this.model.insertAtSelection(text);
-    }
-
     public destroy(): void {
         return this.dispose();
     }
