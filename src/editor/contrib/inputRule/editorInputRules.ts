@@ -102,7 +102,8 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
         preventMarkInheritance: true,
     });
     
-    extension.registerRule("codespanRule", /`(.+?)`$/, {
+    const ESCAPE_REGEX = /`(?![`]{2})((?:\\`|[^`])+?)`(?![`]{2})$/;
+    extension.registerRule("codespanRule", ESCAPE_REGEX, {
         type: 'mark',
         markType: MarkEnum.Codespan,
         whenReplace: 'type',
@@ -117,6 +118,18 @@ export function registerDefaultInputRules(extension: IEditorInputRuleExtension):
             wrapStrategy: 'ReplaceBlock',
         }
     );
+
+    extension.registerRule("mathInlineRule", /\$(.+?)\$$/, {
+        type: 'node',
+        nodeType: TokenEnum.MathInline,
+        whenReplace: 'type',
+        wrapStrategy: 'ReplaceBlock',
+        getAttribute: (matched) => {
+            return {
+                text: matched[1],
+            };
+        }
+    });
 }
 
 /**
@@ -319,21 +332,28 @@ export class InputRule implements IInputRule {
             return null;
         }
     
+        if (nodeType.isInline) {
+            const attrs = replacement.getAttribute?.(match, this.instantiationService);
+            const newNode = nodeType.create(attrs);
+            const tr = state.tr
+                .delete(start, end)
+                .insert(start, newNode);
+            return tr;
+        }
+
         const $pos = state.doc.resolve(start);
         const blockRange = $pos.blockRange();
         if (!blockRange) {
             return null;
         }
     
-        let tr = state.tr.delete(blockRange.start, blockRange.end);
-        
         const attrs = replacement.getAttribute?.(match, this.instantiationService);
         const newNode = nodeType.create(attrs);
-        tr = tr.insert(blockRange.start, newNode);
+        const tr = state.tr.replaceWith(blockRange.start, blockRange.end, newNode);
     
         // select it
         const newPos = tr.doc.resolve(blockRange.start);
-        const selection = ProseNodeSelection.near(newPos, -1);
+        const selection = ProseNodeSelection.near(newPos);
         tr.setSelection(selection);
     
         return tr;
