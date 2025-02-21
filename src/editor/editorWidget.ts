@@ -30,14 +30,12 @@ import { IEditorViewModel } from "src/editor/common/viewModel";
 export interface IEditorWidget extends 
     IProseEventBroadcaster, 
     Pick<IEditorModel, 
-        'source' 
+        | 'source' 
         | 'dirty'
         | 'onDidDirtyChange'
         | 'onDidSave'
         | 'onDidSaveError'
-        | 'save' 
-        | 'insertAt' 
-        | 'deleteAt'>
+        | 'save'>
 {
 
     /**
@@ -406,14 +404,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     get source(): URI { return this.model.source; }
     get dirty(): boolean { return assert(this._model).dirty; }
-
-    public insertAt(textOffset: number, text: string): void {
-        return this.model.insertAt(textOffset, text);
-    }
-    
-    public deleteAt(textOffset: number, length: number): void {
-        return this.model.deleteAt(textOffset, length);
-    }
 
     public destroy(): void {
         return this.dispose();

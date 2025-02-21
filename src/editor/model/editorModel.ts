@@ -57,22 +57,6 @@ export class EditorModel extends Disposable implements IEditorModel {
         return this.__buildModel(this._source);
     }
 
-    public insertAt(textOffset: number, text: string): void {
-        // TODO
-        
-        // const state = assert(this._editorState);
-        // const document = this.__tokenizeAndParse(text);
-        // const newTr = state.tr.insert(textOffset, document);
-        // this._onTransaction.fire(newTr);
-    }
-
-    public deleteAt(textOffset: number, length: number): void {
-        // TODO
-        // const state = assert(this._editorState);
-        // const newTr = state.tr.delete(textOffset, textOffset + length);
-        // this._onTransaction.fire(newTr);
-    }
-
     public getContent(): string[] {
         // TODO
         return [];

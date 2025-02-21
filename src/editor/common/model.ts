@@ -105,20 +105,6 @@ export interface IEditorModel extends IDisposable {
     // region - text-related APIs
 
     /**
-     * @description Inserts the given text at the given offset.
-     * @param textOffset The character offset relatives to the whole text model.
-     * @param text The text to be inserted.
-     */
-    insertAt(textOffset: number, text: string): void;
-
-    /**
-     * @description Deletes the text with given length at the given offset.
-     * @param textOffset The character offset relatives to the whole text model.
-     * @param length The length of text to be deleted.
-     */
-    deleteAt(textOffset: number, length: number): void;
-
-    /**
      * @description Returns all the line contents (without line breaking).
      * @returns An array of string, each string represents a line content.
      */
