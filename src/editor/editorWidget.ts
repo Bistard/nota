@@ -32,7 +32,6 @@ export interface IEditorWidget extends
     Pick<IEditorModel, 
         'source' 
         | 'dirty'
-        | 'onDidStateChange' 
         | 'onDidDirtyChange'
         | 'onDidSave'
         | 'onDidSaveError'
@@ -157,9 +156,6 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private readonly _options: EditorOptionController;
 
     // region - [model events]
-
-    private readonly _onDidStateChange = this.__register(RelayEmitter.createPriority<void>());
-    public readonly onDidStateChange = this._onDidStateChange.registerListener;
 
     private readonly _onDidDirtyChange = this.__register(RelayEmitter.createPriority<boolean>());
     public readonly onDidDirtyChange = this._onDidDirtyChange.registerListener;
@@ -326,11 +322,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         }
 
         this.__detachData();
-        const extensionList = this._extensions.getExtensions();
-
+        
         // model
         this._model = this.instantiationService.createInstance(EditorModel, source, this._options.getOptions());
-        const initState = await this._model.build(extensionList);
+        const initState = await this._model.build();
         
         // unexpected behavior, we need to let the user know.
         if (initState.isErr()) {
@@ -339,17 +334,24 @@ export class EditorWidget extends Disposable implements IEditorWidget {
             return err(error);
         }
 
-        const initData = initState.unwrap();
+        const modelBuild = initState.unwrap();
+        const extensionList = this._extensions.getExtensions();
 
         // view-model
-        this._viewModel = this.instantiationService.createInstance(EditorViewModel, this._model);
+        this._viewModel = this.instantiationService.createInstance(
+            EditorViewModel, 
+            this._model,
+            extensionList,
+        );
+
+        const { state: viewState } = this._viewModel.build(modelBuild);
 
         // view
         this._view = this.instantiationService.createInstance(
             EditorView,
             this._container.raw,
             this._viewModel,
-            initData,
+            viewState,
             extensionList,
             this._options.getOptions(),
         );
@@ -452,10 +454,12 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private __registerMVVMListeners(model: IEditorModel, viewModel: IEditorViewModel, view: IEditorView): void {
 
         // binding to the model
-        this._onDidStateChange.setInput(model.onDidStateChange);
         this._onDidDirtyChange.setInput(model.onDidDirtyChange);
         this._onDidSave.setInput(model.onDidSave);
         this._onDidSaveError.setInput(model.onDidSaveError);
+
+        // binding to the viewModel
+        // TODO
 
         // binding to the view
         this._onDidBlur.setInput(this.view.onDidBlur);

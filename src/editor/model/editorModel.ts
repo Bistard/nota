@@ -2,37 +2,17 @@ import { Disposable } from "src/base/common/dispose";
 import { Emitter } from "src/base/common/event";
 import { DataBuffer } from "src/base/common/files/buffer";
 import { URI } from "src/base/common/files/uri";
-import { defaultLog, ILogService } from "src/base/common/logger";
+import { ILogService } from "src/base/common/logger";
 import { AsyncResult, ok } from "src/base/common/result";
-import { assert } from "src/base/common/utilities/panic";
 import { EditorOptionsType } from "src/editor/common/editorConfiguration";
-import { IEditorExtension } from "src/editor/common/editorExtension";
-import { IEditorModel } from "src/editor/common/model";
+import { IEditorModel, IModelBuildData } from "src/editor/common/model";
 import { IEditorPosition } from "src/editor/common/position";
-import { ProseEditorState, ProseNode, ProseTransaction } from "src/editor/common/proseMirror";
 import { IMarkdownLexer, IMarkdownLexerOptions, MarkdownLexer } from "src/editor/model/markdownLexer";
-import { DocumentNodeProvider } from "src/editor/model/documentNode/documentNodeProvider";
-import { DocumentParser, IDocumentParser } from "src/editor/model/parser";
-import { buildSchema, EditorSchema } from "src/editor/model/schema";
-import { MarkdownSerializer } from "src/editor/model/serializer";
 import { IFileService } from "src/platform/files/common/fileService";
-import { history } from "prosemirror-history";
-import { IOnDidContentChangeEvent } from "src/editor/view/proseEventBroadcaster";
-import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
-import { TokenEnum } from "src/editor/common/markdown";
 
 export class EditorModel extends Disposable implements IEditorModel {
 
     // [events]
-
-    private readonly _onDidBuild = this.__register(new Emitter<ProseEditorState>({ onFire: () => this.setDirty(false) }));
-    public readonly onDidBuild = this._onDidBuild.registerListener;
-
-    private readonly _onTransaction = this.__register(new Emitter<ProseTransaction>({ onFire: () => this.setDirty(true) }));
-    public readonly onTransaction = this._onTransaction.registerListener;
-
-    private readonly _onDidStateChange = this.__register(new Emitter<void>({ onFire: () => this.setDirty(true) }));
-    public readonly onDidStateChange = this._onDidStateChange.registerListener;
 
     private readonly _onDidSave = this.__register(new Emitter<void>({ onFire: () => this.setDirty(false) }));
     public readonly onDidSave = this._onDidSave.registerListener;
@@ -45,15 +25,9 @@ export class EditorModel extends Disposable implements IEditorModel {
 
     // [fields]
 
-    private readonly _options: EditorOptionsType;         // The configuration of the editor
-    private readonly _source: URI;                        // The source file the model is about to read and parse.
-    private readonly _schema: EditorSchema;               // An object that defines how a view is organized.
-    private readonly _lexer: IMarkdownLexer;              // Responsible for parsing the raw text into tokens.
-    private readonly _nodeProvider: DocumentNodeProvider; // Stores all the legal document node.
-    private readonly _docParser: IDocumentParser;         // Parser that parses the given token into a legal view based on the schema.
-    private readonly _docSerializer: MarkdownSerializer;  // Serializer that transforms the prosemirror document back to raw string.
-
-    private _editorState?: ProseEditorState; // A reference to the prosemirror state.
+    private readonly _options: EditorOptionsType; // The configuration of the editor
+    private readonly _source: URI;           // The source file the model is about to read and parse.
+    private readonly _lexer: IMarkdownLexer; // Responsible for parsing the raw text into tokens.
     private _dirty: boolean;                 // Indicates if the file has unsaved changes. Modify this through `this.setDirty()`
 
     // [constructor]
@@ -63,67 +37,55 @@ export class EditorModel extends Disposable implements IEditorModel {
         options: EditorOptionsType,
         @IFileService private readonly fileService: IFileService,
         @ILogService private readonly logService: ILogService,
-        @IInstantiationService instantiationService: IInstantiationService,
     ) {
         super();
         this._source = source;
         this._options = options;
         this._dirty = false;
-        
         this._lexer = new MarkdownLexer(this.__initLexerOptions(options));
-
-        this._nodeProvider = DocumentNodeProvider.create(instantiationService).register();
-        this._schema = buildSchema(this._nodeProvider);
-        this._docParser = this.__register(new DocumentParser(this._schema, this._nodeProvider, /* options */));
-        this.__register(this._docParser.onLog(event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additional)));
-        this._docSerializer = new MarkdownSerializer(this._nodeProvider, { strict: true, escapeExtraCharacters: undefined, });
-
-        this.__initialization();
-
         logService.debug('EditorModel', 'Constructed');
     }
 
     // [getter / setter]
 
     get source(): URI { return this._source; }
-    get schema(): EditorSchema { return this._schema; }
-    get state(): ProseEditorState | undefined { return this._editorState; }
     get dirty(): boolean { return this._dirty; }
 
     // [public methods]
 
-    public build(extensions: IEditorExtension[]): AsyncResult<ProseEditorState, Error> {
-        return this.__buildModel(this._source, extensions)
-            .map(state => {
-                this._editorState = state;
-                this._onDidBuild.fire(state);
-                return state;
-            });
+    public build(): AsyncResult<IModelBuildData, Error> {
+        return this.__buildModel(this._source);
     }
 
     public insertAt(textOffset: number, text: string): void {
-        const state = assert(this._editorState);
-        const document = this.__tokenizeAndParse(text);
-        const newTr = state.tr.insert(textOffset, document);
-        this._onTransaction.fire(newTr);
+        // TODO
+        
+        // const state = assert(this._editorState);
+        // const document = this.__tokenizeAndParse(text);
+        // const newTr = state.tr.insert(textOffset, document);
+        // this._onTransaction.fire(newTr);
     }
 
     public deleteAt(textOffset: number, length: number): void {
-        const state = assert(this._editorState);
-        const newTr = state.tr.delete(textOffset, textOffset + length);
-        this._onTransaction.fire(newTr);
+        // TODO
+        // const state = assert(this._editorState);
+        // const newTr = state.tr.delete(textOffset, textOffset + length);
+        // this._onTransaction.fire(newTr);
     }
 
     public getContent(): string[] {
-        const state = assert(this._editorState);
-        const raw = this._docSerializer.serialize(state.doc);
-        return raw.split('\n'); // TODO
+        // TODO
+        return [];
+        // const state = assert(this._editorState);
+        // const raw = this._docSerializer.serialize(state.doc);
+        // return raw.split('\n');
     }
 
     public getRawContent(): string {
-        const state = assert(this._editorState);
-        const raw = this._docSerializer.serialize(state.doc);
-        return raw; // TODO
+        return '';
+        // const state = assert(this._editorState);
+        // const raw = this._docSerializer.serialize(state.doc);
+        // return raw; // TODO
     }
 
     public getLine(lineNumber: number): string {
@@ -175,8 +137,7 @@ export class EditorModel extends Disposable implements IEditorModel {
             return AsyncResult.ok();
         }
 
-        const state = assert(this._editorState);
-        const serialized = this._docSerializer.serialize(state.doc);
+        const serialized = this.getRawContent();
         const buffer = DataBuffer.fromString(serialized);
 
         return this.fileService.writeFile(this._source, buffer, { create: true, overwrite: true, unlock: false })
@@ -190,65 +151,7 @@ export class EditorModel extends Disposable implements IEditorModel {
             });
     }
 
-    public getRegisteredDocumentNodes(): string[] {
-        return this._nodeProvider.getRegisteredNodes().map(each => each.name);
-    }
-
-    public getRegisteredDocumentNodesBlock(): string[] {
-        const nodes = this._nodeProvider.getRegisteredNodes();
-        const blocks: string[] = [];
-        for (const node of nodes) {
-            if (!node.getSchema().inline) {
-                blocks.push(node.name);
-            }
-        }
-        return blocks;
-    }
-
-    public getRegisteredDocumentNodesInline(): string[] {
-        const nodes = this._nodeProvider.getRegisteredNodes();
-        const blocks: string[] = [];
-        for (const node of nodes) {
-            if (node.getSchema().inline === true) {
-                blocks.push(node.name);
-            }
-        }
-        return blocks;
-    }
-
     // [private methods]
-
-    public __onDidStateChange(event: IOnDidContentChangeEvent): void {
-        const newState = event.view.state;
-        this._editorState = newState;
-        this._onDidStateChange.fire();
-    }
-
-    private __initialization(): void {
-        /**
-         * Mapping token: {@link TokenEnum.Space} to {@link TokenEnum.Paragraph}
-         * Because `space` are just special cases for `paragraph`.
-         */
-        this._docParser.registerMapToken(TokenEnum.Space, (from) => {
-            return {
-                type: TokenEnum.Paragraph,
-                text: '',
-                raw: '',
-                tokens: []
-            };
-        });
-    }
-
-    private __tokenizeAndParse(raw: string): ProseNode {
-        const tokens = this._lexer.lex(raw);
-        console.log(tokens); // TEST
-
-        const doc = this._docParser.parse(tokens);
-        console.log(doc); // TEST
-
-        // console.log(this._docSerializer.serialize(doc)); // TEST
-        return doc;
-    }
 
     private __initLexerOptions(options: EditorOptionsType): IMarkdownLexerOptions {
         return {
@@ -256,21 +159,15 @@ export class EditorModel extends Disposable implements IEditorModel {
         };
     }
 
-    private __buildModel(source: URI, extensions: IEditorExtension[]): AsyncResult<ProseEditorState, Error> {
+    private __buildModel(source: URI): AsyncResult<IModelBuildData, Error> {
         this.logService.debug('EditorModel', `Start building at: ${URI.toString(source)}`);
 
         return this.__readFileRaw(source)
             .andThen(raw => {
-                const document = this.__tokenizeAndParse(raw);
-                const state = ProseEditorState.create({
-                    schema: this._schema,
-                    doc: document,
-                    plugins: [
-                        ...extensions.map(extension => extension.getViewExtension()),
-                        history({ depth: 500 }),
-                    ],
+                const tokens = this._lexer.lex(raw);
+                return ok({
+                    tokens: tokens,
                 });
-                return ok(state);
             });
     }
 

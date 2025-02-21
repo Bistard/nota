@@ -73,7 +73,7 @@ export class BlockInsertProvider {
     // [private methods]
 
     private __obtainValidContent(): string[] {
-        const blocks = this.editorWidget.model.getRegisteredDocumentNodes();
+        const blocks = this.editorWidget.viewModel.getRegisteredDocumentNodes();
         const ordered = this.__filterContent(blocks, CONTENT_FILTER);
         return ordered;
     }

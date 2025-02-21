@@ -148,11 +148,8 @@ export class EditorView extends Disposable implements IEditorView {
     private __registerEventFromModel(): void {
         const viewModel = this._ctx.viewModel;
 
-        this.__register(viewModel.onDidBuild(newState => {
-            this._view.render(newState);
-        }));
-
-        this.__register(viewModel.onDidChangeModelState(tr => {
+        this.__register(viewModel.onDidContentChange(event => {
+            const { tr } = event;
             this._view.internalView.dispatch(tr);
         }));
     }
