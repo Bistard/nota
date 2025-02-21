@@ -151,6 +151,7 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
             const handled = this.__handleTextInput(e.view, e.from, e.to, e.text);
             if (handled) {
                 e.preventDefault();
+                return true;
             }
         }));
 
@@ -159,6 +160,7 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
                 const handled = this.__handleEnter(e.view);
                 if (handled) {
                     e.preventDefault();
+                    return true;
                 }
             }
         }));
