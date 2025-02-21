@@ -44,12 +44,14 @@ export class EditorBlockPlaceHolderExtension extends EditorExtension implements 
             return null;
         }
 
-        const isEmptyBlock = ProseTools.Cursor.isOnEmpty(selection);
-        if (!isEmptyBlock) {
+        const cursor = selection.$from;
+
+        const anyChild = ProseTools.Node.hasChild(cursor.parent);
+        if (anyChild) {
             return null;
         }
-        
-        const blockPos = selection.$from.before();
+
+        const blockPos = cursor.before();
         const blockNode = state.doc.nodeAt(blockPos);
         if (!blockNode) {
             return null;
