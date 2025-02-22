@@ -9,7 +9,7 @@ import { nullable } from "src/base/common/utilities/type";
 /**
  * An interface only for {@link EditorExtension}.
  */
-export interface IEditorExtension extends Omit<IProseEventBroadcaster, 'onBeforeRender' | 'onRender' | 'onDidRender' | 'onDidSelectionChange' | 'onDidContentChange'> {
+export interface IEditorExtension extends IProseEventBroadcaster {
     
     // [fields]
 
