@@ -29,10 +29,10 @@ export interface IEditorViewModel extends Disposable {
     readonly onDidContentChange: Register<IViewModelChangeEvent>;
 
     /**
-     * @description This will be invoked whenever the view content changes.
-     * // TODO: bad naming, should be described by a specific job, not when the function is called.
+     * @description Takes the changes created from the editor view, adapt it to
+     * model.
      */
-    onDidViewContentChange(e: IOnDidContentChangeEvent): void;
+    updateViewChange(e: IOnDidContentChangeEvent): void;
 
 
     // region - others

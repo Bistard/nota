@@ -24,6 +24,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     // [fields]
 
     private readonly _model: IEditorModel;
+    private _viewState: ProseEditorState;
 
     private readonly _schema: EditorSchema;               // An object that defines how a view is organized.
     private readonly _nodeProvider: DocumentNodeProvider; // Stores all the legal document node.
@@ -40,6 +41,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     ) {
         super();
         this._model = model;
+        this._viewState = new ProseEditorState();
 
         this._nodeProvider = DocumentNodeProvider.create(instantiationService).register();
         this._schema = buildSchema(this._nodeProvider);
@@ -74,8 +76,9 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         };
     }
 
-    public onDidViewContentChange(e: IOnDidContentChangeEvent): void {
+    public updateViewChange(e: IOnDidContentChangeEvent): void {
         this._model.setDirty(true);
+        this._viewState = e.view.state;
         // TODO
     }
 
