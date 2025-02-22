@@ -21,4 +21,12 @@ export interface IEditorView extends IProseEventBroadcaster {
      * The actual editor instance.
      */
     readonly editor: RichTextView;
+
+    /**
+     * // TODO
+     * @param text 
+     * @param from 
+     * @param to 
+     */
+    type(text: string, from?: number, to?: number): void;
 }

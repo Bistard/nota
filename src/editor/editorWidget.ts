@@ -6,7 +6,7 @@ import { ILogService } from "src/base/common/logger";
 import { Constructor, isDefined } from "src/base/common/utilities/type";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 import { IBrowserLifecycleService, ILifecycleService } from "src/platform/lifecycle/browser/browserLifecycleService";
-import { IEditorModel } from "src/editor/common/model";
+import { IEditorModel, IModelBuildData } from "src/editor/common/model";
 import { EditorType, IEditorView } from "src/editor/common/view";
 import { BasicEditorOption, EDITOR_OPTIONS_DEFAULT, EditorOptionsType, IEditorWidgetOptions, toJsonEditorOption } from "src/editor/common/editorConfiguration";
 import { EditorModel } from "src/editor/model/editorModel";
@@ -20,7 +20,8 @@ import { assert, errorToMessage } from "src/base/common/utilities/panic";
 import { AsyncResult, err, ok, Result } from "src/base/common/result";
 import { EditorDragState } from "src/editor/common/cursorDrop";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
-import { IEditorViewModel } from "src/editor/common/viewModel";
+import { IEditorViewModel, IViewModelBuildData } from "src/editor/common/viewModel";
+import { IEditorInputEmulator } from "src/editor/view/inputEmulator";
 
 // region - [interface]
 
@@ -35,7 +36,11 @@ export interface IEditorWidget extends
         | 'onDidDirtyChange'
         | 'onDidSave'
         | 'onDidSaveError'
-        | 'save'>
+        | 'save'
+    >,
+    Pick<IEditorView,
+        | 'type'
+    >
 {
     /**
      * Is the editor initialized. if not, access to model, viewModel and view 
@@ -322,45 +327,24 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         this.__detachData();
 
         // model
-        this._model = this.instantiationService.createInstance(
-            EditorModel, 
-            source, 
-            this._options.getOptions(),
-        );
-        const build = await this._model.build();
+        return (await this.__createModel(source)).andThen(([model, modelData]) => {
+            this._model = model;
+            const extensions = this._extensions.getExtensions();
 
-        // unexpected behavior, we need to let the user know.
-        if (build.isErr()) {
-            const error = new Error(`Cannot open editor at '${URI.toFsPath(source)}'. ${errorToMessage(build.unwrapErr(), false)}`);
-            return err(error);
-        }
-        const modelData = build.unwrap();
+            // view-model
+            this._viewModel = this.__createViewModel(extensions);
+            const viewModelData = this._viewModel.build(modelData);
 
-        // view-model
-        const extensionList = this._extensions.getExtensions();
-        this._viewModel = this.instantiationService.createInstance(
-            EditorViewModel, 
-            this._model,
-            extensionList,
-        );
-        const viewData = this._viewModel.build(modelData);
+            // view
+            this._view = this.__createView(extensions, viewModelData);
 
-        // view
-        this._view = this.instantiationService.createInstance(
-            EditorView,
-            this._container.raw,
-            this._viewModel,
-            viewData.state,
-            extensionList,
-            this._options.getOptions(),
-        );
+            // listeners
+            this.__registerMVVMListeners(this._model, this._viewModel, this._view);
 
-        // listeners
-        this.__registerMVVMListeners(this._model, this._viewModel, this._view);
-
-        // cache data
-        this._editorData = this.__register(new EditorData(this._model, this._viewModel, this._view, undefined));
-        return ok();
+            // cache data
+            this._editorData = this.__register(new EditorData(this._model, this._viewModel, this._view, undefined));
+            return ok();
+        });
     }
 
     public isOpened(): boolean {
@@ -410,6 +394,16 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         return this.dispose();
     }
 
+    // region - [viewModel]
+    
+
+
+    // region - [View]
+
+    public type(text: string, from?: number, to?: number): void {
+        this.view.type(text, from, to);
+    }
+
     // region - [private]
 
     private __detachData(): void {
@@ -429,6 +423,48 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     
     private __assertView(): EditorView {
         return assert(this._view, '[EditorWidget] EditorView is not initialized.');
+    }
+
+    private async __createModel(source: URI): Promise<Result<[EditorModel, IModelBuildData], Error>> {
+        const model = this.instantiationService.createInstance(
+            EditorModel, 
+            source, 
+            this._options.getOptions(),
+        );
+        const build = await model.build();
+
+        // unexpected behavior, we need to let the user know.
+        if (build.isErr()) {
+            const error = new Error(`Cannot open editor at '${URI.toFsPath(source)}'. ${errorToMessage(build.unwrapErr(), false)}`);
+            return err(error);
+        }
+        const modelData = build.unwrap();
+        
+        return ok([model, modelData]);
+    }
+
+    private __createViewModel(extensions: EditorExtension[]): EditorViewModel {
+        return this.instantiationService.createInstance(
+            EditorViewModel, 
+            this.model,
+            extensions,
+        );
+    }
+
+    private __createView(extensions: EditorExtension[], viewModelData: IViewModelBuildData): EditorView {
+        const inputEmulator: IEditorInputEmulator = {
+            type: e => this._onTextInput.fire(e),
+        };
+        
+        return this.instantiationService.createInstance(
+            EditorView,
+            this._container.raw,
+            this.viewModel,
+            viewModelData.state,
+            extensions,
+            inputEmulator,
+            this._options.getOptions(),
+        );
     }
 
     private __registerListeners(): void {

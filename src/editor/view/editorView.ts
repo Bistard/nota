@@ -8,6 +8,8 @@ import { IEditorModel } from 'src/editor/common/model';
 import { ProseEditorState } from 'src/editor/common/proseMirror';
 import { IEditorViewModel } from 'src/editor/common/viewModel';
 import { RichTextView } from 'src/editor/view/richTextView';
+import { IEditorInputEmulator } from 'src/editor/view/inputEmulator';
+import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
 
 export class ViewContext {
     constructor(
@@ -85,8 +87,10 @@ export class EditorView extends Disposable implements IEditorView {
         viewModel: IEditorViewModel,
         initState: ProseEditorState,
         extensions: IEditorExtension[],
+        inputEmulator: IEditorInputEmulator,
         options: EditorOptionsType,
         @ILogService logService: ILogService,
+        @IInstantiationService instantiationService: IInstantiationService,
     ) {
         super();
 
@@ -99,7 +103,7 @@ export class EditorView extends Disposable implements IEditorView {
         // the centre that integrates the editor-related functionalities
         const editorElement = document.createElement('div');
         editorElement.className = 'editor-container';
-        this._view = this.__register(new RichTextView(editorElement, this._container, context, initState, extensions));
+        this._view = this.__register(instantiationService.createInstance(RichTextView, editorElement, this._container, context, initState, extensions, inputEmulator));
         
         // forward: start listening events from view model
         this.__registerEventFromViewModel();
@@ -144,9 +148,8 @@ export class EditorView extends Disposable implements IEditorView {
         return this._view.isDestroyed();
     }
 
-    public override dispose(): void {
-        super.dispose();
-        this._container.remove();
+    public type(text: string, from?: number, to?: number): void {
+        this._view.type(text, from, to);
     }
 
     // [private helper methods]
