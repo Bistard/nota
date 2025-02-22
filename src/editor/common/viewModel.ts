@@ -16,6 +16,8 @@ export interface IViewModelChangeEvent {
 
 export interface IEditorViewModel extends Disposable {
 
+    // region - field & event
+
     /**
      * The schema of the editor.
      */
@@ -28,12 +30,13 @@ export interface IEditorViewModel extends Disposable {
 
     readonly onDidContentChange: Register<IViewModelChangeEvent>;
 
+    // region - methods
+
     /**
      * @description Takes the changes created from the editor view, adapt it to
      * model.
      */
     updateViewChange(e: IOnDidContentChangeEvent): void;
-
 
     // region - others
 

@@ -46,8 +46,8 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
         this._nodeProvider = DocumentNodeProvider.create(instantiationService).register();
         this._schema = buildSchema(this._nodeProvider);
         this._docParser = this.__register(new DocumentParser(this._schema, this._nodeProvider, /* options */));
-        this.__register(this._docParser.onLog(event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additional)));
         this._docSerializer = new MarkdownSerializer(this._nodeProvider, { strict: true, escapeExtraCharacters: undefined, });
+        this.__register(this._docParser.onLog(event => defaultLog(logService, event.level, 'EditorView', event.message, event.error, event.additional)));
 
         this.__registerListeners();
     }
@@ -79,7 +79,7 @@ export class EditorViewModel extends Disposable implements IEditorViewModel {
     public updateViewChange(e: IOnDidContentChangeEvent): void {
         this._model.setDirty(true);
         this._viewState = e.view.state;
-        // TODO
+        // TODO: convert View changes to EditorModel changes
     }
 
     public getRegisteredDocumentNodes(): string[] {

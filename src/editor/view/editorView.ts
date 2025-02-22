@@ -18,6 +18,8 @@ export class ViewContext {
     ) {}
 }
 
+// region - EditorView
+
 export class EditorView extends Disposable implements IEditorView {
 
     // [fields]
@@ -99,10 +101,9 @@ export class EditorView extends Disposable implements IEditorView {
         editorElement.className = 'editor-container';
         this._view = this.__register(new RichTextView(editorElement, this._container, context, initState, extensions));
         
-        // forward: start listening events from model
-        this.__registerEventFromModel();
-        this.__registerEventToModel();
-
+        // forward: start listening events from view model
+        this.__registerEventFromViewModel();
+        this.__registerEventToViewModel();
 
         // render
         this._container.appendChild(editorElement);
@@ -116,6 +117,11 @@ export class EditorView extends Disposable implements IEditorView {
 
     get editor(): EditorWindow {
         return this._view;
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        this._container.remove();
     }
 
     public isEditable(): boolean {
@@ -145,7 +151,7 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [private helper methods]
 
-    private __registerEventFromModel(): void {
+    private __registerEventFromViewModel(): void {
         const viewModel = this._ctx.viewModel;
 
         this.__register(viewModel.onDidContentChange(event => {
@@ -154,16 +160,15 @@ export class EditorView extends Disposable implements IEditorView {
         }));
     }
 
-    private __registerEventToModel(): void {
+    private __registerEventToViewModel(): void {
         const viewModel = this._ctx.viewModel;
 
         /**
          * Since in Prosemirror whenever the content of the document changes, 
          * the old {@link ProseEditorState} is no longer valid. Therefore we 
-         * need to inform {@link IEditorModel} to update its state.
+         * need to inform view model to update its state.
          */
-        this.__register(this._view.onDidContentChange(e => {
-            viewModel.updateViewChange(e);
-        }));
+        this.__register(this._view.onDidContentChange(e => viewModel.updateViewChange(e)));
+        this.__register(this._view.onDidSelectionChange(e => viewModel.updateViewChange(e)));
     }
 }
