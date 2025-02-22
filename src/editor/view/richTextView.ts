@@ -59,6 +59,12 @@ export class RichTextView extends EditorViewProxy implements IRichTextView {
         this._editorContainer = overlayContainer;
         this._container = domEventElement;
         this._context = context;
+
+        // init changes back to viewModel
+        context.viewModel.updateViewChange({
+            view: view,
+            transaction: view.state.tr,
+        });
     }
 
     // [public methods]
