@@ -21,6 +21,7 @@ import { AsyncResult, err, ok, Result } from "src/base/common/result";
 import { EditorDragState } from "src/editor/common/cursorDrop";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 import { IEditorViewModel } from "src/editor/common/viewModel";
+import { IFileService } from "src/platform/files/common/fileService";
 
 // region - [interface]
 
@@ -30,14 +31,13 @@ import { IEditorViewModel } from "src/editor/common/viewModel";
 export interface IEditorWidget extends 
     IProseEventBroadcaster, 
     Pick<IEditorModel, 
-        | 'source' 
+        | 'source'
         | 'dirty'
         | 'onDidDirtyChange'
         | 'onDidSave'
         | 'onDidSaveError'
         | 'save'>
 {
-
     /**
      * Is the editor initialized. if not, access to model, viewModel and view 
      * will panic.
@@ -282,6 +282,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
+        @IFileService private readonly fileService: IFileService,
     ) {
         super();
 
@@ -314,28 +315,31 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     // region - [public]
 
     public async open(source: URI): Promise<Result<void, Error>> {
-        const currSource = this._model?.source;
-        if (currSource && URI.equals(source, currSource)) {
+        // same source, do nothing.
+        if (this._model?.source && URI.equals(source, this._model.source)) {
             return ok();
         }
 
+        // cleanup first
         this.__detachData();
-        
+
         // model
-        this._model = this.instantiationService.createInstance(EditorModel, source, this._options.getOptions());
-        const initState = await this._model.build();
-        
+        this._model = this.instantiationService.createInstance(
+            EditorModel, 
+            source, 
+            this._options.getOptions(),
+        );
+        const build = await this._model.build();
+
         // unexpected behavior, we need to let the user know.
-        if (initState.isErr()) {
-            const error = new Error(`Editor: Cannot open editor at '${URI.toFsPath(source)}'. ${errorToMessage(initState.unwrapErr(), false)}`);
-            this._model.dispose();
+        if (build.isErr()) {
+            const error = new Error(`Cannot open editor at '${URI.toFsPath(source)}'. ${errorToMessage(build.unwrapErr(), false)}`);
             return err(error);
         }
-
-        const modelBuild = initState.unwrap();
-        const extensionList = this._extensions.getExtensions();
+        const modelBuild = build.unwrap();
 
         // view-model
+        const extensionList = this._extensions.getExtensions();
         this._viewModel = this.instantiationService.createInstance(
             EditorViewModel, 
             this._model,
