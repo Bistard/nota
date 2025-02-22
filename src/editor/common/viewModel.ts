@@ -30,6 +30,7 @@ export interface IEditorViewModel extends Disposable {
 
     /**
      * @description This will be invoked whenever the view content changes.
+     * // TODO: bad naming, should be described by a specific job, not when the function is called.
      */
     onDidViewContentChange(e: IOnDidContentChangeEvent): void;
 
