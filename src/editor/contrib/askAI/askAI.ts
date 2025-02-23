@@ -38,25 +38,30 @@ export class EditorAskAIExtension extends EditorExtension implements IEditorAskA
         ));
 
         // show event
-        this.__register(this.onTextInput(e => this.tryShowAskAI(e)));
+        this.__register(this.onTextInput(e => {
+            const handled = this.tryShowAskAI(e);
+            if (handled) {
+                e.preventDefault();
+                return true;
+            }
+        }));
     }
 
     // [public methods]
 
-    public tryShowAskAI(e: IOnTextInputEvent): void {
-
+    public tryShowAskAI(e: IOnTextInputEvent): boolean {
         const { text, view } = e;
         const { selection } = view.state;
 
         const isCursor = ProseTools.Cursor.isCursor(selection);
         if (!isCursor) {
-            return;
+            return false;
         }
 
         const isEmptyBlock = ProseTools.Cursor.isOnEmpty(selection);
         const isSlash = text === '@';
         if (!isEmptyBlock || !isSlash) {
-            return;
+            return false;
         }
 
         // show ask-AI palette
@@ -65,5 +70,6 @@ export class EditorAskAIExtension extends EditorExtension implements IEditorAskA
 
         // re-focus back to editor, not the slash command.
         view.focus();
+        return true;
     }
 }
