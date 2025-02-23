@@ -13,6 +13,8 @@ import { IInstantiationService, IServiceProvider } from "src/platform/instantiat
 import { ILogService } from "src/base/common/logger";
 import { registerDefaultSnippet } from "src/editor/contrib/snippet/snippet.contrib";
 
+// region - replacement
+
 /**
  * Defines the replacement behavior for an snippet rule. An snippet rule replacement 
  * can either be:
@@ -27,6 +29,11 @@ export type SnippetReplacement =
 type SnippetReplacementBase = {
     readonly type: string;
 
+    /**
+     * Determines when should the replacement happens.
+     * - `type`: Any keyboard typing will try to match content.
+     * - `enter`: Only when pressing the key `enter` will try to match content.
+     */
     readonly whenReplace: 'type' | 'enter';
 
     /** 
@@ -44,11 +51,15 @@ type SnippetReplacementBase = {
 
 export type MarkSnippetReplacement = SnippetReplacementBase & {
     readonly type: 'mark';
+    
+    /**
+     * Specifies the type of mark to create when replacing. 
+     */
     readonly markType: string;
 
     /**
-     * @description After the mark is applied, should the following typed text
-     * inherit this mark.
+     * After the mark is applied, should the following typed text inherit this 
+     * mark.
      */
     readonly preventMarkInheritance: boolean;
 };
@@ -67,13 +78,6 @@ export type NodeSnippetReplacement = SnippetReplacementBase & {
      * - `ReplaceBlock`: Replace the matched block as a new block-level element.
      */
     readonly wrapStrategy: 'WrapBlock' | 'WrapTextBlock' | 'ReplaceBlock';
-
-    /**
-     * Determines when should the replacement happens.
-     * - `type`: Any keyboard typing will try to match content.
-     * - `enter`: Only when pressing the key `enter` will try to match content.
-     */
-    readonly whenReplace: 'type' | 'enter';
 
     /** 
      * @description A predicate function that determines if the new node 
@@ -127,6 +131,8 @@ export interface IEditorSnippetExtension extends IEditorExtension {
      */
     getAllRules(): ISnippetRule[];
 }
+
+// region - snippet
 
 export class EditorSnippetExtension extends EditorExtension implements IEditorSnippetExtension {
 
