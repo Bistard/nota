@@ -1,143 +1,16 @@
 import { EditorState, Transaction } from "prosemirror-state";
 import { canJoin, findWrapping } from "prosemirror-transform";
 import { panic } from "src/base/common/utilities/panic";
-import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { ProseNodeSelection } from "src/editor/common/proseMirror";
-import { IEditorInputRuleExtension, InputRuleReplacement, MarkInputRuleReplacement, NodeInputRuleReplacement } from "src/editor/contrib/inputRule/inputRule";
-import { CodeBlockAttrs } from "src/editor/model/documentNode/node/codeBlock/codeBlock";
-import { HeadingAttrs } from "src/editor/model/documentNode/node/heading";
+import { SnippetReplacement, MarkSnippetReplacement, NodeSnippetReplacement } from "src/editor/contrib/snippet/snippet";
 import { IInstantiationService } from "src/platform/instantiation/common/instantiation";
 
-export function registerDefaultInputRules(extension: IEditorInputRuleExtension): void {
-
-    extension.registerRule("emDashRule", /--$/, "—");
-    extension.registerRule("ellipsisRule", /\.\.\.$/, "…");
-    extension.registerRule("openDoubleQuoteRule", /(?:^|[\s{[(<'"\u2018\u201C])(")$/, "“");
-    extension.registerRule("closeDoubleQuoteRule", /"$/, "”");
-    extension.registerRule("openSingleQuoteRule", /(?:^|[\s{[(<'"\u2018\u201C])(')$/, "‘");
-    extension.registerRule("closeSingleQuoteRule", /'$/, "’");
-
-    // Heading Rule: Matches "#" followed by a space
-    extension.registerRule("headingRule", /^(#{1,6})\s$/, 
-        {
-            type: 'node',
-            nodeType: TokenEnum.Heading,
-            whenReplace: 'type',
-            getAttribute: (match): HeadingAttrs => {
-                return { 
-                    level: match[1]?.length,
-                };
-            },
-            wrapStrategy: 'WrapTextBlock'
-        }
-    );
-
-    // Blockquote Rule: Matches ">" followed by a space
-    extension.registerRule("blockquoteRule", /^>\s$/, 
-        { 
-            type: 'node',
-            nodeType: TokenEnum.Blockquote,
-            whenReplace: 'type',
-            wrapStrategy: 'WrapBlock'
-        }
-    );
-
-    // Code Block Rule: Matches triple backticks
-    extension.registerRule("codeBlockRule", /^```(.*)\s*$/, 
-        { 
-            type: 'node',
-            nodeType: TokenEnum.CodeBlock,
-            whenReplace: 'enter',
-            getAttribute: (match): CodeBlockAttrs => {
-                const lang = match[1];
-                return {
-                    lang: lang ?? 'Unknown',
-                };
-            },
-            wrapStrategy: 'WrapTextBlock'
-        }
-    );
-
-    extension.registerRule("orderedListRule", /^(\d+)\.\s$/,
-         {
-            type: 'node',
-            nodeType: TokenEnum.List,
-            whenReplace: 'type',
-            getAttribute: (match) => {
-                if (match && match[1]) {
-                    return { ordered: true, start: parseInt(match[1]) };
-                }
-                return { ordered: true, start: 1, };
-            },
-            shouldJoinWithBefore: (match, prevNode) => {
-                if (match && match[1]) {
-                    return prevNode.type.name === TokenEnum.List && prevNode.attrs["order"] + 1 === +match[1];
-                }
-                return false;
-            }, 
-            wrapStrategy: 'WrapBlock'
-         }
-    );
-
-    extension.registerRule("bulletListRule", /^\s*([-+*])\s$/,
-        {
-            type: 'node',
-            nodeType: TokenEnum.List,
-            whenReplace: 'type',
-            wrapStrategy: 'WrapBlock'
-        }
-    );
-
-    extension.registerRule("strongRule", /\*\*(.+?)\*\*$/, {
-        type: 'mark',
-        markType: MarkEnum.Strong,
-        whenReplace: 'type',
-        preventMarkInheritance: true,
-    });
-    
-    extension.registerRule("emphasisRule", /\*(.+?)\*$/, {
-        type: 'mark',
-        markType: MarkEnum.Em,
-        whenReplace: 'type',
-        preventMarkInheritance: true,
-    });
-    
-    const ESCAPE_REGEX = /`(?![`]{2})((?:\\`|[^`])+?)`(?![`]{2})$/;
-    extension.registerRule("codespanRule", ESCAPE_REGEX, {
-        type: 'mark',
-        markType: MarkEnum.Codespan,
-        whenReplace: 'type',
-        preventMarkInheritance: true,
-    });
-    
-    extension.registerRule("mathBlockRule", /^\$\$$/,
-        {
-            type: 'node',
-            nodeType: TokenEnum.MathBlock,
-            whenReplace: 'enter',
-            wrapStrategy: 'ReplaceBlock',
-        }
-    );
-
-    extension.registerRule("mathInlineRule", /\$(.+?)\$$/, {
-        type: 'node',
-        nodeType: TokenEnum.MathInline,
-        whenReplace: 'type',
-        wrapStrategy: 'ReplaceBlock',
-        getAttribute: (matched) => {
-            return {
-                text: matched[1],
-            };
-        }
-    });
-}
-
 /**
- * Represents an individual input rule.
+ * Represents an individual snippet rule.
  */
-export interface IInputRule {
+export interface ISnippetRule {
     /** 
-     * Unique identifier for the input rule.
+     * Unique identifier for the snippet rule.
      */
     readonly id: string;
 
@@ -151,23 +24,23 @@ export interface IInputRule {
      * Defines the replacement strategy, either as a string or as a configuration 
      * object that specifies the `nodeType` to wrap around the matched text.
      */
-    readonly replacement: InputRuleReplacement;
+    readonly replacement: SnippetReplacement;
 }
 
 /**
  * @internal 
- * Internal representation of an input rule.
+ * Internal representation of an snippet rule.
  */
-export class InputRule implements IInputRule {
+export class SnippetRule implements ISnippetRule {
 
     // [fields]
 
     public readonly id: string;
     public readonly pattern: RegExp;
-    public readonly replacement: InputRuleReplacement;
+    public readonly replacement: SnippetReplacement;
 
     private readonly _replacementString?: string;
-    private readonly _replacementObject?: Exclude<InputRuleReplacement, string>;
+    private readonly _replacementObject?: Exclude<SnippetReplacement, string>;
 
     public readonly onMatch: (
         state: EditorState,
@@ -178,7 +51,7 @@ export class InputRule implements IInputRule {
 
     // [constructor]
 
-    constructor(id: string, pattern: RegExp, replacement: InputRuleReplacement, private readonly instantiationService: IInstantiationService) {
+    constructor(id: string, pattern: RegExp, replacement: SnippetReplacement, private readonly instantiationService: IInstantiationService) {
         this.id = id;
         this.pattern = pattern;
         this.replacement = replacement;
@@ -190,18 +63,18 @@ export class InputRule implements IInputRule {
         else if (this.replacement.type === 'node') {
             this._replacementObject = this.replacement;
             if (this.replacement.wrapStrategy === 'WrapTextBlock') {
-                this.onMatch = this.__textblockTypeInputRule;
+                this.onMatch = this.__textblockTypeSnippetRule;
             } 
             else if (this.replacement.wrapStrategy === 'ReplaceBlock') {
-                this.onMatch = this.__replaceBlockInputRule;
+                this.onMatch = this.__replaceBlockSnippetRule;
             }
             else {
-                this.onMatch = this.__wrappingInputRule;
+                this.onMatch = this.__wrappingSnippetRule;
             }
         }
         else if (this.replacement.type === 'mark') {
             this._replacementObject = this.replacement;
-            this.onMatch = this.__markInputRule;
+            this.onMatch = this.__markSnippetRule;
         } else {
             panic(`Invalid replacement type: ${this.replacement['type']}`);
         }
@@ -229,13 +102,13 @@ export class InputRule implements IInputRule {
         return state.tr.insertText(insert, start, end);
     }
 
-    private __markInputRule(
+    private __markSnippetRule(
         state: EditorState,
         match: RegExpExecArray,
         start: number,
         end: number
     ): Transaction | null {
-        const replacement = this.replacement as MarkInputRuleReplacement;
+        const replacement = this.replacement as MarkSnippetReplacement;
         const markType = state.schema.marks[replacement.markType];
         if (!markType) {
             console.warn(`Mark type "${replacement.markType}" not found`);
@@ -258,16 +131,16 @@ export class InputRule implements IInputRule {
         return tr;
     }
     
-    private __wrappingInputRule(
+    private __wrappingSnippetRule(
         state: EditorState,
         match: RegExpExecArray,
         start: number,
         end: number
     ): Transaction | null {
-        const replacement = this._replacementObject as NodeInputRuleReplacement;
+        const replacement = this._replacementObject as NodeSnippetReplacement;
         const nodeType = state.schema.nodes[replacement.nodeType];
         if (!nodeType) {
-            console.warn(`[EditorInputRuleExtension] Node type "${replacement.nodeType}" not found in schema.`);
+            console.warn(`[EditorSnippetExtension] Node type "${replacement.nodeType}" not found in schema.`);
             return null;
         }
     
@@ -295,16 +168,16 @@ export class InputRule implements IInputRule {
         return tr;
     }
     
-    private __textblockTypeInputRule(
+    private __textblockTypeSnippetRule(
         state: EditorState,
         match: RegExpExecArray,
         start: number,
         end: number
     ): Transaction | null {
-        const replacement = this._replacementObject as NodeInputRuleReplacement;
+        const replacement = this._replacementObject as NodeSnippetReplacement;
         const nodeType = state.schema.nodes[replacement.nodeType];
         if (!nodeType) {
-            console.warn(`[EditorInputRuleExtension] Node type "${replacement.nodeType}" not found in schema.`);
+            console.warn(`[EditorSnippetExtension] Node type "${replacement.nodeType}" not found in schema.`);
             return null;
         }
     
@@ -319,13 +192,13 @@ export class InputRule implements IInputRule {
             .setBlockType(start, start, nodeType, attrs);
     }
 
-    private __replaceBlockInputRule(
+    private __replaceBlockSnippetRule(
         state: EditorState,
         match: RegExpExecArray,
         start: number,
         end: number
     ): Transaction | null {
-        const replacement = this.replacement as NodeInputRuleReplacement;
+        const replacement = this.replacement as NodeSnippetReplacement;
         const nodeType = state.schema.nodes[replacement.nodeType];
         if (!nodeType) {
             console.warn(`Node type "${replacement.nodeType}" not found`);

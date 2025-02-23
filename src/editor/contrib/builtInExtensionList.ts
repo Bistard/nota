@@ -2,7 +2,7 @@ import { Constructor } from "src/base/common/utilities/type";
 import { EditorExtension } from "src/editor/common/editorExtension";
 import { EditorCommandExtension } from "src/editor/contrib/command/command";
 import { EditorAutoSaveExtension } from "src/editor/contrib/autoSave";
-import { EditorInputRuleExtension } from "src/editor/contrib/inputRule/inputRule";
+import { EditorSnippetExtension } from "src/editor/contrib/snippet/snippet";
 import { EditorDragAndDropExtension } from "src/editor/contrib/dragAndDrop/dragAndDrop";
 import { EditorBlockHandleExtension } from "src/editor/contrib/blockHandle/blockHandle";
 import { EditorBlockPlaceHolderExtension } from "src/editor/contrib/blockPlaceHolder/blockPlaceHolder";
@@ -13,7 +13,7 @@ import { EditorAskAIExtension } from "src/editor/contrib/askAI/askAI";
 export const enum EditorExtensionIDs {
     Command   = 'editor-command-extension',
     AutoSave  = 'editor-autosave-extension',
-    InputRule = 'editor-inputRule-extension',
+    Snippet = 'editor-snippet-extension',
     History   = 'editor-history-extension',
     DragAndDrop = 'editor-drag-and-drop-extension',
     BlockHandle = 'editor-block-handle-extension',
@@ -27,7 +27,7 @@ export const enum EditorExtensionIDs {
  */
 export function getBuiltInExtension(): { id: string, ctor: Constructor<EditorExtension> }[] {
     return [
-        { id: EditorExtensionIDs.InputRule, ctor: EditorInputRuleExtension },
+        { id: EditorExtensionIDs.Snippet, ctor: EditorSnippetExtension },
         { id: EditorExtensionIDs.AutoSave, ctor: EditorAutoSaveExtension },
         { id: EditorExtensionIDs.Command, ctor: EditorCommandExtension },
         { id: EditorExtensionIDs.DragAndDrop, ctor: EditorDragAndDropExtension },

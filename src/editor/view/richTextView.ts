@@ -82,6 +82,9 @@ export class RichTextView extends EditorViewProxy implements IRichTextView {
     // [public methods]
 
     public type(text: string, from?: number, to?: number): void {
+        
+        // FIX: after snippet is based on state machine, refactor this code.
+        
         let pointer = 0;
         let i = 0;
         for (; i < text.length; i++) {
