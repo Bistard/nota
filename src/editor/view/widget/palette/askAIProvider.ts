@@ -24,8 +24,10 @@ export class AskAIProvider {
                 id: name,
                 enabled: true,
                 callback: () => {
-                    
-                    // TEST
+                    /**
+                     * // TEST
+                     */
+
                     const content = this.editorWidget.model.getRawContent();
 
                     let responseContent = '';
@@ -46,7 +48,9 @@ export class AskAIProvider {
                             stream: true,
                         }, (response) => {
                             if (response.primaryMessage.content) {
+                                this.editorWidget.type(response.primaryMessage.content);
                                 responseContent += response.primaryMessage.content;
+                                console.log(response.primaryMessage.content);
                             }
                         }).unwrap();
 

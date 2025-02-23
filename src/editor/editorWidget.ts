@@ -454,6 +454,7 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     private __createView(extensions: EditorExtension[], viewModelData: IViewModelBuildData): EditorView {
         const inputEmulator: IEditorInputEmulator = {
             type: e => this._onTextInput.fire(e),
+            keydown: e => this._onKeydown.fire(e),
         };
         
         return this.instantiationService.createInstance(

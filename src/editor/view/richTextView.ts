@@ -6,6 +6,7 @@ import { EditorViewProxy, IEditorViewProxy } from "src/editor/view/editorViewPro
 import { IEditorExtension } from 'src/editor/common/editorExtension';
 import { IEditorInputEmulator } from 'src/editor/view/inputEmulator';
 import { IOnTextInputEvent } from 'src/editor/view/proseEventBroadcaster';
+import { createStandardKeyboardEvent } from 'src/base/common/keyboard';
 
 /**
  * An interface only for {@link RichTextView}.
@@ -81,11 +82,51 @@ export class RichTextView extends EditorViewProxy implements IRichTextView {
     // [public methods]
 
     public type(text: string, from?: number, to?: number): void {
+        let pointer = 0;
+        let i = 0;
+        for (; i < text.length; i++) {
+            const c = text[i]!;
+            if (c === ' ' || c === '\n') {
+                const textBefore = text.slice(pointer, i);
+                this.__type(textBefore, from, to);
+                this.__type(c, from, to);
+                pointer = i + 1;
+            }
+        }
+
+        const lastText = text.slice(pointer, i);
+        if (lastText) {
+            this.__type(lastText, from, to);
+        }
+    }
+
+    // [private helper methods]
+    
+    private __type(text: string, from?: number, to?: number): void {
+        // case 1: typing '\n', we emulate pressing `enter` on keydown.
+        if (text === '\n') {
+            this._inputEmulator.keydown({
+                view: this._view,
+                event: createStandardKeyboardEvent(new KeyboardEvent('keydown', {
+                    key: 'Enter',
+                    code: 'Enter',
+                    keyCode: 13,
+                    charCode: 13,
+                    which: 13,
+                    bubbles: true,
+                    cancelable: true,
+                })),
+                preventDefault: () => {},
+            });
+            return;
+        }
+
+        // general case
         const { state } = this._view;
         from ??= state.selection.from;
         to   ??= state.selection.to;
-        let prevented = false;
 
+        let prevented = false;
         const event: IOnTextInputEvent = {
             view: this._view, 
             text, 
@@ -98,11 +139,11 @@ export class RichTextView extends EditorViewProxy implements IRichTextView {
             return;
         }
 
+        // default behavior on typing
         const tr = state.tr.insertText(text, from, to);
         const newState = state.apply(tr);
 
+        // render it
         this.render(newState);
     }
-
-    // [private helper methods]
 }

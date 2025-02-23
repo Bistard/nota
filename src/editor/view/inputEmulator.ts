@@ -1,4 +1,4 @@
-import { IOnTextInputEvent } from "src/editor/view/proseEventBroadcaster";
+import { IOnKeydownEvent, IOnTextInputEvent } from "src/editor/view/proseEventBroadcaster";
 
 
 /**
@@ -18,4 +18,5 @@ import { IOnTextInputEvent } from "src/editor/view/proseEventBroadcaster";
  */
 export interface IEditorInputEmulator {
     type(event: IOnTextInputEvent): void;
+    keydown(event: IOnKeydownEvent): void;
 }
