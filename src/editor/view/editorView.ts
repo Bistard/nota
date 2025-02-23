@@ -10,6 +10,7 @@ import { IEditorViewModel } from 'src/editor/common/viewModel';
 import { RichTextView } from 'src/editor/view/richTextView';
 import { IEditorInputEmulator } from 'src/editor/view/inputEmulator';
 import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { KeyCode } from 'src/base/common/keyboard';
 
 export class ViewContext {
     constructor(
@@ -150,6 +151,10 @@ export class EditorView extends Disposable implements IEditorView {
 
     public type(text: string, from?: number, to?: number): void {
         this._view.type(text, from, to);
+    }
+
+    public keydown(code: KeyCode, alt?: boolean, shift?: boolean, ctrl?: boolean, meta?: boolean): void {
+        this._view.keydown(code, alt, shift, ctrl, meta);
     }
 
     // [private helper methods]

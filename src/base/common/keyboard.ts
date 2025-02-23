@@ -72,6 +72,20 @@ export namespace Keyboard {
     }
 
     /**
+     * @description Returns the {@link KeyCode} corresponding browser key code.
+     * @param strKeyOrKeyCode The string form of the keycode or {@link KeyCode}.
+     */
+    export function toKeyCodeBrowser(strKeyOrKeyCode: string | number): number {
+        
+        const keyCode = typeof strKeyOrKeyCode === 'string' 
+            ? keyCodeStringMap.getKeyCode(strKeyOrKeyCode) 
+            : strKeyOrKeyCode;
+
+        const keyCodeBrowser = keyNumberMap.map[keyCode];
+        return keyCodeBrowser ?? -1;
+    }
+
+    /**
      * @description Determines if two {@link IStandardKeyboardEvent} are the same.
      */
     export function sameEvent(event1: IStandardKeyboardEvent, event2: IStandardKeyboardEvent): boolean {
@@ -158,6 +172,9 @@ export function createStandardKeyboardEvent(event: KeyboardEvent): IStandardKeyb
 /**
  * The standard key code used to represent the keyboard pressing which may from 
  * different operating systems.
+ * 
+ * @note This is NOT the same keycode used in browser event. For example, 
+ *       `KeyCode.Enter` is `60`, but browser uses `13` to represent `Enter`.
  */
 export const enum KeyCode {
     
@@ -271,10 +288,17 @@ export const enum KeyCode {
 }
 
 /**
- * @internal A mapping from the numerical value to {@link KeyCode}.
+ * @internal A mapping from the browser keycode to {@link KeyCode}.
  */
 class KeyCodeMap {
     public map: { [keyCode: number]: KeyCode } = new Array(250);
+}
+
+/**
+ * @internal A mapping from our {@link KeyCode} to browser keycode.
+ */
+class KeyNumberMap {
+    public map: { [keyCode: number]: number } = new Array(250);
 }
 
 /**
@@ -302,8 +326,8 @@ class KeyCodeStringMap {
     }
 }
 
-/** @internal */
 const keyCodeMap = new KeyCodeMap();
+const keyNumberMap = new KeyNumberMap();
 const keyCodeStringMap = new KeyCodeStringMap();
 
 /** @internal */
@@ -406,6 +430,7 @@ for (const [keycode, keycodeNum, keycodeStr] of <[number, number, string][]>
     [KeyCode.ContextMenu,   93, 'ContextMenu'],
 ]) {
     keyCodeMap.map[keycodeNum] = keycode;
+    keyNumberMap.map[keycode] = keycodeNum;
     keyCodeStringMap.set(keycode, keycodeStr);
 }
 

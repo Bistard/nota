@@ -22,6 +22,7 @@ import { EditorDragState } from "src/editor/common/cursorDrop";
 import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 import { IEditorViewModel, IViewModelBuildData } from "src/editor/common/viewModel";
 import { IEditorInputEmulator } from "src/editor/view/inputEmulator";
+import { KeyCode } from "src/base/common/keyboard";
 
 // region - [interface]
 
@@ -402,6 +403,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     public type(text: string, from?: number, to?: number): void {
         this.view.type(text, from, to);
+    }
+
+    public keydown(code: KeyCode, alt?: boolean, shift?: boolean, ctrl?: boolean, meta?: boolean): void {
+        this.view.keydown(code, alt, shift, ctrl, meta);
     }
 
     // region - [private]

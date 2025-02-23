@@ -6,7 +6,7 @@ import { EditorViewProxy, IEditorViewProxy } from "src/editor/view/editorViewPro
 import { IEditorExtension } from 'src/editor/common/editorExtension';
 import { IEditorInputEmulator } from 'src/editor/view/inputEmulator';
 import { IOnTextInputEvent } from 'src/editor/view/proseEventBroadcaster';
-import { createStandardKeyboardEvent } from 'src/base/common/keyboard';
+import { createStandardKeyboardEvent, Keyboard, KeyCode } from 'src/base/common/keyboard';
 
 /**
  * An interface only for {@link RichTextView}.
@@ -103,24 +103,45 @@ export class RichTextView extends EditorViewProxy implements IRichTextView {
         }
     }
 
+    public keydown(code: KeyCode, alt?: boolean, shift?: boolean, ctrl?: boolean, meta?: boolean): void {
+        const key = Keyboard.toString(code);
+        const keyCode = Keyboard.toKeyCodeBrowser(code);
+
+        const browserEvent = new KeyboardEvent('keydown', {
+            key: key,
+            code: key,
+            
+            keyCode: keyCode,
+            charCode: keyCode,
+            which: keyCode,
+            
+            altKey: alt,
+            shiftKey: shift,
+            ctrlKey: ctrl,
+            metaKey: meta,
+            
+            bubbles: true,
+            cancelable: true,
+        });
+
+        this._inputEmulator.keydown({
+            view: this._view,
+            event: createStandardKeyboardEvent(browserEvent),
+            preventDefault: () => {},
+        });
+    }
+
     // [private helper methods]
     
     private __type(text: string, from?: number, to?: number): void {
+        // case 0: typing nothing.
+        if (text === '') {
+            return;
+        }
+
         // case 1: typing '\n', we emulate pressing `enter` on keydown.
         if (text === '\n') {
-            this._inputEmulator.keydown({
-                view: this._view,
-                event: createStandardKeyboardEvent(new KeyboardEvent('keydown', {
-                    key: 'Enter',
-                    code: 'Enter',
-                    keyCode: 13,
-                    charCode: 13,
-                    which: 13,
-                    bubbles: true,
-                    cancelable: true,
-                })),
-                preventDefault: () => {},
-            });
+            this.keydown(KeyCode.Enter);
             return;
         }
 
