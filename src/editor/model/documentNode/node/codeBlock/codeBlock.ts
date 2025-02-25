@@ -36,6 +36,7 @@ export class CodeBlock extends DocumentNode<EditorTokens.CodeBlock> {
             marks: '', // disallow any marks
             code: true,
             defining: true,
+            content: 'text*',
             attrs: <GetProseAttrs<CodeBlockAttrs>>{
                 view: { default: CodeBlock.createView('') },
                 lang: { default: '' },
