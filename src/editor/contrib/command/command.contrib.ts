@@ -6,13 +6,14 @@ import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection, ProseContentMatch, ProseMarkType, ProseAttrs, ProseSelectionRange, ProseNodeType, ProseResolvedPos, ProseCursor } from "src/editor/common/proseMirror";
 import { ProseTools } from "src/editor/common/proseUtility";
 import { EditorSchema } from "src/editor/model/schema";
-import { Command, ICommandSchema, buildChainCommand } from "src/platform/command/common/command";
+import { Command, ICommandSchema } from "src/platform/command/common/command";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { EditorContextKeys } from "src/editor/common/editorContextKeys";
 import { IS_MAC } from "src/base/common/platform";
 import { redo, undo } from "prosemirror-history";
 import { INotificationService } from "src/workbench/services/notification/notification";
+import { buildEditorCommand, EditorCommandBase } from "src/editor/contrib/command/editorCommand";
 
 /**
  * [FILE OUTLINE]
@@ -31,7 +32,7 @@ const whenEditorWritable = CreateContextKeyExpr.And(EditorContextKeys.editorFocu
 export function registerBasicEditorCommands(extension: IEditorCommandExtension, logService: ILogService): void {
     __registerToggleMarkCommands(extension, logService);
     __registerHeadingCommands(extension, logService);
-    __registerOtherCommands(extension);
+    __registerBasicCommands(extension);
 }
 
 function getPlatformShortcut(ctrl: string, meta: string): string {
@@ -103,8 +104,8 @@ function __registerHeadingCommands(extension: IEditorCommandExtension, logServic
     }
 }
 
-function __registerOtherCommands(extension: IEditorCommandExtension): void {
-    extension.registerCommand(__buildEditorCommand(
+function __registerBasicCommands(extension: IEditorCommandExtension): void {
+    extension.registerCommand(buildEditorCommand(
             { 
                 id: 'editor-esc', 
                 when: whenEditorReadonly,
@@ -116,7 +117,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
         ['Escape']
     );
 
-    extension.registerCommand(__buildEditorCommand(
+    extension.registerCommand(buildEditorCommand(
             { 
                 id: 'editor-enter', 
                 when: whenEditorWritable,
@@ -131,7 +132,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
         ['Enter']
     );
         
-    extension.registerCommand(__buildEditorCommand(
+    extension.registerCommand(buildEditorCommand(
             { 
                 id: 'editor-backspace', 
                 when: whenEditorWritable,
@@ -145,7 +146,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
         ['Backspace']
     );
 
-    extension.registerCommand(__buildEditorCommand(
+    extension.registerCommand(buildEditorCommand(
             {
                 id: 'editor-delete',
                 when: whenEditorWritable,
@@ -159,7 +160,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
         ['Delete', getPlatformShortcut('Ctrl+Delete', 'Meta+Delete')]
     );
 
-    extension.registerCommand(__buildEditorCommand(
+    extension.registerCommand(buildEditorCommand(
             {
                 id: 'editor-select-all',
                 when: whenEditorReadonly,
@@ -172,7 +173,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
     );
     
     // @fix Doesn't work with CM, guess bcz CM is focused but PM is not.
-    extension.registerCommand(__buildEditorCommand(
+    extension.registerCommand(buildEditorCommand(
             {
                 id: 'editor-exit-code-block',
                 when: whenEditorReadonly,
@@ -184,7 +185,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
         [getPlatformShortcut('Ctrl+Enter', 'Meta+Enter')]
     );
 
-    extension.registerCommand(__buildEditorCommand(
+    extension.registerCommand(buildEditorCommand(
             {
                 id: 'editor-insert-hard-break',
                 when: whenEditorWritable,
@@ -197,7 +198,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
         ['Shift+Enter', getPlatformShortcut('Ctrl+Enter', 'Meta+Enter')]
     );
     
-    extension.registerCommand(__buildEditorCommand(
+    extension.registerCommand(buildEditorCommand(
             {
                 id: 'editor-save',
                 when: whenEditorWritable,
@@ -209,7 +210,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
         [getPlatformShortcut('Ctrl+S', 'Meta+S')]
     );
     
-    extension.registerCommand(__buildEditorCommand(
+    extension.registerCommand(buildEditorCommand(
             {
                 id: 'editor-undo',
                 when: whenEditorWritable,
@@ -221,7 +222,7 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
         [getPlatformShortcut('Ctrl+Z', 'Meta+Z')]
     );
     
-    extension.registerCommand(__buildEditorCommand(
+    extension.registerCommand(buildEditorCommand(
             {
                 id: 'editor-redo',
                 when: whenEditorWritable,
@@ -232,21 +233,6 @@ function __registerOtherCommands(extension: IEditorCommandExtension): void {
         ),
         [getPlatformShortcut('Ctrl+Shift+Z', 'Meta+Shift+Z')]
     );
-}
-
-function __buildEditorCommand(schema: ICommandSchema, ctors: (typeof Command<any>)[]): Command {
-    if (ctors.length === 1) {
-        const command = ctors[0]!;
-        return new command(schema);
-    }
-    return buildChainCommand(schema, ctors);
-}
-
-/**
- * @class A base class for every command in the {@link EditorCommandsBasic}.
- */
-export abstract class EditorCommandBase extends Command {
-    public abstract override run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean>;
 }
 
 /**
