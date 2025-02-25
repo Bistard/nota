@@ -82,6 +82,7 @@ export class RichTextView extends EditorViewProxy implements IRichTextView {
     // [public methods]
 
     public type(text: string, from?: number, to?: number): void {
+        // TODO: perf
         for (const c of text) {
             this.__type(c, from, to);
         }
