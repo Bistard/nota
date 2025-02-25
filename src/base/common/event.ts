@@ -599,6 +599,13 @@ export class RelayEmitter<T, S extends EventStrategy = EventStrategy.FIFO> exten
             this._inputUnregister.register(newInputRegister(e => this._relay.fire(e)));
         }
     }
+
+    /**
+     * @description Gives client a chance to emulate event.
+     */
+    public fire(event: T): void {
+        this._relay.fire(event);
+    }
 }
 
 // region - NodeEventEmitter
