@@ -1,6 +1,6 @@
 import type { IO } from "src/base/common/utilities/functional";
 import { LinkedList } from "src/base/common/structures/linkedList";
-import { Disposable, DisposableBucket, IDisposable, isDisposable, LooseDisposableBucket, toDisposable, untrackDisposable } from "src/base/common/dispose";
+import { Disposable, DisposableBucket, IDisposable, isDisposable, LooseDisposableBucket, safeDisposable, toDisposable, untrackDisposable } from "src/base/common/dispose";
 import { ErrorHandler } from "src/base/common/error";
 import { panic } from "src/base/common/utilities/panic";
 import { PriorityQueue } from "src/base/common/structures/priorityQueue";
@@ -184,7 +184,7 @@ export interface IEmitterOptions {
 
 // region - AbstractEmitter
 
-interface IListenerContainer<TListener> extends Iterable<TListener> {
+interface IListenerContainer<TListener> extends Iterable<TListener>, IDisposable {
     size(): number;
     add(listener: TListener): any;
     remove(token: any): void;
@@ -355,6 +355,7 @@ export class Emitter<T> extends AbstractEmitter<T, Register<T>, __Listener<T>> i
             empty: () => list.empty(),
             size: () => list.size(),
             [Symbol.iterator]: list[Symbol.iterator].bind(list),
+            dispose: () => list.clear(),
         };
     }
 }
@@ -598,6 +599,13 @@ export class RelayEmitter<T, S extends EventStrategy = EventStrategy.FIFO> exten
             this._inputUnregister.register(newInputRegister(e => this._relay.fire(e)));
         }
     }
+
+    /**
+     * @description Gives client a chance to emulate event.
+     */
+    public fire(event: T): void {
+        this._relay.fire(event);
+    }
 }
 
 // region - NodeEventEmitter
@@ -763,9 +771,9 @@ export class PriorityEmitter<T> extends AbstractEmitter<T, Register<T>, __Priori
     }
 
     protected override __constructContainer(): IListenerContainer<__PriorityListener<T>> {
-        const pq = new PriorityQueue<__PriorityListener<T>>(
+        const pq = safeDisposable(new PriorityQueue<__PriorityListener<T>>(
             (a, b) => b.priority - a.priority // higher number, higher priority
-        );
+        ));
         return {
             add: (listener) => { pq.enqueue(listener); return listener; },
             remove: (token) => pq.remove(token),
@@ -773,6 +781,7 @@ export class PriorityEmitter<T> extends AbstractEmitter<T, Register<T>, __Priori
             empty: () => pq.empty(),
             size: () => pq.size(),
             [Symbol.iterator]: pq[Symbol.iterator].bind(pq),
+            dispose: () => pq.dispose(),
         };
     }
 }

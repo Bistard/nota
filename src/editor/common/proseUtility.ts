@@ -57,6 +57,7 @@ export namespace ProseTools {
         export const isEmptyTextBlock = __isEmptyTextBlock;
         export const isInline = __isInline;
         export const isLeaf = __isLeaf;
+        export const hasChild = __hasChild;
         export const iterateChild = __iterateChild;
 
         export const getNextValidDefaultNodeTypeAt = __getNextValidDefaultNodeTypeAt;
@@ -185,6 +186,10 @@ function __isInline(node: ProseNode): boolean {
  */
 function __isLeaf(node: ProseNode): boolean {
     return node.isLeaf;
+}
+
+function __hasChild(node: ProseNode): boolean {
+    return !!node.childCount;
 }
 
 function *__iterateChild(node: ProseNode): IterableIterator<{ node: ProseNode, offset: number, index: number }> {

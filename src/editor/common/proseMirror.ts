@@ -145,7 +145,7 @@ declare module 'prosemirror-model' {
          * console.log(pos.before(1)); // Returns 8 (before the second paragraph starts)
          * ```
          */
-        after(depth?: number | null): number;
+        before(depth?: number | null): number;
 
         /**
          * @description Returns the absolute position immediately **after** the 
@@ -173,7 +173,7 @@ declare module 'prosemirror-model' {
          * console.log(pos.after(1)); // Returns 16 (after the paragraph has closed)
          * ```
          */
-        before(depth?: number | null): number;
+        after(depth?: number | null): number;
 
         /**
          * @description The exact same API as {@link getParentNodeAt}. Except 

@@ -95,8 +95,8 @@ export class EditorAutoSaveExtension extends EditorExtension implements IEditorA
     }
 
     private __registerEditorStateListener(): void {
-        this.__register(this._editorWidget.onDidStateChange(() => {
-            if (this._autoSave) {
+        this.__register(this._editorWidget.onDidDirtyChange((isDirty) => {
+            if (isDirty && this._autoSave) {
                 this._scheduler.schedule(undefined, this._autoSaveDelay);
             }
         }));

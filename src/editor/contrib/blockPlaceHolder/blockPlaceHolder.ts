@@ -1,9 +1,9 @@
-import "src/editor/contrib/blockPlaceHolderExtension/blockPlaceHolder.scss";
+import "src/editor/contrib/blockPlaceHolder/blockPlaceHolder.scss";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
 import { ProseTools } from "src/editor/common/proseUtility";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { IEditorWidget } from "src/editor/editorWidget";
-import { ProseDecoration, ProseDecorationSet, ProseDecorationSource, ProseEditorState, ProseEditorView } from "src/editor/common/proseMirror";
+import { ProseDecoration, ProseDecorationSet, ProseDecorationSource, ProseEditorState } from "src/editor/common/proseMirror";
 import { I18nService, II18nService } from "src/platform/i18n/browser/i18nService";
 
 interface IEditorBlockPlaceHolderExtension extends IEditorExtension {
@@ -44,12 +44,14 @@ export class EditorBlockPlaceHolderExtension extends EditorExtension implements 
             return null;
         }
 
-        const isEmptyBlock = ProseTools.Cursor.isOnEmpty(selection);
-        if (!isEmptyBlock) {
+        const cursor = selection.$from;
+
+        const anyChild = ProseTools.Node.hasChild(cursor.parent);
+        if (anyChild) {
             return null;
         }
-        
-        const blockPos = selection.$from.before();
+
+        const blockPos = cursor.before();
         const blockNode = state.doc.nodeAt(blockPos);
         if (!blockNode) {
             return null;

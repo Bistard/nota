@@ -8,72 +8,101 @@ import { Dictionary, isString } from "src/base/common/utilities/type";
 import { ProseEditorView, ProseNode, ProseResolvedPos, ProseTextSelection } from "src/editor/common/proseMirror";
 import { KeyCode } from "src/base/common/keyboard";
 import { TokenEnum } from "src/editor/common/markdown";
-import { IInputRule, InputRule, registerDefaultInputRules } from "src/editor/contrib/inputRuleExtension/editorInputRules";
+import { ISnippetRule, SnippetRule } from "src/editor/contrib/snippet/snippetRule";
 import { IInstantiationService, IServiceProvider } from "src/platform/instantiation/common/instantiation";
+import { ILogService } from "src/base/common/logger";
+import { registerDefaultSnippet } from "src/editor/contrib/snippet/snippet.contrib";
+
+// region - replacement
 
 /**
- * Defines the replacement behavior for an input rule. An input rule replacement 
+ * Defines the replacement behavior for an snippet rule. An snippet rule replacement 
  * can either be:
  *   1. a direct string replacement or 
  *   2. an object that specifies complicated replacement rule.
  */
-export type InputRuleReplacement = 
-    | string
-    | {
-        /** 
-         * Specifies the type of node to create when replacing. 
-         */
-        readonly nodeType: string | TokenEnum;
+export type SnippetReplacement = 
+    | string 
+    | MarkSnippetReplacement 
+    | NodeSnippetReplacement;
 
-        /**
-         * Determines the wrapping strategy to use when applying the input rule.
-         * - `WrapBlock`: Wraps the matched content as a block-level element.
-         * - `WrapTextBlock`: Wraps the matched content as a text block within a block-level container.
-         */
-        readonly wrapStrategy: 'WrapBlock' | 'WrapTextBlock';
-
-        /**
-         * Determines when should the replacement happens.
-         * - `type`: Any keyboard typing will try to match content.
-         * - `enter`: Only when pressing the key `enter` will try to match content.
-         */
-        readonly whenReplace: 'type' | 'enter';
-
-        /** 
-         * @description A function that generates node attributes based on the 
-         * matched text. The attributes will eventually used for constructing 
-         * the node instance ({@link ProseNode}).
-         * @param matchedText The matched text.
-         * @returns A dictionary of attributes for the new node.
-         * 
-         * @note If not defined, the attributes of the generated node would be `null`.
-         */
-        readonly getNodeAttribute?: (matchedText: RegExpExecArray, serviceProvider: IServiceProvider) => Dictionary<string, any>;
-
-        /** 
-         * @description A predicate function that determines if the new node 
-         * should join with the preceding node.
-         * @param matchedText The matched text.
-         * @param prevNode The previous node in the document, used to determine 
-         *                 if a join is appropriate.
-         * @returns Returns `true` if the new node should join with `prevNode`, 
-         *          otherwise `false`.
-         * 
-         * @note If not defined, as long as {@link canJoin} returns true, the 
-         *       node will be joined with previous node.
-         */
-        readonly shouldJoinWithBefore?: (matchedText: RegExpExecArray, prevNode: ProseNode) => boolean;
-    };
-
-/**
- * An interface only for {@link EditorInputRuleExtension}.
- */
-export interface IEditorInputRuleExtension extends IEditorExtension {
-
-    readonly id: EditorExtensionIDs.InputRule;
+type SnippetReplacementBase = {
+    readonly type: string;
 
     /**
-     * @description Registers a new input rule.
+     * Determines when should the replacement happens.
+     * - `type`: Any keyboard typing will try to match content.
+     * - `enter`: Only when pressing the key `enter` will try to match content.
+     */
+    readonly whenReplace: 'type' | 'enter';
+
+    /** 
+     * @description A function that generates node/mark attributes based on the 
+     * matched text. The attributes will eventually used for constructing the 
+     * node/mark instance ({@link ProseNode}).
+     * @param matchedText The matched text.
+     * @returns A dictionary of attributes for the new node/mark.
+     * 
+     * @note If not defined, the attributes of the generated node/mark would be 
+     *       `null`.
+     */
+    readonly getAttribute?: (matchedText: RegExpExecArray, serviceProvider: IServiceProvider) => Dictionary<string, any>;
+};
+
+export type MarkSnippetReplacement = SnippetReplacementBase & {
+    readonly type: 'mark';
+    
+    /**
+     * Specifies the type of mark to create when replacing. 
+     */
+    readonly markType: string;
+
+    /**
+     * After the mark is applied, should the following typed text inherit this 
+     * mark.
+     */
+    readonly preventMarkInheritance: boolean;
+};
+
+export type NodeSnippetReplacement = SnippetReplacementBase & {
+    readonly type: 'node';
+    /** 
+     * Specifies the type of node to create when replacing. 
+     */
+    readonly nodeType: string | TokenEnum;
+
+    /**
+     * Determines the wrapping strategy to use when applying the snippet rule.
+     * - `WrapBlock`: Wraps the matched content as a block-level element.
+     * - `WrapTextBlock`: Wraps the matched content as a text block within a block-level container.
+     * - `ReplaceBlock`: Replace the matched block as a new block-level element.
+     */
+    readonly wrapStrategy: 'WrapBlock' | 'WrapTextBlock' | 'ReplaceBlock';
+
+    /** 
+     * @description A predicate function that determines if the new node 
+     * should join with the preceding node.
+     * @param matchedText The matched text.
+     * @param prevNode The previous node in the document, used to determine 
+     *                 if a join is appropriate.
+     * @returns Returns `true` if the new node should join with `prevNode`, 
+     *          otherwise `false`.
+     * 
+     * @note If not defined, as long as {@link canJoin} returns true, the 
+     *       node will be joined with previous node.
+     */
+    readonly shouldJoinWithBefore?: (matchedText: RegExpExecArray, prevNode: ProseNode) => boolean;
+};
+
+/**
+ * An interface only for {@link EditorSnippetExtension}.
+ */
+export interface IEditorSnippetExtension extends IEditorExtension {
+
+    readonly id: EditorExtensionIDs.Snippet;
+
+    /**
+     * @description Registers a new snippet rule.
      * @param id A unique identifier for the rule.
      * @param pattern The regular expression pattern that triggers this rule.
      * @param replacement The replacement behavior when the pattern is matched. 
@@ -82,34 +111,36 @@ export interface IEditorInputRuleExtension extends IEditorExtension {
      * @returns Returns `true` if the rule was registered successfully, `false` 
      *          if a rule with the same ID or same {@link RegExp} already exists.
      */
-    registerRule(id: string, pattern: RegExp, replacement: InputRuleReplacement): boolean;
+    registerRule(id: string, pattern: RegExp, replacement: SnippetReplacement): boolean;
 
     /**
-     * @description Un-registers an input rule by its unique identifier.
+     * @description Un-registers an snippet rule by its unique identifier.
      * @param id The identifier of the rule to remove.
      * @returns Returns `true` if the rule was found and removed, otherwise `false`.
      */
     unregisterRule(id: string): boolean;
 
     /**
-     * @description Retrieves a registered input rule by its ID.
+     * @description Retrieves a registered snippet rule by its ID.
      * @param id The identifier of the desired rule.
      */
-    getRuleByID(id: string): IInputRule | undefined;
+    getRuleByID(id: string): ISnippetRule | undefined;
 
     /**
-     * @description Retrieves all registered input rules.
+     * @description Retrieves all registered snippet rules.
      */
-    getAllRules(): IInputRule[];
+    getAllRules(): ISnippetRule[];
 }
 
-export class EditorInputRuleExtension extends EditorExtension implements IEditorInputRuleExtension {
+// region - snippet
+
+export class EditorSnippetExtension extends EditorExtension implements IEditorSnippetExtension {
 
     // [field]
 
-    public override readonly id = EditorExtensionIDs.InputRule;
+    public override readonly id = EditorExtensionIDs.Snippet;
     
-    private readonly _rules: Map<string, InputRule> = new Map();
+    private readonly _rules: Map<string, SnippetRule> = new Map();
     private readonly MAX_TEXT_BEFORE = 100;
     
     // [constructor]
@@ -117,15 +148,17 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
     constructor(
         editorWidget: IEditorWidget,
         @IInstantiationService private readonly instantiationService: IInstantiationService,
+        @ILogService private readonly logService: ILogService,
     ) {
         super(editorWidget);
         
-        registerDefaultInputRules(this);
+        registerDefaultSnippet(this);
 
         this.__register(this.onTextInput(e => {
             const handled = this.__handleTextInput(e.view, e.from, e.to, e.text);
             if (handled) {
                 e.preventDefault();
+                return true;
             }
         }));
 
@@ -134,6 +167,7 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
                 const handled = this.__handleEnter(e.view);
                 if (handled) {
                     e.preventDefault();
+                    return true;
                 }
             }
         }));
@@ -141,18 +175,18 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
 
     // [public methods]
 
-    public registerRule(id: string, pattern: RegExp, replacement: InputRuleReplacement): boolean {
+    public registerRule(id: string, pattern: RegExp, replacement: SnippetReplacement): boolean {
         if (this._rules.has(id)) {
-            console.warn(`InputRule with id "${id}" already exists.`);
+            console.warn(`SnippetRule with id "${id}" already exists.`);
             return false;
         }
 
         if ([...this._rules.values()].some(rule => rule.pattern.source === pattern.source)) {
-            console.warn(`InputRule with pattern "${pattern}" already exists.`);
+            console.warn(`SnippetRule with pattern "${pattern}" already exists.`);
             return false;
         }
 
-        const rule = new InputRule(id, pattern, replacement, this.instantiationService);
+        const rule = new SnippetRule(id, pattern, replacement, this.instantiationService);
         this._rules.set(id, rule);
         return true;
     }
@@ -161,11 +195,11 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
         return this._rules.delete(id);
     }
 
-    public getRuleByID(id: string): IInputRule | undefined {
+    public getRuleByID(id: string): ISnippetRule | undefined {
         return this._rules.get(id);
     }
 
-    public getAllRules(): IInputRule[] {
+    public getAllRules(): ISnippetRule[] {
         return Array.from(this._rules.values());
     }
 
@@ -225,6 +259,7 @@ export class EditorInputRuleExtension extends EditorExtension implements IEditor
 
                 const tr = rule.onMatch(state, match, start, end);
                 if (!tr) {
+                    this.logService.warn('EditorSnippet', `Unable to achiece replacement for matched snippet rule: ${rule.id}.`);
                     continue;
                 }
 

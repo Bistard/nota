@@ -2,12 +2,8 @@ import * as marked from "marked";
 import { IDisposable } from "src/base/common/dispose";
 import { Register } from "src/base/common/event";
 import { URI } from "src/base/common/files/uri";
-import { ProseEditorState, ProseTransaction } from "src/editor/common/proseMirror";
 import { AsyncResult } from "src/base/common/result";
-import { IEditorExtension } from "src/editor/common/editorExtension";
-import { EditorSchema } from "src/editor/model/schema";
 import { IEditorPosition } from "src/editor/common/position";
-import { IOnDidContentChangeEvent } from "src/editor/view/proseEventBroadcaster";
 
 export type EditorToken = marked.Token;
 export type EditorTokenGeneric = marked.Tokens.Generic;
@@ -49,6 +45,12 @@ export namespace EditorTokens {
     };
 }
 
+// region - IEditorModel
+
+export interface IModelBuildData {
+    readonly tokens: EditorToken[];
+}
+
 /**
  * An interface only for {@link EditorModel}.
  */
@@ -64,22 +66,7 @@ export interface IEditorModel extends IDisposable {
      */
     readonly dirty: boolean;
 
-    /**
-     * The schema of the editor.
-     */
-    readonly schema: EditorSchema;
-
-    /**
-     * The state of the model. Returns undefined if the model is not ready yet.
-     */
-    readonly state?: ProseEditorState;
-
     // region - events
-
-    /** 
-     * Fires when the model is built for the first time.
-     */
-    readonly onDidBuild: Register<ProseEditorState>;
 
     /**
      * Fires whenever the file is saved back to the disk successfully.
@@ -98,24 +85,12 @@ export interface IEditorModel extends IDisposable {
      */
     readonly onDidDirtyChange: Register<boolean>;
 
-    /**
-     * Fires whenever a transaction to the {@link ProseEditorState} is made 
-     * programmatically.
-     */
-    readonly onTransaction: Register<ProseTransaction>;
-
-    /**
-     * Fires whenever the state of the view is updated.
-     */
-    readonly onDidStateChange: Register<void>;
-
     // region - general
 
     /**
      * @description Start building the model.
-     * @note This will trigger `onDidBuild` event.
      */
-    build(extensions: IEditorExtension[]): AsyncResult<ProseEditorState, Error>;
+    build(): AsyncResult<IModelBuildData, Error>;
 
     /**
      * @description Mark if the model has any unsaved changes.
@@ -128,20 +103,6 @@ export interface IEditorModel extends IDisposable {
     save(): AsyncResult<void, Error>;
 
     // region - text-related APIs
-
-    /**
-     * @description Inserts the given text at the given offset.
-     * @param textOffset The character offset relatives to the whole text model.
-     * @param text The text to be inserted.
-     */
-    insertAt(textOffset: number, text: string): void;
-
-    /**
-     * @description Deletes the text with given length at the given offset.
-     * @param textOffset The character offset relatives to the whole text model.
-     * @param length The length of text to be deleted.
-     */
-    deleteAt(textOffset: number, length: number): void;
 
     /**
      * @description Returns all the line contents (without line breaking).
@@ -215,16 +176,6 @@ export interface IEditorModel extends IDisposable {
      * @param lineOffset The offset relative to the line.
      */
     getCharCodeByLine(lineNumber: number, lineOffset: number): number;
-
-    // region - others
-
-    getRegisteredDocumentNodes(): string[];
-    getRegisteredDocumentNodesBlock(): string[];
-    getRegisteredDocumentNodesInline(): string[];
-
-    // region - internal
-
-    __onDidStateChange(event: IOnDidContentChangeEvent): void;
 }
 
 export const enum EndOfLineType {

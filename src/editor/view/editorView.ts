@@ -8,6 +8,9 @@ import { IEditorModel } from 'src/editor/common/model';
 import { ProseEditorState } from 'src/editor/common/proseMirror';
 import { IEditorViewModel } from 'src/editor/common/viewModel';
 import { RichTextView } from 'src/editor/view/richTextView';
+import { IEditorInputEmulator } from 'src/editor/view/inputEmulator';
+import { IInstantiationService, InstantiationService } from 'src/platform/instantiation/common/instantiation';
+import { KeyCode } from 'src/base/common/keyboard';
 
 export class ViewContext {
     constructor(
@@ -17,6 +20,8 @@ export class ViewContext {
         public readonly log: (event: ILogEvent) => void,
     ) {}
 }
+
+// region - EditorView
 
 export class EditorView extends Disposable implements IEditorView {
 
@@ -83,8 +88,10 @@ export class EditorView extends Disposable implements IEditorView {
         viewModel: IEditorViewModel,
         initState: ProseEditorState,
         extensions: IEditorExtension[],
+        inputEmulator: IEditorInputEmulator,
         options: EditorOptionsType,
         @ILogService logService: ILogService,
+        @IInstantiationService instantiationService: IInstantiationService,
     ) {
         super();
 
@@ -97,12 +104,11 @@ export class EditorView extends Disposable implements IEditorView {
         // the centre that integrates the editor-related functionalities
         const editorElement = document.createElement('div');
         editorElement.className = 'editor-container';
-        this._view = this.__register(new RichTextView(editorElement, this._container, context, initState, extensions));
+        this._view = this.__register(instantiationService.createInstance(RichTextView, editorElement, this._container, context, initState, extensions, inputEmulator));
         
-        // forward: start listening events from model
-        this.__registerEventFromModel();
-        this.__registerEventToModel();
-
+        // forward: start listening events from view model
+        this.__registerEventFromViewModel();
+        this.__registerEventToViewModel();
 
         // render
         this._container.appendChild(editorElement);
@@ -116,6 +122,11 @@ export class EditorView extends Disposable implements IEditorView {
 
     get editor(): EditorWindow {
         return this._view;
+    }
+
+    public override dispose(): void {
+        super.dispose();
+        this._container.remove();
     }
 
     public isEditable(): boolean {
@@ -138,35 +149,34 @@ export class EditorView extends Disposable implements IEditorView {
         return this._view.isDestroyed();
     }
 
-    public override dispose(): void {
-        super.dispose();
-        this._container.remove();
+    public type(text: string, from?: number, to?: number): void {
+        this._view.type(text, from, to);
+    }
+
+    public keydown(code: KeyCode, alt?: boolean, shift?: boolean, ctrl?: boolean, meta?: boolean): void {
+        this._view.keydown(code, alt, shift, ctrl, meta);
     }
 
     // [private helper methods]
 
-    private __registerEventFromModel(): void {
+    private __registerEventFromViewModel(): void {
         const viewModel = this._ctx.viewModel;
 
-        this.__register(viewModel.onDidBuild(newState => {
-            this._view.render(newState);
-        }));
-
-        this.__register(viewModel.onDidChangeModelState(tr => {
+        this.__register(viewModel.onDidContentChange(event => {
+            const { tr } = event;
             this._view.internalView.dispatch(tr);
         }));
     }
 
-    private __registerEventToModel(): void {
+    private __registerEventToViewModel(): void {
         const viewModel = this._ctx.viewModel;
 
         /**
          * Since in Prosemirror whenever the content of the document changes, 
          * the old {@link ProseEditorState} is no longer valid. Therefore we 
-         * need to inform {@link IEditorModel} to update its state.
+         * need to inform view model to update its state.
          */
-        this.__register(this._view.onDidContentChange(e => {
-            viewModel.onDidViewContentChange(e);
-        }));
+        this.__register(this._view.onDidContentChange(e => viewModel.updateViewChange(e)));
+        this.__register(this._view.onDidSelectionChange(e => viewModel.updateViewChange(e)));
     }
 }

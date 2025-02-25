@@ -60,6 +60,7 @@ export class MathBlock extends DocumentNode<EditorTokens.MathBlock> {
             content: undefined,
             draggable: true,
             selectable: true,
+            atom: true,
             attrs: {
                 text: { default: '' },
             } satisfies GetProseAttrs<MathBlockAttrs>,

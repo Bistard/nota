@@ -63,6 +63,9 @@ export class MathInline extends DocumentNode<EditorTokens.MathInline> {
             group: 'inline',
             inline: true,
             content: undefined,
+            draggable: true,
+            selectable: true,
+            atom: true,
             attrs: {
                 text: { default: '' },
             },
@@ -76,7 +79,7 @@ export class MathInline extends DocumentNode<EditorTokens.MathInline> {
         };
     }
 
-    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.Image>): void {
+    public parseFromToken(state: IDocumentParseState, status: IParseTokenStatus<EditorTokens.MathInline>): void {
         const token = status.token;
         state.activateNode(this.ctor, status, {
             attrs: {
