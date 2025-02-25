@@ -82,24 +82,8 @@ export class RichTextView extends EditorViewProxy implements IRichTextView {
     // [public methods]
 
     public type(text: string, from?: number, to?: number): void {
-        
-        // FIX: after snippet is based on state machine, refactor this code.
-        
-        let pointer = 0;
-        let i = 0;
-        for (; i < text.length; i++) {
-            const c = text[i]!;
-            if (c === ' ' || c === '\n') {
-                const textBefore = text.slice(pointer, i);
-                this.__type(textBefore, from, to);
-                this.__type(c, from, to);
-                pointer = i + 1;
-            }
-        }
-
-        const lastText = text.slice(pointer, i);
-        if (lastText) {
-            this.__type(lastText, from, to);
+        for (const c of text) {
+            this.__type(c, from, to);
         }
     }
 

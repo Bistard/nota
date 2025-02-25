@@ -27,7 +27,8 @@ export interface IEditorView extends IProseEventBroadcaster {
      * @description Programmatically emulate user typing action. 
      *  - If `from` or `to` not provided, it will be treated as simple insertion 
      *    at the cursor.
-     * @param text The text for replacement, insertion.
+     * @param text The text for replacement, insertion. Multi-character supported.
+     *             Each character will be typed in sequence.
      * @param from The start absolute position points to ProseMirror document.
      * @param to The end absolute position points to ProseMirror document.
      */
