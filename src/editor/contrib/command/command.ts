@@ -6,7 +6,7 @@ import { ILogService } from "src/base/common/logger";
 import { EditorExtensionIDs } from "src/editor/contrib/builtInExtensionList";
 import { EditorExtension, IEditorExtension } from "src/editor/common/editorExtension";
 import { IEditorWidget } from "src/editor/editorWidget";
-import { registerBasicEditorCommands } from "src/editor/contrib/command/editorCommands";
+import { registerBasicEditorCommands } from "src/editor/contrib/command/command.contrib";
 import { Command } from "src/platform/command/common/command";
 import { ICommandService } from "src/platform/command/common/commandService";
 import { RegistrantType } from "src/platform/registrant/common/registrant";

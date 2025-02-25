@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import { ProseUtilsTest } from 'test/editor/view/editorHelpers';
 import ist from 'ist';
 import { ProseEditorState, ProseNode, ProseNodeSelection, ProseSchema, ProseSelection, ProseTextSelection } from 'src/editor/common/proseMirror';
-import { EditorCommandBase, EditorCommands } from 'src/editor/contrib/command/editorCommands';
+import { EditorCommandBase, EditorCommands } from 'src/editor/contrib/command/command.contrib';
 import { nullObject } from 'test/utils/helpers';
 
 const { doc, p, blockquote, hr, ul, li } = ProseUtilsTest.defaultNodes;
