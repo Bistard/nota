@@ -71,6 +71,8 @@ import { INotificationService } from "src/workbench/services/notification/notifi
 import { IEncryptionService } from "src/platform/encryption/common/encryptionService";
 import { BrowserAITextChannel } from "src/platform/ai/common/aiTextChannel";
 import { IAITextService } from "src/platform/ai/common/aiText";
+import { IEditorService } from "src/workbench/services/editor/editor";
+import { EditorService } from "src/workbench/services/editor/editorService";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -280,6 +282,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(IBrowserZoomService       , new ServiceDescriptor(BrowserZoomService       , []));
         registerService(IBrowserInspectorService  , new ServiceDescriptor(BrowserInspectorService  , []));
         registerService(IRecentOpenService        , new ServiceDescriptor(RecentOpenService        , []));
+        registerService(IEditorService            , new ServiceDescriptor(EditorService            , []));
     }
 
     // [end]
