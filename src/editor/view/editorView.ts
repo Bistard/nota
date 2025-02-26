@@ -40,7 +40,7 @@ export class EditorView extends Disposable implements IEditorView {
 
     // [events]
     
-    get onDidBlur() { return this._view.onDidFocus; }
+    get onDidBlur() { return this._view.onDidBlur; }
     get onDidFocus() { return this._view.onDidFocus; }
     
     get onBeforeRender() { return this._view.onBeforeRender; }
