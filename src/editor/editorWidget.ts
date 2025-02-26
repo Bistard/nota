@@ -23,6 +23,7 @@ import { EditorViewModel } from "src/editor/viewModel/editorViewModel";
 import { IEditorViewModel, IViewModelBuildData } from "src/editor/common/viewModel";
 import { IEditorInputEmulator } from "src/editor/view/inputEmulator";
 import { KeyCode } from "src/base/common/keyboard";
+import { IEditorHostService } from "src/workbench/services/editor/editor";
 
 // region - [interface]
 
@@ -295,8 +296,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
         @IInstantiationService private readonly instantiationService: IInstantiationService,
         @ILifecycleService private readonly lifecycleService: IBrowserLifecycleService,
         @IConfigurationService private readonly configurationService: IConfigurationService,
+        @IEditorHostService private readonly editorService: IEditorHostService,
     ) {
         super();
+        this.editorService.onCreate();
 
         this._container = this.__register(new FastElement(container));
         this._model = null;
@@ -354,6 +357,10 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
             // cache data
             this._editorData = this.__register(new EditorData(this._model, this._viewModel, this._view, undefined));
+
+            // track
+            this.editorService.create(this);
+
             return ok();
         });
     }
@@ -370,10 +377,14 @@ export class EditorWidget extends Disposable implements IEditorWidget {
     }
 
     public override dispose(): void {
+        this.editorService.onClose(this);
+        
         super.dispose();
         this.__detachData();
         this._extensions.dispose();
         this.logService.debug('EditorWidget', 'Editor disposed.');
+
+        this.editorService.close();
     }
 
     public updateOptions(newOption: Partial<IEditorWidgetOptions>): void {
@@ -492,6 +503,9 @@ export class EditorWidget extends Disposable implements IEditorWidget {
                 this._options.updateOptions(newOption);
             }
         }));
+
+        this.__register(this.onDidFocus(e => this.editorService.focus(this)));
+        this.__register(this.onDidBlur(e => this.editorService.blur(this)));
     }
 
     private __registerMVVMListeners(model: IEditorModel, viewModel: IEditorViewModel, view: IEditorView): void {
