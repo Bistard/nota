@@ -7,7 +7,7 @@ import { IFileService } from "src/platform/files/common/fileService";
 import { IService, createService } from "src/platform/instantiation/common/decorator";
 import { ILogService } from "src/base/common/logger";
 import { IBrowserLifecycleService, ILifecycleService, LifecyclePhase } from "src/platform/lifecycle/browser/browserLifecycleService";
-import { IShortcutReference, IShortcutRegistrant, ShortcutWeight } from "src/workbench/services/shortcut/shortcutRegistrant";
+import { IShortcutRegistrant, ShortcutWeight } from "src/workbench/services/shortcut/shortcutRegistrant";
 import { RegistrantType } from "src/platform/registrant/common/registrant";
 import { IBrowserEnvironmentService } from "src/platform/environment/common/environment";
 import { Emitter, Register } from "src/base/common/event";
@@ -93,42 +93,42 @@ export class ShortcutService extends Disposable implements IShortcutService {
     ) {
         super();
         this._shortcutRegistrant = registrantService.getRegistrant(RegistrantType.Shortcut);
-
         this._resource = URI.join(environmentService.appConfigurationPath, SHORTCUT_CONFIG_NAME);
 
         // listen to keyboard events
         this.__register(keyboardService.onKeydown(e => {
             const pressed = new Shortcut(e.ctrl, e.shift, e.alt, e.meta, e.key);
 
+            // filter out only the valid shortcuts
             const candidates = this._shortcutRegistrant.findShortcut(pressed);
-            let shortcut: IShortcutReference | undefined;
-
-            for (const candidate of candidates) {
-                if (this.contextService.contextMatchExpr(candidate.when)) {
-                    if (!shortcut) {
-                        shortcut = candidate;
-                        continue;
-                    }
-
-                    // the candidate weight is higher than the current one.
-                    if (candidate.weight < shortcut.weight) {
-                        shortcut = candidate;
-                    }
-                }
-            }
+            const validCandidates = candidates
+                .filter(each => this.contextService.contextMatchExpr(each.when))
+                .sort((candidate1, candidate2) => candidate1.weight - candidate2.weight);
 
             // no valid registered shortcuts can be triggered
-            if (!shortcut) {
+            if (!validCandidates.length) {
                 return;
             }
 
-            // executing the corresponding command
-            trySafe(
-                () => this.commandService.executeCommand<any>(shortcut.commandID, ...(shortcut.commandArgs ?? [])),
-                {
-                    onError: err => logService.error('[ShortcutService]', `Error encounters. Executing shortcut '${pressed.toString()}' with command '${shortcut?.commandID}'`, err)
+            // Executing the corresponding commands based on priority
+            (async () => {
+                for (const candidate of validCandidates) {
+                    const ret = await trySafe<unknown | Promise<unknown>>(
+                        () => this.commandService.executeCommand<any>(candidate.commandID, ...(candidate.commandArgs ?? [])),
+                        {
+                            onError: err => logService.error('[ShortcutService]', `Error encounters. Executing shortcut '${pressed.toString()}' with command '${candidate?.commandID}'`, err)
+                        }
+                    );
+
+                    /**
+                     * Let the client has a chance to return `true` if the 
+                     * shortcut is already handled.
+                     */
+                    if (ret === true) {
+                        break;
+                    }
                 }
-            );
+            })();
         }));
 
         // When the browser side is ready, we update registrations by reading from disk.

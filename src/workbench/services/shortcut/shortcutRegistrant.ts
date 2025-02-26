@@ -41,6 +41,8 @@ interface IShortcutBase<TArgs extends any[]> {
     /**
      * When a shortcut is registered with more than one command. The weight will
      * tell the program which command should choose be execute.
+     * 
+     * The lower the number, the higher the priority.
      */
     readonly weight: ShortcutWeight;
 
