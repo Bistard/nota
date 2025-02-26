@@ -73,6 +73,7 @@ import { BrowserAITextChannel } from "src/platform/ai/common/aiTextChannel";
 import { IAITextService } from "src/platform/ai/common/aiText";
 import { IEditorService } from "src/workbench/services/editor/editor";
 import { EditorService } from "src/workbench/services/editor/editorService";
+import { rendererEditorCommandRegister } from "src/editor/contrib/command/command.register";
 
 /**
  * @class This is the main entry of the renderer process.
@@ -149,6 +150,10 @@ const renderer = new class extends class RendererInstance extends Disposable {
         // context-service
         const contextService = new ContextService();
         instantiationService.store(IContextService, contextService);
+
+        // editor-service
+        const editorService = new EditorService();
+        instantiationService.store(IEditorService, editorService);
 
         // registrant-service
         const registrantService = instantiationService.createInstance(RegistrantService);
@@ -282,7 +287,6 @@ const renderer = new class extends class RendererInstance extends Disposable {
         registerService(IBrowserZoomService       , new ServiceDescriptor(BrowserZoomService       , []));
         registerService(IBrowserInspectorService  , new ServiceDescriptor(BrowserInspectorService  , []));
         registerService(IRecentOpenService        , new ServiceDescriptor(RecentOpenService        , []));
-        registerService(IEditorService            , new ServiceDescriptor(EditorService            , []));
     }
 
     // [end]
@@ -324,6 +328,7 @@ const renderer = new class extends class RendererInstance extends Disposable {
                 [
                     rendererWorkbenchCommandRegister,
                     rendererTitleBarFileCommandRegister,
+                    rendererEditorCommandRegister,
                 ]
                 .forEach(register => register(provider));
             }
