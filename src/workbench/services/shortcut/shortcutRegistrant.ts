@@ -62,7 +62,7 @@ export type IShortcutRegistration<ID extends string> = IShortcutRegistrationBase
     /**
      * The shortcut of the given command.
      */
-    readonly shortcut: Shortcut;
+    readonly shortcut: Shortcut | Shortcut[];
 };
 
 /**
@@ -116,10 +116,9 @@ export interface IShortcutRegistrant extends IRegistrant<RegistrantType.Shortcut
      * given 'commandID'.
      * @param commandID An ID refers to a registered command in the command service.
      * @param registration The shortcut registration information.
-     * @returns A disposable to unregister the shortcut.
      */
-    register2<ID extends string>(commandID: ID, registration: IShortcutRegistration<ID>): IDisposable;
-    registerBasic<ID extends string>(commandID: ID, registration: IShortcutRegistration2<ID>): IDisposable;
+    register2<ID extends string>(commandID: ID, registration: IShortcutRegistration<ID>): void;
+    registerBasic<ID extends string>(commandID: ID, registration: IShortcutRegistration2<ID>): void;
 
     /**
      * @description Check if the command is already registered with the given
@@ -184,7 +183,7 @@ export class ShortcutRegistrant extends Disposable implements IShortcutRegistran
         rendererWorkbenchShortcutRegister(provider);
     }
 
-    public registerBasic<ID extends string>(commandID: ID, registration: IShortcutRegistration2<ID>): IDisposable {
+    public registerBasic<ID extends string>(commandID: ID, registration: IShortcutRegistration2<ID>): void {
         const shortcut = (IS_MAC && registration.mac) 
             ? Shortcut.fromString(registration.mac) 
             : Shortcut.fromString(registration.key);
@@ -196,52 +195,36 @@ export class ShortcutRegistrant extends Disposable implements IShortcutRegistran
         return this.register2(commandID, resolved);
     }
 
-    public register2<ID extends string>(commandID: ID, registration: IShortcutRegistration<ID>): IDisposable {
+    public register2<ID extends string>(commandID: ID, registration: IShortcutRegistration<ID>): void {
+        const shortcuts = Array.isArray(registration.shortcut) ? registration.shortcut : [registration.shortcut];
+        for (const shortcut of shortcuts) {
+            const hashcode = shortcut.toHashcode();
+            let items = this._shortcuts.get(hashcode);
+            if (!items) {
+                items = [];
+                this._shortcuts.set(hashcode, items);
+            }
 
-        const hashcode = registration.shortcut.toHashcode();
-        let items = this._shortcuts.get(hashcode);
-        if (!items) {
-            items = [];
-            this._shortcuts.set(hashcode, items);
+            /**
+             * Checks if there is a same command with the same shortcut that is 
+             * registered.
+             */
+            if (Arrays.exist2(items, entry => entry.commandID === commandID)) {
+                panic(`[ShortcutRegistrant] There exists a command with ID '${commandID}' that is already registered`);
+            }
+
+            // register the shortcut
+            const uuid = ShortcutRegistrant._shortcutUUID++;
+            items.push({
+                uuid: uuid,
+                commandID: commandID,
+                commandArgs: registration.commandArgs,
+                when: registration.when,
+                weight: registration.weight,
+            });
+
+            this._onDidRegister.fire(shortcut);
         }
-
-        /**
-         * Checks if there is a same command with the same shortcut that is 
-         * registered.
-         */
-        if (Arrays.exist2(items, entry => entry.commandID === commandID)) {
-            panic(`[ShortcutRegistrant] There exists a command with ID '${commandID}' that is already registered`);
-        }
-
-        // register the shortcut
-        const uuid = ShortcutRegistrant._shortcutUUID++;
-        items.push({
-            uuid: uuid,
-            commandID: commandID,
-            commandArgs: registration.commandArgs,
-            when: registration.when,
-            weight: registration.weight,
-        });
-
-        this._onDidRegister.fire(registration.shortcut);
-
-        return safeDisposable(
-            toDisposable(() => {
-                if (items) {
-                    const itemIdx = items.findIndex((item) => item.uuid === uuid);
-                    if (itemIdx === -1) {
-                        return;
-                    }
-
-                    items.splice(itemIdx, 1);
-                    if (items.length === 0) {
-                        this._shortcuts.delete(hashcode);
-                    }
-                    
-                    this._onDidUnRegister.fire(registration.shortcut);
-                }
-            })
-        );
     }
 
     public isRegistered(shortcut: Shortcut | ShortcutHash, commandID: string): boolean {
