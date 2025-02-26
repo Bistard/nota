@@ -12,6 +12,7 @@ import { rendererWorkbenchShortcutRegister } from "src/workbench/services/workbe
 import { IS_MAC } from "src/base/common/platform";
 import { Arrays } from "src/base/common/utilities/array";
 import { Emitter, Register } from "src/base/common/event";
+import { IO } from "src/base/common/utilities/functional";
 
 /**
  * The less the number is, the higher the priority of the shortcut is.
@@ -29,7 +30,7 @@ interface IShortcutBase<TArgs extends any[]> {
     /**
      * The arguments for the command when it is executed.
      */
-    readonly commandArgs: TArgs;
+    readonly commandArgs: TArgs | IO<TArgs>;
 
     /**
      * The command will only be executed when the expression (precondition) 

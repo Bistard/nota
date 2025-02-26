@@ -20,6 +20,7 @@ import { FileOperationError } from "src/base/common/files/file";
 import { errorToMessage } from "src/base/common/utilities/panic";
 import { trySafe } from "src/base/common/error";
 import { Strings } from "src/base/common/utilities/string";
+import { isFunction } from "src/base/common/utilities/type";
 
 export const SHORTCUT_CONFIG_NAME = 'shortcut.config.json';
 export const IShortcutService = createService<IShortcutService>('shortcut-service');
@@ -114,8 +115,10 @@ export class ShortcutService extends Disposable implements IShortcutService {
             (async () => {
                 for (const candidate of validCandidates) {
                     const ret = await trySafe<unknown | Promise<unknown>>(
-                        () => this.commandService.executeCommand<any>(candidate.commandID, ...(candidate.commandArgs ?? [])),
-                        {
+                        () => {
+                            const args = isFunction(candidate.commandArgs) ? candidate.commandArgs() : candidate.commandArgs;
+                            this.commandService.executeCommand<any>(candidate.commandID, ...args);
+                        }, {
                             onError: err => logService.error('[ShortcutService]', `Error encounters. Executing shortcut '${pressed.toString()}' with command '${candidate?.commandID}'`, err)
                         }
                     );
