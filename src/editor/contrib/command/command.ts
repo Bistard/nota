@@ -17,23 +17,16 @@ import { Priority } from "src/base/common/event";
  * An interface only for {@link EditorCommandExtension}.
  */
 export interface IEditorCommandExtension extends IEditorExtension {
-
     readonly id: EditorExtensionIDs.Command;
-
-    /**
-     * @description Register a {@link Command} as editor command that can be 
-     * triggered by any of the given shortcuts.
-     * 
-     * @note The {@link Command} will also be registered into the global 
-     * {@link CommandService}.
-     */
-    registerCommand(command: Command, shortcuts: string[]): void;
+    registerCommand(command: Command): void;
 }
 
 /**
  * @class Extension for handling editor commands with associated keyboard 
  * shortcuts. This class binds commands to specific shortcuts and registers 
  * these commands within the {@link CommandService}.
+ * 
+ * @deprecated // FIX
  */
 export class EditorCommandExtension extends EditorExtension implements IEditorCommandExtension {
 
@@ -66,32 +59,32 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
          * @note Registered with {@link Priority.Low}. Make other extensions has
          *       possibility to handle the keydown event first.
          */
-        this.__register(this.onKeydown(event => {
-            const keyEvent = event.event;
-            const shortcut = new Shortcut(keyEvent.ctrl, keyEvent.shift, keyEvent.alt, keyEvent.meta, keyEvent.key);
-            const commandID = this._commandKeybinding.get(shortcut.toHashcode());
-            if (!commandID) {
-                return;
-            }
+        // this.__register(this.onKeydown(event => {
+        //     const keyEvent = event.event;
+        //     const shortcut = new Shortcut(keyEvent.ctrl, keyEvent.shift, keyEvent.alt, keyEvent.meta, keyEvent.key);
+        //     const commandID = this._commandKeybinding.get(shortcut.toHashcode());
+        //     if (!commandID) {
+        //         return;
+        //     }
 
-            /**
-             * Whenever a command is executed, we need to invoke `preventDefault`
-             * to tell prosemirror to prevent default behavior of the browser.
-             * 
-             * @see https://discuss.prosemirror.net/t/question-allselection-weird-behaviours-when-the-document-contains-a-non-text-node-at-the-end/7749/3
-             */
-            trySafe(
-                () => commandService.executeCommand(commandID, editorWidget, event.view.state, event.view.dispatch, event.view),
-                {
-                    onError: () => false,
-                    onThen: (anyExecuted) => {
-                        if (anyExecuted) {
-                            event.preventDefault();
-                        }
-                    }
-                }
-            );
-        }, undefined, Priority.Low));
+        //     /**
+        //      * Whenever a command is executed, we need to invoke `preventDefault`
+        //      * to tell prosemirror to prevent default behavior of the browser.
+        //      * 
+        //      * @see https://discuss.prosemirror.net/t/question-allselection-weird-behaviours-when-the-document-contains-a-non-text-node-at-the-end/7749/3
+        //      */
+        //     trySafe(
+        //         () => commandService.executeCommand(commandID, editorWidget, event.view.state, event.view.dispatch, event.view),
+        //         {
+        //             onError: () => false,
+        //             onThen: (anyExecuted) => {
+        //                 if (anyExecuted) {
+        //                     event.preventDefault();
+        //                 }
+        //             }
+        //         }
+        //     );
+        // }, undefined, Priority.Low));
     }
 
     // [protected override methods]
@@ -101,7 +94,12 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
         /**
          * Binds predefined commands to their respective shortcuts.
          */
-        registerBasicEditorCommands(this, this.logService);
+
+        // FIX: 
+        registerBasicEditorCommands(this, this.logService, () => {
+            const view = this._editorWidget.view.editor.internalView;
+            return [this._editorWidget, view.state, view.dispatch, view];
+        });
     }
 
     protected override onViewDestroy(view: EditorView): void {
@@ -119,7 +117,7 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
 
     // [public methods]
 
-    public registerCommand(command: Command, shortcuts: string[]): void {
+    public registerCommand(command: Command): void {
         this._commandSet.add(command.id);
 
         /**
@@ -127,18 +125,5 @@ export class EditorCommandExtension extends EditorExtension implements IEditorCo
          */
         const registrant = this.registrantService.getRegistrant(RegistrantType.Command);
         registrant.registerCommand(command);
-        
-        /**
-         * Bind the shortcuts with the command.
-         */
-        for (const str of shortcuts) {
-            const shortcut = Shortcut.fromString(str);
-            if (shortcut === Shortcut.None) {
-                this.logService.warn(this.id, `Editor command (${command.id}) with shortcut registration (${str}) fails.`);
-                continue;
-            }
-            const hash = shortcut.toHashcode();
-            this._commandKeybinding.set(hash, command.id);
-        }
     }
 }

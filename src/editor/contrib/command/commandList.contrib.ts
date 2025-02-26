@@ -1,14 +1,17 @@
 import { canJoin, canSplit, liftTarget } from "prosemirror-transform";
+import { Shortcut } from "src/base/common/keyboard";
 import { ILogService } from "src/base/common/logger";
+import { EditorContextKeys } from "src/editor/common/editorContextKeys";
 import { TokenEnum } from "src/editor/common/markdown";
 import { ProseEditorState, ProseTransaction, ProseEditorView, ProseNodeType, ProseFragment, ProseSlice, ProseReplaceAroundStep, ProseNodeRange, ProseSelection, ProseNodeSelection, ProseAttrs } from "src/editor/common/proseMirror";
 import { IEditorCommandExtension } from "src/editor/contrib/command/command";
-import { EditorCommandBase } from "src/editor/contrib/command/editorCommand";
+import { EditorCommandArguments, EditorCommandBase } from "src/editor/contrib/command/editorCommand";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { Command, ICommandSchema } from "src/platform/command/common/command";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
+import { ShortcutWeight } from "src/workbench/services/shortcut/shortcutRegistrant";
 
-export function registerListCommands(extension: IEditorCommandExtension, logService: ILogService): void {
+export function registerListCommands(extension: IEditorCommandExtension, logService: ILogService, getArguments: () => EditorCommandArguments): void {
     const schema = extension.getEditorSchema().unwrap();
 
     const listItemType = schema.getNodeType(TokenEnum.ListItem);
@@ -21,34 +24,49 @@ export function registerListCommands(extension: IEditorCommandExtension, logServ
         EditorListCommands.splitListItem(
             { 
                 id: 'editor-split-list-item', 
-                when: null,
+                when: EditorContextKeys.isEditorEditable,
+                shortcutOptions: {
+                    when: EditorContextKeys.isEditorEditable,
+                    weight: ShortcutWeight.Editor,
+                    shortcut: Shortcut.fromString('Enter'),
+                    commandArgs: getArguments,
+                }
             }, 
             listItemType,
             undefined,
         ), 
-        ['Enter']
     );
     
     extension.registerCommand(
         EditorListCommands.sinkListItem(
             { 
                 id: 'editor-sink-list-item', 
-                when: null,
+                when: EditorContextKeys.isEditorEditable,
+                shortcutOptions: {
+                    when: EditorContextKeys.isEditorEditable,
+                    weight: ShortcutWeight.Editor,
+                    shortcut: Shortcut.fromString('Tab'),
+                    commandArgs: getArguments,
+                }
             }, 
             listItemType,
-        ), 
-        ['Tab']
+        )
     );
     
     extension.registerCommand(
         EditorListCommands.liftListItem(
             { 
                 id: 'editor-lift-list-item', 
-                when: null,
+                when: EditorContextKeys.isEditorEditable,
+                shortcutOptions: {
+                    when: EditorContextKeys.isEditorEditable,
+                    weight: ShortcutWeight.Editor,
+                    shortcut: Shortcut.fromString('Shift+Tab'),
+                    commandArgs: getArguments,
+                }
             }, 
             listItemType,
-        ), 
-        ['Shift+Tab']
+        )
     );
 }
 
