@@ -3,7 +3,7 @@ import type { ICommandRegistrant, ICommandBasicSchema } from "src/platform/comma
 import { ContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IContextService } from "src/platform/context/common/contextService";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { Callable, Constructor } from "src/base/common/utilities/type";
+import { Callable } from "src/base/common/utilities/type";
 
 /**
  * A more concrete set of metadata to describe a command specifically used for
@@ -22,7 +22,7 @@ export interface ICommandSchema extends Omit<ICommandBasicSchema, 'command' | 'o
      * @note The shortcut will only be available when the command schema
      * -provided `when` and the shortcut-provided `when` are both satisfied.
      */
-    readonly shortcutOptions?: Omit<IShortcutRegistration<string>, 'commandID'>;
+    readonly shortcutOptions?: IShortcutRegistration<string>;
 }
 
 export type CommandImplementation<TArgs extends any[] = any[], TReturn = any> = Callable<[provider: IServiceProvider, ...args: TArgs], TReturn>;

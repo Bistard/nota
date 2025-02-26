@@ -2,8 +2,9 @@ import * as assert from 'assert';
 import { ProseUtilsTest } from 'test/editor/view/editorHelpers';
 import ist from 'ist';
 import { ProseEditorState, ProseNode, ProseNodeSelection, ProseSchema, ProseSelection, ProseTextSelection } from 'src/editor/common/proseMirror';
-import { EditorCommandBase, EditorCommands } from 'src/editor/contrib/command/editorCommands';
+import { EditorCommands } from 'src/editor/contrib/command/command.contrib';
 import { nullObject } from 'test/utils/helpers';
+import { EditorCommandBase } from 'src/editor/contrib/command/editorCommand';
 
 const { doc, p, blockquote, hr, ul, li } = ProseUtilsTest.defaultNodes;
 // import {schema, eq, doc, blockquote, pre, h1, p, li, ol, ul, em, strong, hr, img} from "prosemirror-test-builder";

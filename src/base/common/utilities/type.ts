@@ -281,6 +281,11 @@ export type Push<Arr extends any[], V> = [...Arr, V];
 export type Pop<Arr extends any[]> = Arr extends [...infer Rest, any] ? Rest : never;
 
 /**
+ * Remove the first of the array (require non empty).
+ */
+export type Shift<Arr extends any[]> = Arr extends [any, ...infer Rest] ? Rest : never;
+
+/**
  * Converts a two-dimensional array type to a one-dimensional array type.
  */
 export type Flatten<Arr extends readonly any[][]> = { [Key in keyof Arr]: ArrayType<Arr[Key]> };

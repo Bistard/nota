@@ -6,13 +6,17 @@ import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
 import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection, ProseContentMatch, ProseMarkType, ProseAttrs, ProseSelectionRange, ProseNodeType, ProseResolvedPos, ProseCursor } from "src/editor/common/proseMirror";
 import { ProseTools } from "src/editor/common/proseUtility";
 import { EditorSchema } from "src/editor/model/schema";
-import { Command, ICommandSchema, buildChainCommand } from "src/platform/command/common/command";
+import { Command, ICommandSchema } from "src/platform/command/common/command";
 import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
 import { EditorContextKeys } from "src/editor/common/editorContextKeys";
 import { IS_MAC } from "src/base/common/platform";
 import { redo, undo } from "prosemirror-history";
 import { INotificationService } from "src/workbench/services/notification/notification";
+import { buildEditorCommand, EditorCommandArguments, EditorCommandBase } from "src/editor/contrib/command/editorCommand";
+import { registerListCommands } from "src/editor/contrib/command/commandList.contrib";
+import { Shortcut } from "src/base/common/keyboard";
+import { ShortcutWeight } from "src/workbench/services/shortcut/shortcutRegistrant";
 
 /**
  * [FILE OUTLINE]
@@ -28,10 +32,11 @@ const whenEditorWritable = CreateContextKeyExpr.And(EditorContextKeys.editorFocu
 /**
  * @description A set of default editor command configurations.
  */
-export function registerBasicEditorCommands(extension: IEditorCommandExtension, logService: ILogService): void {
-    __registerToggleMarkCommands(extension, logService);
-    __registerHeadingCommands(extension, logService);
-    __registerOtherCommands(extension);
+export function registerBasicEditorCommands(extension: IEditorCommandExtension, logService: ILogService, getArguments: () => EditorCommandArguments): void {
+    registerListCommands(extension, logService, getArguments);
+    __registerToggleMarkCommands(extension, logService, getArguments);
+    __registerHeadingCommands(extension, logService, getArguments);
+    __registerBasicCommands(extension, getArguments);
 }
 
 function getPlatformShortcut(ctrl: string, meta: string): string {
@@ -43,7 +48,7 @@ function getPlatformShortcut(ctrl: string, meta: string): string {
  * @note These commands need to be constructed after the editor and schema 
  * are initialized.
  */
-function __registerToggleMarkCommands(extension: IEditorCommandExtension, logService: ILogService): void {
+function __registerToggleMarkCommands(extension: IEditorCommandExtension, logService: ILogService, getArguments: () => EditorCommandArguments): void {
     const schema = extension.getEditorSchema().unwrap();
     const toggleMarkConfigs: [string, string, string][] = [
         [MarkEnum.Strong,   'Ctrl+B', 'Meta+B'],
@@ -61,15 +66,23 @@ function __registerToggleMarkCommands(extension: IEditorCommandExtension, logSer
 
         extension.registerCommand(
             EditorCommands.createToggleMarkCommand(
-                { id: toggleCmdID, when: whenEditorWritable },
+                { 
+                    id: toggleCmdID, 
+                    when: whenEditorWritable,
+                    shortcutOptions: {
+                        commandArgs: getArguments,
+                        shortcut: Shortcut.fromString(getPlatformShortcut(ctrl, meta)),
+                        weight: ShortcutWeight.Editor,
+                        when: whenEditorWritable,
+                    }
+                },
                 markType, 
                 null, // attrs
                 {
                     removeWhenPresent: true,
                     enterInlineAtoms: true,
                 }
-            ), 
-            [getPlatformShortcut(ctrl, meta)]
+            )
         );
     }
 }
@@ -80,7 +93,7 @@ function __registerToggleMarkCommands(extension: IEditorCommandExtension, logSer
  * @note These commands need to be constructed after the editor and schema 
  * are initialized.
  */
-function __registerHeadingCommands(extension: IEditorCommandExtension, logService: ILogService): void {
+function __registerHeadingCommands(extension: IEditorCommandExtension, logService: ILogService, getArguments: () => EditorCommandArguments): void {
     const schema = extension.getEditorSchema().unwrap();
     const headingCmdID = 'editor-toggle-heading';
     
@@ -94,159 +107,199 @@ function __registerHeadingCommands(extension: IEditorCommandExtension, logServic
         const cmdID = `${headingCmdID}-${level}`;
         extension.registerCommand(
             EditorCommands.createSetBlockCommand(
-                { id: cmdID, when: whenEditorWritable },
+                { 
+                    id: cmdID, 
+                    when: whenEditorWritable,
+                    shortcutOptions: {
+                        commandArgs: getArguments,
+                        shortcut: Shortcut.fromString(getPlatformShortcut(`Ctrl+${level}`, `Meta+${level}`)),
+                        weight: ShortcutWeight.Editor,
+                        when: whenEditorWritable,
+                    }
+                },
                 nodeType,
                 { level: level }
-            ),
-            [getPlatformShortcut(`Ctrl+${level}`, `Meta+${level}`)]
+            )
         );
     }
 }
 
-function __registerOtherCommands(extension: IEditorCommandExtension): void {
-    extension.registerCommand(__buildEditorCommand(
-            { 
-                id: 'editor-esc', 
+function __registerBasicCommands(extension: IEditorCommandExtension, getArguments: () => EditorCommandArguments): void {
+    extension.registerCommand(buildEditorCommand(
+        { 
+            id: 'editor-enter', 
+            when: whenEditorWritable,
+            shortcutOptions: {
+                commandArgs: getArguments,
+                shortcut: Shortcut.fromString('Enter'),
+                weight: ShortcutWeight.Editor,
+                when: whenEditorWritable,
+            }
+        }, 
+        [
+            EditorCommands.InsertNewLineInCodeBlock,
+            EditorCommands.InsertEmptyParagraphAdjacentToBlock,
+            EditorCommands.LiftEmptyTextBlock,
+            EditorCommands.SplitBlockAtSelection,
+        ],
+    ));
+
+    extension.registerCommand(buildEditorCommand(
+        { 
+            id: 'editor-esc', 
+            when: whenEditorReadonly,
+            shortcutOptions: {
+                commandArgs: getArguments,
+                shortcut: Shortcut.fromString('Escape'),
+                weight: ShortcutWeight.Editor,
                 when: whenEditorReadonly,
-            }, 
-            [
-                EditorCommands.Unselect
-            ],
-        ), 
-        ['Escape']
-    );
+            }
+        }, 
+        [
+            EditorCommands.Unselect
+        ],
+    ));
 
-    extension.registerCommand(__buildEditorCommand(
-            { 
-                id: 'editor-enter', 
+    extension.registerCommand(buildEditorCommand(
+        { 
+            id: 'editor-backspace', 
+            when: whenEditorWritable,
+            shortcutOptions: {
+                commandArgs: getArguments,
+                shortcut: Shortcut.fromString('Backspace'),
+                weight: ShortcutWeight.Editor,
                 when: whenEditorWritable,
-            }, 
-            [
-                EditorCommands.InsertNewLineInCodeBlock,
-                EditorCommands.InsertEmptyParagraphAdjacentToBlock,
-                EditorCommands.LiftEmptyTextBlock,
-                EditorCommands.SplitBlockAtSelection,
-            ],
-        ), 
-        ['Enter']
-    );
-        
-    extension.registerCommand(__buildEditorCommand(
-            { 
-                id: 'editor-backspace', 
-                when: whenEditorWritable,
-            }, 
-            [
-                EditorCommands.DeleteSelection,
-                EditorCommands.JoinBackward,
-                EditorCommands.SelectNodeBackward,
-            ],
-        ), 
-        ['Backspace']
-    );
+            }
+        }, 
+        [
+            EditorCommands.DeleteSelection,
+            EditorCommands.JoinBackward,
+            EditorCommands.SelectNodeBackward,
+        ],
+    ));
 
-    extension.registerCommand(__buildEditorCommand(
-            {
-                id: 'editor-delete',
+    
+    extension.registerCommand(buildEditorCommand(
+        {
+            id: 'editor-delete',
+            when: whenEditorWritable,
+            shortcutOptions: {
+                commandArgs: getArguments,
+                shortcut: [
+                    Shortcut.fromString('Delete'),
+                    Shortcut.fromString(getPlatformShortcut('Ctrl+Delete', 'Meta+Delete')),
+                ],
+                weight: ShortcutWeight.Editor,
                 when: whenEditorWritable,
-            },
-            [
-                EditorCommands.DeleteSelection,
-                EditorCommands.joinForward,
-                EditorCommands.SelectNodeForward,
-            ]
-        ), 
-        ['Delete', getPlatformShortcut('Ctrl+Delete', 'Meta+Delete')]
-    );
+            }
+        },
+        [
+            EditorCommands.DeleteSelection,
+            EditorCommands.JoinForward,
+            EditorCommands.SelectNodeForward,
+        ]
+    ));
 
-    extension.registerCommand(__buildEditorCommand(
-            {
-                id: 'editor-select-all',
+    extension.registerCommand(buildEditorCommand(
+        {
+            id: 'editor-select-all',
+            when: whenEditorReadonly,
+            shortcutOptions: {
+                commandArgs: getArguments,
+                shortcut: Shortcut.fromString(getPlatformShortcut('Ctrl+A', 'Meta+A')),
+                weight: ShortcutWeight.Editor,
                 when: whenEditorReadonly,
-            },
-            [
-                EditorCommands.SelectAll
-            ]
-        ), 
-        [getPlatformShortcut('Ctrl+A', 'Meta+A')]
-    );
+            }
+        },
+        [
+            EditorCommands.SelectAll
+        ]
+    ));
     
     // @fix Doesn't work with CM, guess bcz CM is focused but PM is not.
-    extension.registerCommand(__buildEditorCommand(
-            {
-                id: 'editor-exit-code-block',
+    extension.registerCommand(buildEditorCommand(
+        {
+            id: 'editor-exit-code-block',
+            when: whenEditorReadonly,
+            shortcutOptions: {
+                commandArgs: getArguments,
+                shortcut: Shortcut.fromString(getPlatformShortcut('Ctrl+Enter', 'Meta+Enter')),
+                weight: ShortcutWeight.Editor,
                 when: whenEditorReadonly,
-            },
-            [
-                EditorCommands.ExitCodeBlock
-            ]
-        ), 
-        [getPlatformShortcut('Ctrl+Enter', 'Meta+Enter')]
-    );
+            }
+        },
+        [
+            EditorCommands.ExitCodeBlock
+        ]
+    ));
 
-    extension.registerCommand(__buildEditorCommand(
-            {
-                id: 'editor-insert-hard-break',
+    extension.registerCommand(buildEditorCommand(
+        {
+            id: 'editor-insert-hard-break',
+            when: whenEditorWritable,
+            shortcutOptions: {
+                commandArgs: getArguments,
+                shortcut: [
+                    Shortcut.fromString('Shift+Enter'),
+                    Shortcut.fromString(getPlatformShortcut('Ctrl+Enter', 'Meta+Enter')),
+                ],
+                weight: ShortcutWeight.Editor,
                 when: whenEditorWritable,
-            },
-            [
-                EditorCommands.ExitCodeBlock,
-                EditorCommands.InsertHardBreak,
-            ]
-        ),
-        ['Shift+Enter', getPlatformShortcut('Ctrl+Enter', 'Meta+Enter')]
-    );
+            }
+        },
+        [
+            EditorCommands.ExitCodeBlock,
+            EditorCommands.InsertHardBreak,
+        ]
+    ));
     
-    extension.registerCommand(__buildEditorCommand(
-            {
-                id: 'editor-save',
+    extension.registerCommand(buildEditorCommand(
+        {
+            id: 'editor-save',
+            when: whenEditorWritable,
+            shortcutOptions: {
+                commandArgs: getArguments,
+                shortcut: Shortcut.fromString(getPlatformShortcut('Ctrl+S', 'Meta+S')),
+                weight: ShortcutWeight.Editor,
                 when: whenEditorWritable,
-            },
-            [
-                EditorCommands.FileSave,
-            ]
-        ),
-        [getPlatformShortcut('Ctrl+S', 'Meta+S')]
-    );
+            }
+        },
+        [
+            EditorCommands.FileSave,
+        ]
+    ));
     
-    extension.registerCommand(__buildEditorCommand(
-            {
-                id: 'editor-undo',
+    extension.registerCommand(buildEditorCommand(
+        {
+            id: 'editor-undo',
+            when: whenEditorWritable,
+            shortcutOptions: {
+                commandArgs: getArguments,
+                shortcut: Shortcut.fromString(getPlatformShortcut('Ctrl+Z', 'Meta+Z')),
+                weight: ShortcutWeight.Editor,
                 when: whenEditorWritable,
-            },
-            [
-                EditorCommands.FileUndo,
-            ]
-        ),
-        [getPlatformShortcut('Ctrl+Z', 'Meta+Z')]
-    );
+            }
+        },
+        [
+            EditorCommands.FileUndo,
+        ]
+    ));
     
-    extension.registerCommand(__buildEditorCommand(
-            {
-                id: 'editor-redo',
+    extension.registerCommand(buildEditorCommand(
+        {
+            id: 'editor-redo',
+            when: whenEditorWritable,
+            shortcutOptions: {
+                commandArgs: getArguments,
+                shortcut: Shortcut.fromString(getPlatformShortcut('Ctrl+Shift+Z', 'Meta+Shift+Z')),
+                weight: ShortcutWeight.Editor,
                 when: whenEditorWritable,
-            },
-            [
-                EditorCommands.FileRedo,
-            ]
-        ),
-        [getPlatformShortcut('Ctrl+Shift+Z', 'Meta+Shift+Z')]
-    );
-}
-
-function __buildEditorCommand(schema: ICommandSchema, ctors: (typeof Command<any>)[]): Command {
-    if (ctors.length === 1) {
-        const command = ctors[0]!;
-        return new command(schema);
-    }
-    return buildChainCommand(schema, ctors);
-}
-
-/**
- * @class A base class for every command in the {@link EditorCommandsBasic}.
- */
-export abstract class EditorCommandBase extends Command {
-    public abstract override run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean>;
+            }
+        },
+        [
+            EditorCommands.FileRedo,
+        ]
+    ));
 }
 
 /**
@@ -609,7 +662,7 @@ export namespace EditorCommands {
      * other block closer to this one in the tree structure. Will use the 
      * view for accurate start-of-textblock detection if given.
      */
-    export class joinForward extends EditorCommandBase {
+    export class JoinForward extends EditorCommandBase {
 
         public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             const $cursor = __atBlockEnd(state, view);
@@ -703,7 +756,7 @@ export namespace EditorCommands {
      * When the selection is empty and at the end of a textblock, select
      * the node coming after that textblock, if possible. This is intended
      * to be bound to keys like delete, after
-     * [`joinForward`](#commands.joinForward) and similar deleting
+     * [`JoinForward`](#commands.JoinForward) and similar deleting
      * commands, to provide a fall-back behavior when the schema doesn't
      * allow deletion at the selected point.
      */
