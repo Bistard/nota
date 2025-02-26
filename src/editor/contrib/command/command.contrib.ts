@@ -14,6 +14,7 @@ import { IS_MAC } from "src/base/common/platform";
 import { redo, undo } from "prosemirror-history";
 import { INotificationService } from "src/workbench/services/notification/notification";
 import { buildEditorCommand, EditorCommandBase } from "src/editor/contrib/command/editorCommand";
+import { registerListCommands } from "src/editor/contrib/command/commandList.contrib";
 
 /**
  * [FILE OUTLINE]
@@ -33,6 +34,7 @@ export function registerBasicEditorCommands(extension: IEditorCommandExtension, 
     __registerToggleMarkCommands(extension, logService);
     __registerHeadingCommands(extension, logService);
     __registerBasicCommands(extension);
+    registerListCommands(extension, logService);
 }
 
 function getPlatformShortcut(ctrl: string, meta: string): string {
