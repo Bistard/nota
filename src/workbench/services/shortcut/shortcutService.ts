@@ -117,7 +117,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
                     const ret = await trySafe<unknown | Promise<unknown>>(
                         () => {
                             const args = isFunction(candidate.commandArgs) ? candidate.commandArgs() : candidate.commandArgs;
-                            this.commandService.executeCommand<any>(candidate.commandID, ...args);
+                            return this.commandService.executeCommand<any>(candidate.commandID, ...args);
                         }, {
                             onError: err => logService.error('[ShortcutService]', `Error encounters. Executing shortcut '${pressed.toString()}' with command '${candidate?.commandID}'`, err)
                         }
@@ -135,8 +135,10 @@ export class ShortcutService extends Disposable implements IShortcutService {
         }));
 
         // When the browser side is ready, we update registrations by reading from disk.
-        lifecycleService.when(LifecyclePhase.Ready).then(() => this.__readConfigurationFromDisk());
-        this.__register(lifecycleService.onWillQuit((e) => e.join(this.__onApplicationClose())));
+        
+        // TODO: currently disabled, unable to store shortcut with provided arguments
+        // lifecycleService.when(LifecyclePhase.Ready).then(() => this.__readConfigurationFromDisk());
+        // this.__register(lifecycleService.onWillQuit((e) => e.join(this.__onApplicationClose())));
     }
 
     // [public methods]
