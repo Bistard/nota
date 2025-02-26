@@ -1,80 +1,17 @@
 import { canJoin, canSplit, liftTarget } from "prosemirror-transform";
-import { Shortcut } from "src/base/common/keyboard";
-import { ILogService } from "src/base/common/logger";
-import { EditorContextKeys } from "src/editor/common/editorContextKeys";
-import { TokenEnum } from "src/editor/common/markdown";
 import { ProseEditorState, ProseTransaction, ProseEditorView, ProseNodeType, ProseFragment, ProseSlice, ProseReplaceAroundStep, ProseNodeRange, ProseSelection, ProseNodeSelection, ProseAttrs } from "src/editor/common/proseMirror";
-import { IEditorCommandExtension } from "src/editor/contrib/command/command";
-import { EditorCommandArguments, EditorCommandBase } from "src/editor/contrib/command/editorCommand";
+import { EditorCommand } from "src/editor/contrib/command/editorCommand";
 import { IEditorWidget } from "src/editor/editorWidget";
 import { Command, ICommandSchema } from "src/platform/command/common/command";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { ShortcutWeight } from "src/workbench/services/shortcut/shortcutRegistrant";
-
-export function registerListCommands(extension: IEditorCommandExtension, logService: ILogService, getArguments: () => EditorCommandArguments): void {
-    const schema = extension.getEditorSchema().unwrap();
-
-    const listItemType = schema.getNodeType(TokenEnum.ListItem);
-    if (!listItemType) {
-        logService.warn(extension.id, `Cannot register the editor command (${TokenEnum.ListItem}) because the node type does not exists in the editor schema.`);
-        return;
-    }
-    
-    extension.registerCommand(
-        EditorListCommands.splitListItem(
-            { 
-                id: 'editor-split-list-item', 
-                when: EditorContextKeys.isEditorEditable,
-                shortcutOptions: {
-                    when: EditorContextKeys.isEditorEditable,
-                    weight: ShortcutWeight.Editor,
-                    shortcut: Shortcut.fromString('Enter'),
-                    commandArgs: getArguments,
-                }
-            }, 
-            listItemType,
-            undefined,
-        ), 
-    );
-    
-    extension.registerCommand(
-        EditorListCommands.sinkListItem(
-            { 
-                id: 'editor-sink-list-item', 
-                when: EditorContextKeys.isEditorEditable,
-                shortcutOptions: {
-                    when: EditorContextKeys.isEditorEditable,
-                    weight: ShortcutWeight.Editor,
-                    shortcut: Shortcut.fromString('Tab'),
-                    commandArgs: getArguments,
-                }
-            }, 
-            listItemType,
-        )
-    );
-    
-    extension.registerCommand(
-        EditorListCommands.liftListItem(
-            { 
-                id: 'editor-lift-list-item', 
-                when: EditorContextKeys.isEditorEditable,
-                shortcutOptions: {
-                    when: EditorContextKeys.isEditorEditable,
-                    weight: ShortcutWeight.Editor,
-                    shortcut: Shortcut.fromString('Shift+Tab'),
-                    commandArgs: getArguments,
-                }
-            }, 
-            listItemType,
-        )
-    );
-}
 
 export namespace EditorListCommands {
 
-    export function splitListItem<TType extends ProseNodeType>(schema: ICommandSchema, listItemType: TType, itemAttrs?: ProseAttrs): Command {
-        return new class extends EditorCommandBase {
-            public override run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean> {
+    export function splitListItem<TType extends ProseNodeType>(schema: ICommandSchema, getListItemType: () => TType, itemAttrs?: ProseAttrs): Command {
+        return new class extends EditorCommand {
+            protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean> {
+                const listItemType = getListItemType();
+                
                 const { $from, $to, node } = state.selection as ProseNodeSelection;
                 if ((node && node.isBlock) || $from.depth < 2 || !$from.sameParent($to)) {
                     return false;
@@ -153,9 +90,10 @@ export namespace EditorListCommands {
         }(schema);
     }
 
-    export function liftListItem<TType extends ProseNodeType>(schema: ICommandSchema, listItemType: TType): Command {
-        return new class extends EditorCommandBase {
-            public override run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean> {
+    export function liftListItem<TType extends ProseNodeType>(schema: ICommandSchema, getListItemType: () => TType): Command {
+        return new class extends EditorCommand {
+            protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean> {
+                const listItemType = getListItemType();
                 const { $from, $to } = state.selection;
                 const range = $from.blockRange($to, node => node.childCount > 0 && node.firstChild!.type === listItemType);
                 if (!range) {
@@ -250,9 +188,10 @@ export namespace EditorListCommands {
         }(schema);
     }
 
-    export function sinkListItem<TType extends ProseNodeType>(schema: ICommandSchema, listItemType: TType): Command {
-        return new class extends EditorCommandBase {
-            public override run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean> {
+    export function sinkListItem<TType extends ProseNodeType>(schema: ICommandSchema, getListItemType: () => TType): Command {
+        return new class extends EditorCommand {
+            protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean> {
+                const listItemType = getListItemType();
                 const { $from, $to } = state.selection;
                 const range = $from.blockRange($to, node => node.childCount > 0 && node.firstChild!.type === listItemType);
                 if (!range) {
