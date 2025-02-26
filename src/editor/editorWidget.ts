@@ -84,6 +84,11 @@ export interface IEditorWidget extends
     readonly onDidRenderModeChange: Register<EditorType>;
 
     /**
+     * Get a unique ID of the editor.
+     */
+    getID(): string;
+
+    /**
      * @description Opens the source in the editor.
      * @param source The source in URI form.
      * 
@@ -131,6 +136,9 @@ export interface IEditorWidget extends
 export class EditorWidget extends Disposable implements IEditorWidget {
 
     // region - [fields]
+
+    private static EDITOR_ID = 0;
+    private readonly _id: number = ++EditorWidget.EDITOR_ID;
 
     /**
      * The HTML container of the entire editor.
@@ -315,6 +323,8 @@ export class EditorWidget extends Disposable implements IEditorWidget {
 
     get readonly(): boolean { return !this._options.getOptions().writable.value; }
     get renderMode(): EditorType | null { return null; } // TODO
+
+    public getID(): string { return `editor-widget-${this._id}`; }
 
     // region - [public]
 
