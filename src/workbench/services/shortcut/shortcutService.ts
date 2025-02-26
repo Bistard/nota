@@ -97,7 +97,7 @@ export class ShortcutService extends Disposable implements IShortcutService {
         this._resource = URI.join(environmentService.appConfigurationPath, SHORTCUT_CONFIG_NAME);
 
         // listen to keyboard events
-        this.__register(keyboardService.onKeydown(e => {
+        this.__register(keyboardService.onKeydown(async e => {
             const pressed = new Shortcut(e.ctrl, e.shift, e.alt, e.meta, e.key);
 
             // filter out only the valid shortcuts
@@ -112,26 +112,25 @@ export class ShortcutService extends Disposable implements IShortcutService {
             }
 
             // Executing the corresponding commands based on priority
-            (async () => {
-                for (const candidate of validCandidates) {
-                    const ret = await trySafe<unknown | Promise<unknown>>(
-                        () => {
-                            const args = isFunction(candidate.commandArgs) ? candidate.commandArgs() : candidate.commandArgs;
-                            return this.commandService.executeCommand<any>(candidate.commandID, ...args);
-                        }, {
-                            onError: err => logService.error('[ShortcutService]', `Error encounters. Executing shortcut '${pressed.toString()}' with command '${candidate?.commandID}'`, err)
-                        }
-                    );
-
-                    /**
-                     * Let the client has a chance to return `true` if the 
-                     * shortcut is already handled.
-                     */
-                    if (ret === true) {
-                        break;
+            for (const candidate of validCandidates) {
+                const ret = await trySafe<unknown | Promise<unknown>>(
+                    () => {
+                        const args = isFunction(candidate.commandArgs) ? candidate.commandArgs() : candidate.commandArgs;
+                        return this.commandService.executeCommand<any>(candidate.commandID, ...args);
+                    }, {
+                        onError: err => logService.error('[ShortcutService]', `Error encounters. Executing shortcut '${pressed.toString()}' with command '${candidate?.commandID}'`, err)
                     }
+                );
+
+                /**
+                 * Let the client has a chance to return `true` if the 
+                 * shortcut is already handled.
+                 */
+                if (ret === true) {
+                    e.browserEvent.preventDefault();
+                    break;
                 }
-            })();
+            }
         }));
 
         // When the browser side is ready, we update registrations by reading from disk.
