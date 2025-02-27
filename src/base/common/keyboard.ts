@@ -534,7 +534,9 @@ export class Shortcut {
             } else if (lowerPart === 'meta' || lowerPart === 'cmd') {
                 shortcut.meta = true;
             } else {
+                // duplicate main key found, we consider it as invalid shortcut.
                 if (shortcut.key !== KeyCode.None) {
+                    console.warn(`Invalid shortcut string (${string})`);
                     return Shortcut.None;
                 }
 
@@ -542,6 +544,7 @@ export class Shortcut {
                 if (key !== KeyCode.None) {
                     shortcut.key = key;
                 } else {
+                    console.warn(`Invalid shortcut string (${string})`);
                     return Shortcut.None;
                 }
             }

@@ -1,253 +1,14 @@
-import type { IEditorCommandExtension } from "src/editor/contrib/command/command";
 import type { IEditorWidget } from "src/editor/editorWidget";
 import { ReplaceAroundStep, canJoin, canSplit, liftTarget, replaceStep } from "prosemirror-transform";
-import { ILogService } from "src/base/common/logger";
-import { MarkEnum, TokenEnum } from "src/editor/common/markdown";
+import { TokenEnum } from "src/editor/common/markdown";
 import { ProseEditorState, ProseTransaction, ProseAllSelection, ProseTextSelection, ProseNodeSelection, ProseEditorView, ProseReplaceStep, ProseSlice, ProseFragment, ProseNode, ProseSelection, ProseContentMatch, ProseMarkType, ProseAttrs, ProseSelectionRange, ProseNodeType, ProseResolvedPos, ProseCursor } from "src/editor/common/proseMirror";
 import { ProseTools } from "src/editor/common/proseUtility";
 import { EditorSchema } from "src/editor/model/schema";
-import { Command, ICommandSchema, buildChainCommand } from "src/platform/command/common/command";
-import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
+import { Command, ICommandSchema } from "src/platform/command/common/command";
 import { IServiceProvider } from "src/platform/instantiation/common/instantiation";
-import { EditorContextKeys } from "src/editor/common/editorContextKeys";
-import { IS_MAC } from "src/base/common/platform";
 import { redo, undo } from "prosemirror-history";
 import { INotificationService } from "src/workbench/services/notification/notification";
-
-/**
- * [FILE OUTLINE]
- * 
- * {@link registerBasicEditorCommands}
- * {@link EditorCommandBase}
- * {@link EditorCommands}
- */
-
-const whenEditorReadonly = CreateContextKeyExpr.And(EditorContextKeys.editorFocusedContext, EditorContextKeys.isEditorReadonly);
-const whenEditorWritable = CreateContextKeyExpr.And(EditorContextKeys.editorFocusedContext, EditorContextKeys.isEditorWritable);
-
-/**
- * @description A set of default editor command configurations.
- */
-export function registerBasicEditorCommands(extension: IEditorCommandExtension, logService: ILogService): void {
-    __registerToggleMarkCommands(extension, logService);
-    __registerHeadingCommands(extension, logService);
-    __registerOtherCommands(extension);
-}
-
-function getPlatformShortcut(ctrl: string, meta: string): string {
-    return IS_MAC ? meta : ctrl;
-}
-
-/**
- * @description Register Toggle Mark Commands.
- * @note These commands need to be constructed after the editor and schema 
- * are initialized.
- */
-function __registerToggleMarkCommands(extension: IEditorCommandExtension, logService: ILogService): void {
-    const schema = extension.getEditorSchema().unwrap();
-    const toggleMarkConfigs: [string, string, string][] = [
-        [MarkEnum.Strong,   'Ctrl+B', 'Meta+B'],
-        [MarkEnum.Em,       'Ctrl+I', 'Meta+I'],
-        [MarkEnum.Codespan, 'Ctrl+`', 'Meta+`'],
-    ];
-    for (const [markID, ctrl, meta] of toggleMarkConfigs) {
-        const toggleCmdID = `editor-toggle-mark-${markID}`;
-        const markType = schema.getMarkType(markID);
-        
-        if (!markType) {
-            logService.warn(extension.id, `Cannot register the editor command (${toggleCmdID}) because the mark type does not exists in the editor schema.`);
-            continue;
-        }
-
-        extension.registerCommand(
-            EditorCommands.createToggleMarkCommand(
-                { id: toggleCmdID, when: whenEditorWritable },
-                markType, 
-                null, // attrs
-                {
-                    removeWhenPresent: true,
-                    enterInlineAtoms: true,
-                }
-            ), 
-            [getPlatformShortcut(ctrl, meta)]
-        );
-    }
-}
-
-/**
- * @description Register Toggle Heading Commands. Ctrl+(1-6) will toggle the 
- * block into Heading block node.
- * @note These commands need to be constructed after the editor and schema 
- * are initialized.
- */
-function __registerHeadingCommands(extension: IEditorCommandExtension, logService: ILogService): void {
-    const schema = extension.getEditorSchema().unwrap();
-    const headingCmdID = 'editor-toggle-heading';
-    
-    const nodeType = schema.getNodeType(TokenEnum.Heading);
-    if (!nodeType) {
-        logService.warn(extension.id, `Cannot register the editor command (${headingCmdID}) because the token type does not exists in the editor schema.`);
-        return;
-    }
-
-    for (let level = 1; level <= 6; level++) {
-        const cmdID = `${headingCmdID}-${level}`;
-        extension.registerCommand(
-            EditorCommands.createSetBlockCommand(
-                { id: cmdID, when: whenEditorWritable },
-                nodeType,
-                { level: level }
-            ),
-            [getPlatformShortcut(`Ctrl+${level}`, `Meta+${level}`)]
-        );
-    }
-}
-
-function __registerOtherCommands(extension: IEditorCommandExtension): void {
-    extension.registerCommand(__buildEditorCommand(
-            { 
-                id: 'editor-esc', 
-                when: whenEditorReadonly,
-            }, 
-            [
-                EditorCommands.Unselect
-            ],
-        ), 
-        ['Escape']
-    );
-
-    extension.registerCommand(__buildEditorCommand(
-            { 
-                id: 'editor-enter', 
-                when: whenEditorWritable,
-            }, 
-            [
-                EditorCommands.InsertNewLineInCodeBlock,
-                EditorCommands.InsertEmptyParagraphAdjacentToBlock,
-                EditorCommands.LiftEmptyTextBlock,
-                EditorCommands.SplitBlockAtSelection,
-            ],
-        ), 
-        ['Enter']
-    );
-        
-    extension.registerCommand(__buildEditorCommand(
-            { 
-                id: 'editor-backspace', 
-                when: whenEditorWritable,
-            }, 
-            [
-                EditorCommands.DeleteSelection,
-                EditorCommands.JoinBackward,
-                EditorCommands.SelectNodeBackward,
-            ],
-        ), 
-        ['Backspace']
-    );
-
-    extension.registerCommand(__buildEditorCommand(
-            {
-                id: 'editor-delete',
-                when: whenEditorWritable,
-            },
-            [
-                EditorCommands.DeleteSelection,
-                EditorCommands.joinForward,
-                EditorCommands.SelectNodeForward,
-            ]
-        ), 
-        ['Delete', getPlatformShortcut('Ctrl+Delete', 'Meta+Delete')]
-    );
-
-    extension.registerCommand(__buildEditorCommand(
-            {
-                id: 'editor-select-all',
-                when: whenEditorReadonly,
-            },
-            [
-                EditorCommands.SelectAll
-            ]
-        ), 
-        [getPlatformShortcut('Ctrl+A', 'Meta+A')]
-    );
-    
-    // @fix Doesn't work with CM, guess bcz CM is focused but PM is not.
-    extension.registerCommand(__buildEditorCommand(
-            {
-                id: 'editor-exit-code-block',
-                when: whenEditorReadonly,
-            },
-            [
-                EditorCommands.ExitCodeBlock
-            ]
-        ), 
-        [getPlatformShortcut('Ctrl+Enter', 'Meta+Enter')]
-    );
-
-    extension.registerCommand(__buildEditorCommand(
-            {
-                id: 'editor-insert-hard-break',
-                when: whenEditorWritable,
-            },
-            [
-                EditorCommands.ExitCodeBlock,
-                EditorCommands.InsertHardBreak,
-            ]
-        ),
-        ['Shift+Enter', getPlatformShortcut('Ctrl+Enter', 'Meta+Enter')]
-    );
-    
-    extension.registerCommand(__buildEditorCommand(
-            {
-                id: 'editor-save',
-                when: whenEditorWritable,
-            },
-            [
-                EditorCommands.FileSave,
-            ]
-        ),
-        [getPlatformShortcut('Ctrl+S', 'Meta+S')]
-    );
-    
-    extension.registerCommand(__buildEditorCommand(
-            {
-                id: 'editor-undo',
-                when: whenEditorWritable,
-            },
-            [
-                EditorCommands.FileUndo,
-            ]
-        ),
-        [getPlatformShortcut('Ctrl+Z', 'Meta+Z')]
-    );
-    
-    extension.registerCommand(__buildEditorCommand(
-            {
-                id: 'editor-redo',
-                when: whenEditorWritable,
-            },
-            [
-                EditorCommands.FileRedo,
-            ]
-        ),
-        [getPlatformShortcut('Ctrl+Shift+Z', 'Meta+Shift+Z')]
-    );
-}
-
-function __buildEditorCommand(schema: ICommandSchema, ctors: (typeof Command<any>)[]): Command {
-    if (ctors.length === 1) {
-        const command = ctors[0]!;
-        return new command(schema);
-    }
-    return buildChainCommand(schema, ctors);
-}
-
-/**
- * @class A base class for every command in the {@link EditorCommandsBasic}.
- */
-export abstract class EditorCommandBase extends Command {
-    public abstract override run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean | Promise<boolean>;
-}
+import { EditorCommand } from "src/editor/contrib/command/editorCommand";
 
 /**
  * @description Contains a list of commands specific for editor. Every basic 
@@ -256,9 +17,9 @@ export abstract class EditorCommandBase extends Command {
  */
 export namespace EditorCommands {
 
-    export class Unselect extends EditorCommandBase {
+    export class Unselect extends EditorCommand {
         
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             const { $to } = state.selection;
             const tr = state.tr.setSelection(ProseTextSelection.create(state.doc, $to.pos));
             dispatch?.(tr);
@@ -267,9 +28,9 @@ export namespace EditorCommands {
         }
     }
 
-    export class SelectAll extends EditorCommandBase {
+    export class SelectAll extends EditorCommand {
 
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             if (!dispatch) {
                 return false;
             }
@@ -338,9 +99,9 @@ export namespace EditorCommands {
      * If the selection meets this criteria, the function replaces the selection 
      * with a newline character.
      */
-    export class InsertNewLineInCodeBlock extends EditorCommandBase {
+    export class InsertNewLineInCodeBlock extends EditorCommand {
 
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const { $head, $anchor } = state.selection;
             if (!$head.parent.type.spec.code || !$head.sameParent($anchor)) {
                 return false;
@@ -359,9 +120,9 @@ export namespace EditorCommands {
      * function adds a paragraph before the block node if it is the first child 
      * of its parent, otherwise, it adds a paragraph after the block node.
      */
-    export class InsertEmptyParagraphAdjacentToBlock extends EditorCommandBase {
+    export class InsertEmptyParagraphAdjacentToBlock extends EditorCommand {
 
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const { $from, $to } = state.selection;
 
             // Check if the selection is not suitable for paragraph insertion.
@@ -400,9 +161,9 @@ export namespace EditorCommands {
      * can be "lifted" (meaning moved out of its current context, like out of a 
      * list or a quote), the function performs this action.
      */
-    export class LiftEmptyTextBlock extends EditorCommandBase {
+    export class LiftEmptyTextBlock extends EditorCommand {
 
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             if (!(state.selection instanceof ProseTextSelection)) {
                 return false;
             }
@@ -444,9 +205,9 @@ export namespace EditorCommands {
      * the selection is within a block, the function divides the block into two 
      * at that point.
      */
-    export class SplitBlockAtSelection extends EditorCommandBase {
+    export class SplitBlockAtSelection extends EditorCommand {
 
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const { $from, $to } = state.selection;
 
             if (state.selection instanceof ProseNodeSelection && state.selection.node.isBlock) {
@@ -513,9 +274,9 @@ export namespace EditorCommands {
     /**
      * @description Delete the current selection.
      */
-    export class DeleteSelection extends EditorCommandBase {
+    export class DeleteSelection extends EditorCommand {
 
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             if (state.selection.empty) {
                 return false;
             }
@@ -535,9 +296,9 @@ export namespace EditorCommands {
      * the previous block. Will use the view for accurate (bidi-aware) start-of
      * -textblock detection if given.
      */
-    export class JoinBackward extends EditorCommandBase {
+    export class JoinBackward extends EditorCommand {
 
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             const $cursor = __atBlockStart(state, view);
             if (!$cursor) {
                 return false;
@@ -609,9 +370,9 @@ export namespace EditorCommands {
      * other block closer to this one in the tree structure. Will use the 
      * view for accurate start-of-textblock detection if given.
      */
-    export class joinForward extends EditorCommandBase {
+    export class JoinForward extends EditorCommand {
 
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             const $cursor = __atBlockEnd(state, view);
             if (!$cursor) {
                 return false;
@@ -668,9 +429,9 @@ export namespace EditorCommands {
      * or other deleting commands, as a fall-back behavior when the schema 
      * doesn't allow deletion at the selected point.
      */
-    export class SelectNodeBackward extends EditorCommandBase {
+    export class SelectNodeBackward extends EditorCommand {
 
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             const $head = state.selection.$head;
             const ifEmpty = state.selection.empty;
             
@@ -703,13 +464,13 @@ export namespace EditorCommands {
      * When the selection is empty and at the end of a textblock, select
      * the node coming after that textblock, if possible. This is intended
      * to be bound to keys like delete, after
-     * [`joinForward`](#commands.joinForward) and similar deleting
+     * [`JoinForward`](#commands.JoinForward) and similar deleting
      * commands, to provide a fall-back behavior when the schema doesn't
      * allow deletion at the selected point.
      */
-    export class SelectNodeForward extends EditorCommandBase {
+    export class SelectNodeForward extends EditorCommand {
 
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             const { empty } = state.selection;
             if (!empty) {
                 return false;
@@ -756,9 +517,9 @@ export namespace EditorCommands {
      *    insertion, it creates the new block at the position right after the 
      *    code block and moves the cursor into it.
      */
-    export class ExitCodeBlock extends EditorCommandBase {
+    export class ExitCodeBlock extends EditorCommand {
 
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             const { $head, $anchor } = state.selection;
             const isInCodeBlock = $head.parent.type.spec.code;
             const isSelectionCollapsed = $head.sameParent($anchor);
@@ -808,7 +569,7 @@ export namespace EditorCommands {
      */
     export function createToggleMarkCommand<TType extends ProseMarkType>(
         schema: ICommandSchema, 
-        markType: TType, 
+        getMarkType: () => TType, 
         attrs: ProseAttrs | null = null, 
         options?: {
             /**
@@ -837,8 +598,9 @@ export namespace EditorCommands {
         const removeWhenPresent = options?.removeWhenPresent ?? true;
         const enterAtoms = options?.enterInlineAtoms ?? true;
 
-        return new class extends EditorCommandBase {
-            public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+        return new class extends EditorCommand {
+            protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+                const markType = getMarkType();
                 const { empty, $cursor } = state.selection as ProseTextSelection;
                 let ranges = state.selection.ranges;
 
@@ -939,11 +701,12 @@ export namespace EditorCommands {
      */
     export function createSetBlockCommand<TType extends ProseNodeType>(
         schema: ICommandSchema, 
-        nodeType: TType, 
+        getNodeType: () => TType, 
         attrs: ProseAttrs | null = null
     ): Command {
-        return new class extends EditorCommandBase {
-            public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+        return new class extends EditorCommand {
+            protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+                const nodeType = getNodeType();
                 let applicable = false;
 
                 // Step 1: Check if the block type can be applied to any node in the selection ranges
@@ -997,9 +760,9 @@ export namespace EditorCommands {
         }(schema);
     }
 
-    export class InsertHardBreak extends EditorCommandBase {
+    export class InsertHardBreak extends EditorCommand {
 
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void): boolean {
             const br = (<EditorSchema>state.schema).getNodeType(TokenEnum.LineBreak);
             if (!br) {
                 return false;
@@ -1013,9 +776,9 @@ export namespace EditorCommands {
         }
     }
     
-    export class FileSave extends EditorCommandBase {
+    export class FileSave extends EditorCommand {
 
-        public run(provider: IServiceProvider, editor: IEditorWidget): boolean {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget): boolean {
             editor.save()
                 .match(
                     () => {},
@@ -1031,16 +794,16 @@ export namespace EditorCommands {
         }
     }
 
-    export class FileUndo extends EditorCommandBase {
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+    export class FileUndo extends EditorCommand {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             // const historyExtension = editor.getExtension(EditorExtensionIDs.History) as IEditorHistoryExtension;
             // return historyExtension['undo'](state, dispatch);
             return undo(state, dispatch, view);
         }
     }
     
-    export class FileRedo extends EditorCommandBase {
-        public run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
+    export class FileRedo extends EditorCommand {
+        protected __run(provider: IServiceProvider, editor: IEditorWidget, state: ProseEditorState, dispatch?: (tr: ProseTransaction) => void, view?: ProseEditorView): boolean {
             // const historyExtension = editor.getExtension(EditorExtensionIDs.History) as IEditorHistoryExtension;
             // return historyExtension['redo'](state, dispatch);
             return redo(state, dispatch, view);

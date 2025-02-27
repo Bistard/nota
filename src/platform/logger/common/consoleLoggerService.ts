@@ -51,13 +51,15 @@ export class ConsoleLogger extends AbstractLogger implements ILogger {
 
 	public error(reporter: string, message: string, error?: any, additional?: Additional): void {
 		if (this.getLevel() <= LogLevel.ERROR) {
-			console.error(prettyLog(this._ifUseColors, LogLevel.ERROR, this._description, reporter, message, error, additional).slice(0, -1));
+			console.error(prettyLog(this._ifUseColors, LogLevel.ERROR, this._description, reporter, message, undefined, additional).slice(0, -1));
+			console.error(error); // ensure the printed error is intractive instead of just plain-text
 		}
 	}
 
 	public fatal(reporter: string, message: string, error?: any, additional?: Additional): void {
 		if (this.getLevel() <= LogLevel.FATAL) {
-			console.error(prettyLog(this._ifUseColors, LogLevel.FATAL, this._description, reporter, message, error, additional).slice(0, -1));
+			console.error(prettyLog(this._ifUseColors, LogLevel.FATAL, this._description, reporter, message, undefined, additional).slice(0, -1));
+			console.error(error); // ensure the printed error is intractive instead of just plain-text
 		}
 	}
 

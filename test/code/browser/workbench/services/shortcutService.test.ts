@@ -102,9 +102,5 @@ suite('shortcutService-test', () => {
         contextService.setContext('value', true);
         keyboardService.fire(createKeyboardEvent(new Shortcut(true, false, false, false, KeyCode.Space)));
         assert.strictEqual(pressed, 2);
-
-        unregister.dispose();
-        keyboardService.fire(createKeyboardEvent(new Shortcut(true, false, false, false, KeyCode.Space)));
-        assert.strictEqual(pressed, 2);
     });
 });

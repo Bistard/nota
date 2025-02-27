@@ -4,6 +4,7 @@ import { Selection } from "prosemirror-state";
 export {
     Step as ProseStep,
     ReplaceStep as ProseReplaceStep,
+    ReplaceAroundStep as ProseReplaceAroundStep,
     Mapping as ProseMapping,
     StepMap as ProseStepMapping,
 } from "prosemirror-transform";
