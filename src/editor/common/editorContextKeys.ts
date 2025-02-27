@@ -4,9 +4,13 @@ import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr
 
 export namespace EditorContextKeys {
     export const editorFocusedContext = CreateContextKeyExpr.Equal('isEditorFocused', true);
-    export const isEditorReadonly = CreateContextKeyExpr.Equal('isEditorReadonly', true);
     export const isEditorWritable = CreateContextKeyExpr.Equal('isEditorWritable', true);
     export const isEditorEditable = CreateContextKeyExpr.And(editorFocusedContext, isEditorWritable);
+    export const isEditorReadonly = CreateContextKeyExpr.Or(
+        CreateContextKeyExpr.Equal('isEditorReadonly', true),
+        isEditorWritable,
+    );
+    export const isEditorNotEditable = CreateContextKeyExpr.And(editorFocusedContext, isEditorReadonly);
     export const richtextEditorMode = CreateContextKeyExpr.Equal('editorRenderMode', EditorType.Rich);
     export const plaintextEditorMode = CreateContextKeyExpr.Equal('editorRenderMode', EditorType.Plain);
     export const splitViewEditorMode = CreateContextKeyExpr.Equal('editorRenderMode', EditorType.Split);

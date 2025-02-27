@@ -100,7 +100,7 @@ export type GetRegistrantByType<T extends RegistrantType> = T extends (keyof Reg
 export function createRegister<T extends RegistrantType>(
     type: T, 
     description: string,
-    register: (registrant: GetRegistrantByType<T>) => void,
+    register: (registrant: GetRegistrantByType<T>, provider: IServiceProvider) => void,
 ): (provider: IServiceProvider) => void 
 {
     return (provider: IServiceProvider) => {
@@ -110,7 +110,7 @@ export function createRegister<T extends RegistrantType>(
         const service = provider.getOrCreateService(IRegistrantService);
         const registrant = service.getRegistrant(type);
         try {
-            register(registrant);
+            register(registrant, provider);
         } catch (error: any) {
             logService.error('createRegister', 'failed registering.', error, { type: type, description: description });
         }
