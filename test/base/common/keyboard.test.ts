@@ -100,6 +100,9 @@ suite('keyboard-test', () => {
             assert.strictEqual(Shortcut.fromString('PageDown').equal(new Shortcut(false, false, false, false, KeyCode.PageDown)), true);
             assert.strictEqual(Shortcut.fromString('CTrL+PageDown').equal(new Shortcut(true, false, false, false, KeyCode.PageDown)), true);
             assert.strictEqual(Shortcut.fromString('SHiFt+AlT+0').equal(new Shortcut(false, true, true, false, KeyCode.Digit0)), true);
+
+            // more cases
+            assert.strictEqual(Shortcut.fromString('Ctrl+A').equal(new Shortcut(true, false, false, false, KeyCode.KeyA)), true);
         });
 
         const enum KeyModifier {
