@@ -9,7 +9,6 @@ import { EditorCommands } from "src/editor/contrib/command/command.contrib";
 import { EditorListCommands } from "src/editor/contrib/command/listCommand.contrib";
 import { buildEditorCommand } from "src/editor/contrib/command/editorCommand";
 import { ICommandRegistrant } from "src/platform/command/common/commandRegistrant";
-import { CreateContextKeyExpr } from "src/platform/context/common/contextKeyExpr";
 import { createRegister, RegistrantType } from "src/platform/registrant/common/registrant";
 import { IEditorService } from "src/workbench/services/editor/editor";
 import { ShortcutWeight } from "src/workbench/services/shortcut/shortcutRegistrant";
@@ -26,7 +25,6 @@ export const rendererEditorCommandRegister = createRegister(
     }
 );
 
-const whenEditorReadonly = CreateContextKeyExpr.And(EditorContextKeys.editorFocusedContext, EditorContextKeys.isEditorReadonly);
 function getPlatformShortcut(ctrl: string, meta: string): string {
     return IS_MAC ? meta : ctrl;
 }
@@ -120,12 +118,12 @@ function __registerBasicCommands(registrant: ICommandRegistrant, editorService: 
     registrant.registerCommand(buildEditorCommand(
         { 
             id: 'editor-esc', 
-            when: whenEditorReadonly,
+            when: EditorContextKeys.isEditorNotEditable,
             shortcutOptions: {
                 commandArgs: [],
                 shortcut: Shortcut.fromString('Escape'),
                 weight: ShortcutWeight.Editor,
-                when: whenEditorReadonly,
+                when: EditorContextKeys.isEditorNotEditable,
             }
         }, 
         [
@@ -176,12 +174,12 @@ function __registerBasicCommands(registrant: ICommandRegistrant, editorService: 
     registrant.registerCommand(buildEditorCommand(
         {
             id: 'editor-select-all',
-            when: whenEditorReadonly,
+            when: EditorContextKeys.isEditorNotEditable,
             shortcutOptions: {
                 commandArgs: [],
                 shortcut: Shortcut.fromString(getPlatformShortcut('Ctrl+A', 'Meta+A')),
                 weight: ShortcutWeight.Editor,
-                when: whenEditorReadonly,
+                when: EditorContextKeys.isEditorNotEditable,
             }
         },
         [
@@ -193,12 +191,12 @@ function __registerBasicCommands(registrant: ICommandRegistrant, editorService: 
     registrant.registerCommand(buildEditorCommand(
         {
             id: 'editor-exit-code-block',
-            when: whenEditorReadonly,
+            when: EditorContextKeys.isEditorNotEditable,
             shortcutOptions: {
                 commandArgs: [],
                 shortcut: Shortcut.fromString(getPlatformShortcut('Ctrl+Enter', 'Meta+Enter')),
                 weight: ShortcutWeight.Editor,
-                when: whenEditorReadonly,
+                when: EditorContextKeys.isEditorNotEditable,
             }
         },
         [
